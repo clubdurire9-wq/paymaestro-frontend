@@ -1,0 +1,15 @@
+# Dossiers de dépendances et de build
+node_modules
+.next
+out
+build
+dist
+
+# Environnement
+.env*.local
+.env
+
+# Logs et fichiers système
+*.log
+.DS_Store
+.vscode

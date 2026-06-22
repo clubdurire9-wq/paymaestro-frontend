@@ -1,0 +1,302 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noResults": "No results found",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "withdraw": "Withdraw",
+    "history": "History",
+    "kyc": "Verification",
+    "profile": "Profile",
+    "support": "Support",
+    "login": "Sign in",
+    "logout": "Logout",
+    "admin": "Administration"
+  },
+  "home": {
+    "heroTitle": "PayPal to Mobile Money",
+    "heroSubtitle": "Withdraw your PayPal funds instantly to your Mobile Money account in Africa",
+    "heroCTA": "Get Started",
+    "features": {
+      "title": "Why choose PayMaestro?",
+      "fast": {
+        "title": "Fast Transfer",
+        "description": "Receive your money in less than 5 minutes"
+      },
+      "secure": {
+        "title": "100% Secure",
+        "description": "Identity verification and end-to-end encryption"
+      },
+      "rates": {
+        "title": "Real Rates",
+        "description": "Real-time exchange rates, no hidden markup"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "A dedicated team to assist you"
+      }
+    },
+    "calculator": {
+      "title": "Calculate your withdrawal",
+      "amount": "Amount in USD",
+      "currency": "Currency",
+      "youReceive": "You receive",
+      "fee": "PayMaestro fee (7%)",
+      "rate": "Exchange rate"
+    },
+    "countries": {
+      "title": "Available in 12 African countries",
+      "subtitle": "And more coming soon..."
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "loginWithGoogle": "Continue with Google",
+    "logout": "Logout",
+    "welcome": "Hello, {name}!",
+    "phoneVerification": "Phone Verification",
+    "enterPhone": "Enter your Mobile Money number",
+    "sendCode": "Send Code",
+    "verifyCode": "Verify Code",
+    "codeSent": "Code sent to {phone}",
+    "invalidCode": "Invalid code",
+    "phoneVerified": "Phone verified!"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Hello, {name}!",
+    "stats": {
+      "totalReceived": "Total Received",
+      "totalTransactions": "Withdrawals this month",
+      "successRate": "Success Rate",
+      "pendingTransactions": "Pending"
+    },
+    "chart": {
+      "title": "Withdrawal Trends",
+      "amount": "Amount",
+      "month": "Month"
+    },
+    "rates": {
+      "title": "Current Rates",
+      "updated": "Updated {time} ago"
+    },
+    "recentTransactions": {
+      "title": "Recent Transactions",
+      "viewAll": "View All"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "newWithdraw": "New Withdrawal",
+      "viewHistory": "History",
+      "verifyKYC": "Verify Identity"
+    }
+  },
+  "withdraw": {
+    "title": "New Withdrawal",
+    "steps": {
+      "currency": "Choose Currency",
+      "amount": "Amount",
+      "summary": "Summary",
+      "phone": "Mobile Money Number",
+      "confirm": "Confirmation"
+    },
+    "selectCurrency": "Select your currency",
+    "enterAmount": "Enter amount in USD",
+    "minAmount": "Minimum: ${min}",
+    "maxAmount": "Maximum: ${max}",
+    "youReceive": "You receive",
+    "breakdown": {
+      "title": "Withdrawal Details",
+      "grossAmount": "Gross Amount",
+      "platformFee": "PayMaestro Fee (7%)",
+      "netAmount": "Net Amount",
+      "exchangeRate": "Exchange Rate",
+      "estimatedArrival": "Estimated Arrival"
+    },
+    "enterPhone": "Mobile Money Number",
+    "phonePlaceholder": "+225 01 02 03 04 05",
+    "confirmButton": "Pay with PayPal",
+    "processing": "Redirecting to PayPal...",
+    "success": {
+      "title": "Withdrawal Initiated!",
+      "message": "Your withdrawal of ${amount} is being processed. You will receive {local} {currency} on your Mobile Money account.",
+      "track": "Track my withdrawal"
+    }
+  },
+  "history": {
+    "title": "Withdrawal History",
+    "filters": {
+      "all": "All Status",
+      "pending": "Pending",
+      "approved": "Confirmed",
+      "sent": "Sent",
+      "failed": "Failed",
+      "currency": "Currency",
+      "dateRange": "Date Range"
+    },
+    "table": {
+      "date": "Date",
+      "amount": "Amount",
+      "received": "Received",
+      "status": "Status",
+      "reference": "Reference",
+      "actions": "Actions"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "PAYPAL_APPROVED": "PayPal Confirmed",
+      "MOBILE_MONEY_SENT": "Money Sent",
+      "FAILED": "Failed"
+    },
+    "detail": {
+      "title": "Withdrawal Details",
+      "transactionId": "Transaction ID",
+      "paypalOrderId": "PayPal Order ID",
+      "flutterwaveReference": "Flutterwave Reference",
+      "grossAmount": "Gross Amount",
+      "fee": "Fee",
+      "netAmount": "Net Amount",
+      "receivedAmount": "Received Amount",
+      "exchangeRate": "Applied Rate",
+      "status": "Status",
+      "error": "Error",
+      "timeline": "Timeline",
+      "processingTime": "Processing Time"
+    },
+    "export": "Export",
+    "empty": "No transactions yet"
+  },
+  "kyc": {
+    "title": "Identity Verification",
+    "status": {
+      "NONE": "Not Verified",
+      "PENDING_AI": "Analyzing...",
+      "PENDING_HUMAN": "Pending Review",
+      "APPROVED": "Verified",
+      "REJECTED": "Rejected"
+    },
+    "upload": {
+      "title": "Upload your ID document",
+      "dragDrop": "Drag & drop your document here",
+      "or": "or",
+      "browse": "Browse",
+      "accepted": "Passport, National ID, Driver's License, Voter Card",
+      "maxSize": "Maximum size: 10 MB",
+      "tips": {
+        "title": "Tips for quick validation",
+        "clear": "Clear and well-lit photo",
+        "corners": "All 4 corners visible",
+        "noFlash": "No flash or reflections",
+        "valid": "Valid (not expired) document"
+      }
+    },
+    "selectType": {
+      "title": "Document Type",
+      "passport": "Passport",
+      "nationalId": "National ID Card",
+      "drivingLicense": "Driver's License",
+      "voterCard": "Voter Card"
+    },
+    "submit": "Submit Document",
+    "submitting": "Uploading...",
+    "analyzing": "AI Analysis in progress...",
+    "approved": {
+      "title": "Identity Verified!",
+      "message": "You can now make unlimited withdrawals."
+    },
+    "rejected": {
+      "title": "Document Not Validated",
+      "message": "Reason: {reason}",
+      "retry": "Try with another document"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": {
+      "title": "Personal Information",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "memberSince": "Member since"
+    },
+    "wallets": {
+      "title": "Mobile Money Wallets",
+      "add": "Add Number",
+      "default": "Default",
+      "setDefault": "Set as Default",
+      "delete": "Delete"
+    },
+    "security": {
+      "title": "Security",
+      "twoFactor": "Two-Factor Authentication",
+      "sessions": "Active Sessions",
+      "changeEmail": "Change Email"
+    },
+    "stats": {
+      "title": "My Statistics",
+      "totalRetraits": "Withdrawals",
+      "totalVolume": "Volume",
+      "successRate": "Success"
+    }
+  },
+  "chatbot": {
+    "title": "PayMaestro Assistant",
+    "placeholder": "Type your message...",
+    "greeting": "Hello {name}! 👋 How can I help you today?",
+    "typing": "Typing...",
+    "suggestions": [
+      "What's today's rate?",
+      "How do I withdraw?",
+      "My transfer is stuck",
+      "What documents for KYC?"
+    ]
+  },
+  "admin": {
+    "title": "Administration",
+    "sidebar": {
+      "dashboard": "Overview",
+      "kyc": "KYC Validation",
+      "transactions": "Transactions",
+      "users": "Users",
+      "stats": "Statistics"
+    },
+    "kyc": {
+      "title": "Pending KYC",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reason": "Rejection Reason",
+      "confidence": "AI Confidence"
+    },
+    "users": {
+      "title": "User Management",
+      "search": "Search User",
+      "ban": "Ban",
+      "unban": "Unban",
+      "banReason": "Ban Reason"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "transferSuccess": "✅ ${amount} withdrawal successful!",
+    "transferFailed": "❌ ${amount} withdrawal failed",
+    "kycApproved": "✅ Your identity has been verified!",
+    "kycRejected": "⚠️ Your document was not validated",
+    "newFeature": "🚀 New feature available!"
+  }
+}
