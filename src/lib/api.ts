@@ -156,7 +156,7 @@ export interface Transaction {
 }
 
 export interface Stats {
-  totalReceived: number; // in USD
+  totalReceived: number;
   totalTransactions: number;
   successRate: number;
   pendingTransactions: number;
@@ -184,7 +184,7 @@ export interface Wallet {
 export interface LiveRate {
   currency: string;
   name: string;
-  rate: number; // 1 USD = X Local Currency
+  rate: number;
   flag: string;
 }
 
@@ -216,7 +216,7 @@ export const WalletSchema = z.object({
 });
 
 // ==========================================
-// LIVE EXCHANGE RATES
+// LIVE EXCHANGE RATES (FALLBACK)
 // ==========================================
 
 export const LIVE_RATES: LiveRate[] = [
@@ -228,17 +228,21 @@ export const LIVE_RATES: LiveRate[] = [
 ];
 
 // ==========================================
-// MOCK DATABASE & LOCALSTORAGE FALLBACK
+// API CONFIGURATION
 // ==========================================
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1').replace(/\/$/, '');
+
+// ==========================================
+// MOCK DATABASE & LOCALSTORAGE FALLBACK
+// ==========================================
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
     id: 'TX-892401',
-    date: new Date(Date.now() - 3600000 * 4).toISOString(), // 4h ago
+    date: new Date(Date.now() - 3600000 * 4).toISOString(),
     amountUSD: 120.00,
-    receivedAmount: 68400, // (120 - 7%) * 612.5
+    receivedAmount: 68400,
     currency: 'XOF',
     status: 'MOBILE_MONEY_SENT',
     reference: 'REF-MTN-94021',
@@ -254,9 +258,9 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'TX-892398',
-    date: new Date(Date.now() - 86400000 * 1.5).toISOString(), // 1.5 days ago
+    date: new Date(Date.now() - 86400000 * 1.5).toISOString(),
     amountUSD: 50.00,
-    receivedAmount: 688.2, // (50 - 7%) * 14.8
+    receivedAmount: 688.2,
     currency: 'GHS',
     status: 'MOBILE_MONEY_SENT',
     reference: 'REF-WAVE-88204',
@@ -272,9 +276,9 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'TX-892392',
-    date: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+    date: new Date(Date.now() - 86400000 * 3).toISOString(),
     amountUSD: 250.00,
-    receivedAmount: 30039, // (250 - 7%) * 129.2
+    receivedAmount: 30039,
     currency: 'KES',
     status: 'PENDING',
     reference: 'REF-MPESA-22041',
@@ -287,9 +291,9 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'TX-892381',
-    date: new Date(Date.now() - 86400000 * 7).toISOString(), // 7 days ago
+    date: new Date(Date.now() - 86400000 * 7).toISOString(),
     amountUSD: 80.00,
-    receivedAmount: 114268, // (80 - 7%) * 1540
+    receivedAmount: 114268,
     currency: 'NGN',
     status: 'FAILED',
     reference: 'REF-AIRTEL-55012',
@@ -331,103 +335,110 @@ const setLocalStorageData = <T>(key: string, data: T): void => {
 export const api = {
   // --- AUTHENTICATION ---
   getCurrentUser: async () => {
-    // Read from localStorage (real session data)
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem('pm_auth_user');
       if (raw) {
-        try {
-          return JSON.parse(raw);
-        } catch {}
+        try { return JSON.parse(raw); } catch {}
       }
     }
     return null;
   },
 
-  // --- STATISTICS ---
+  // --- STATISTICS (via /dashboard/stats) ---
   getStats: async (): Promise<Stats> => {
     try {
-      const res = await fetch(`${API_URL}/stats`);
-      if (res.ok) return await res.json();
+      const res = await fetch(`${API_URL}/dashboard/stats`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          return {
+            totalReceived: parseFloat(data.data.financials?.totalVolumeUSD || 0),
+            totalTransactions: data.data.overview?.successfulTransactions || 0,
+            successRate: parseFloat(data.data.overview?.successRate || 0),
+            pendingTransactions: data.data.overview?.pendingTransactions || 0,
+          };
+        }
+      }
     } catch (e) {
-      // Offline fallback
+      console.warn('⚠️ Backend offline, using mock stats');
     }
 
     const txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
     const successfulTxs = txs.filter((t) => t.status === 'MOBILE_MONEY_SENT');
     const pendingTxs = txs.filter((t) => t.status === 'PENDING' || t.status === 'PAYPAL_APPROVED');
     const totalReceived = successfulTxs.reduce((acc, curr) => acc + curr.amountUSD, 0);
-
-    const totalTransactions = successfulTxs.length;
     const totalAttempted = txs.filter((t) => t.status !== 'PENDING').length;
     const successRate = totalAttempted > 0 ? (successfulTxs.length / totalAttempted) * 100 : 100;
 
     return {
       totalReceived,
-      totalTransactions,
+      totalTransactions: successfulTxs.length,
       successRate,
       pendingTransactions: pendingTxs.length,
     };
   },
 
-  // --- TRANSACTIONS ---
+  // --- TRANSACTIONS (via /dashboard/transactions) ---
   getTransactions: async (filters?: { status?: string; currency?: string }): Promise<Transaction[]> => {
     try {
-      let query = '';
-      if (filters) {
-        const params = new URLSearchParams(filters);
-        query = `?${params.toString()}`;
+      const params = new URLSearchParams();
+      if (filters?.status && filters.status !== 'ALL') params.append('status', filters.status);
+      if (filters?.currency && filters.currency !== 'ALL') params.append('currency', filters.currency);
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const res = await fetch(`${API_URL}/dashboard/transactions${query}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
       }
-      const res = await fetch(`${API_URL}/transactions${query}`);
-      if (res.ok) return await res.json();
     } catch (e) {
-      // Offline fallback
+      console.warn('⚠️ Backend offline, using mock transactions');
     }
 
     let txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
-
-    // Apply filters
     if (filters?.status && filters.status !== 'ALL') {
       txs = txs.filter((t) => t.status === filters.status);
     }
     if (filters?.currency && filters.currency !== 'ALL') {
       txs = txs.filter((t) => t.currency === filters.currency);
     }
-
-    // Sort by date descending
     return txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   },
 
   getTransactionById: async (id: string): Promise<Transaction | null> => {
     try {
-      const res = await fetch(`${API_URL}/transactions/${id}`);
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
+      const res = await fetch(`${API_URL}/dashboard/transactions/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
 
     const txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
     return txs.find((t) => t.id === id) || null;
   },
 
-  // --- ORDER CREATION (WITHDRAW) ---
+  // --- ORDER CREATION (via /payments/create-order) ---
   createOrder: async (data: { amountUSD: number; currency: string; phone: string }): Promise<Transaction> => {
-    // Validate payload
     const parsed = WithdrawSchema.parse(data);
 
     try {
-      const res = await fetch(`${API_URL}/orders`, {
+      const res = await fetch(`${API_URL}/payments/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({
+          amountUSD: parsed.amountUSD,
+          currencyCode: parsed.currency,
+          phoneNumber: parsed.phone,
+          userEmail: 'user@paymaestro.com',
+        }),
       });
       if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
+    } catch (e) {}
 
+    // Fallback mock
     const ratesMap = new Map(LIVE_RATES.map((r) => [r.currency, r.rate]));
     const exchangeRate = ratesMap.get(parsed.currency) || 612.5;
-    const netUSD = parsed.amountUSD * 0.93; // 7% fee
+    const netUSD = parsed.amountUSD * 0.93;
     const receivedAmount = Math.round(netUSD * exchangeRate);
 
     const newTx: Transaction = {
@@ -450,31 +461,20 @@ export const api = {
     txs.unshift(newTx);
     setLocalStorageData('pm_transactions', txs);
 
-    // Simulate PayPal process and automatic payout after 10 seconds for user experience
     setTimeout(() => {
       const currentTxs = getLocalStorageData<Transaction[]>('pm_transactions', []);
       const match = currentTxs.find((t) => t.id === newTx.id);
       if (match) {
         match.status = 'PAYPAL_APPROVED';
-        match.timeline.push({
-          status: 'PAYPAL_APPROVED',
-          timestamp: new Date().toISOString(),
-          description: 'Paiement PayPal validé par le système.',
-        });
+        match.timeline.push({ status: 'PAYPAL_APPROVED', timestamp: new Date().toISOString(), description: 'Paiement PayPal validé.' });
         setLocalStorageData('pm_transactions', currentTxs);
-
-        // 10 more seconds to deliver Mobile Money
         setTimeout(() => {
           const finalTxs = getLocalStorageData<Transaction[]>('pm_transactions', []);
           const finalMatch = finalTxs.find((t) => t.id === newTx.id);
           if (finalMatch) {
             finalMatch.status = 'MOBILE_MONEY_SENT';
-            finalMatch.flutterwaveReference = `FLW-LIVE-${Math.floor(100000 + Math.random() * 900000)}`;
-            finalMatch.timeline.push({
-              status: 'MOBILE_MONEY_SENT',
-              timestamp: new Date().toISOString(),
-              description: 'Fonds transférés avec succès sur Mobile Money.',
-            });
+            finalMatch.flutterwaveReference = `FLW-${Math.floor(100000 + Math.random() * 900000)}`;
+            finalMatch.timeline.push({ status: 'MOBILE_MONEY_SENT', timestamp: new Date().toISOString(), description: 'Fonds transférés sur Mobile Money.' });
             setLocalStorageData('pm_transactions', finalTxs);
           }
         }, 10000);
@@ -484,15 +484,15 @@ export const api = {
     return newTx;
   },
 
-  // --- KYC ---
+  // --- KYC (via /kyc) ---
   getKYCStatus: async (): Promise<KYCDetails> => {
     try {
-      const res = await fetch(`${API_URL}/kyc`);
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
-
+      const res = await fetch(`${API_URL}/kyc/status`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
     return getLocalStorageData<KYCDetails>('pm_kyc', { status: 'NONE' });
   },
 
@@ -500,37 +500,24 @@ export const api = {
     try {
       const formData = new FormData();
       formData.append('documentType', documentType);
-      formData.append('file', file);
-      const res = await fetch(`${API_URL}/kyc`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
+      formData.append('document', file);
+      const res = await fetch(`${API_URL}/kyc/upload`, { method: 'POST', body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
 
-    const newKyc: KYCDetails = {
-      status: 'PENDING_AI',
-      documentType,
-      submittedAt: new Date().toISOString(),
-    };
-
+    const newKyc: KYCDetails = { status: 'PENDING_AI', documentType, submittedAt: new Date().toISOString() };
     setLocalStorageData('pm_kyc', newKyc);
-
-    // Simulate AI document check
     setTimeout(() => {
       const currentKyc = getLocalStorageData<KYCDetails>('pm_kyc', { status: 'NONE' });
       if (currentKyc.status === 'PENDING_AI') {
-        const approved = Math.random() > 0.3; // 70% approval rate for mock demo
-        currentKyc.status = approved ? 'APPROVED' : 'REJECTED';
-        if (!approved) {
-          currentKyc.reason = 'Le document d\'identité est expiré ou flou.';
-        }
+        currentKyc.status = Math.random() > 0.3 ? 'APPROVED' : 'REJECTED';
+        if (currentKyc.status === 'REJECTED') currentKyc.reason = 'Document illisible ou expiré.';
         setLocalStorageData('pm_kyc', currentKyc);
       }
     }, 8000);
-
     return newKyc;
   },
 
@@ -540,42 +527,38 @@ export const api = {
     return kyc;
   },
 
-  // --- WALLETS ---
+  // --- WALLETS (via /dashboard/wallets) ---
   getWallets: async (): Promise<Wallet[]> => {
     try {
-      const res = await fetch(`${API_URL}/wallets`);
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
-
+      const res = await fetch(`${API_URL}/dashboard/wallets`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
     return getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
   },
 
   addWallet: async (data: { phone: string; operator: MobileOperator }): Promise<Wallet> => {
     const parsed = WalletSchema.parse(data);
-
     try {
-      const res = await fetch(`${API_URL}/wallets`, {
+      const res = await fetch(`${API_URL}/dashboard/wallets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({ phoneNumber: parsed.phone, currencyCode: 'XOF' }),
       });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
+      if (res.ok) {
+        const d = await res.json();
+        if (d.success && d.data) return d.data;
+      }
+    } catch (e) {}
 
     const wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-
     let countryCode = '+225';
-    if (parsed.phone.startsWith('+')) {
-      if (parsed.phone.startsWith('+225')) countryCode = '+225';
-      else if (parsed.phone.startsWith('+233')) countryCode = '+233';
-      else if (parsed.phone.startsWith('+254')) countryCode = '+254';
-      else if (parsed.phone.startsWith('+234')) countryCode = '+234';
-      else if (parsed.phone.startsWith('+221')) countryCode = '+221';
-    }
+    if (parsed.phone.startsWith('+233')) countryCode = '+233';
+    else if (parsed.phone.startsWith('+254')) countryCode = '+254';
+    else if (parsed.phone.startsWith('+234')) countryCode = '+234';
+    else if (parsed.phone.startsWith('+221')) countryCode = '+221';
 
     const newWallet: Wallet = {
       id: `W-${Math.floor(10 + Math.random() * 90)}`,
@@ -584,7 +567,6 @@ export const api = {
       isDefault: wallets.length === 0,
       countryCode,
     };
-
     wallets.push(newWallet);
     setLocalStorageData('pm_wallets', wallets);
     return newWallet;
@@ -592,43 +574,26 @@ export const api = {
 
   deleteWallet: async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_URL}/wallets/${id}`, { method: 'DELETE' });
-      if (res.ok) return true;
-    } catch (e) {
-      // Offline fallback
-    }
-
+      await fetch(`${API_URL}/dashboard/wallets/${id}`, { method: 'DELETE' });
+    } catch (e) {}
     let wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-    const wasDefault = wallets.find((w) => w.id === id)?.isDefault;
     wallets = wallets.filter((w) => w.id !== id);
-
-    if (wasDefault && wallets.length > 0) {
-      wallets[0].isDefault = true;
-    }
-
+    if (wallets.length > 0) wallets[0].isDefault = true;
     setLocalStorageData('pm_wallets', wallets);
     return true;
   },
 
   setDefaultWallet: async (id: string): Promise<Wallet | null> => {
     try {
-      const res = await fetch(`${API_URL}/wallets/${id}/default`, { method: 'PATCH' });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      // Offline fallback
-    }
-
+      const res = await fetch(`${API_URL}/dashboard/wallets/${id}/default`, { method: 'PUT' });
+      if (res.ok) {
+        const d = await res.json();
+        if (d.success && d.data) return d.data;
+      }
+    } catch (e) {}
     const wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
     let updated: Wallet | null = null;
-    wallets.forEach((w) => {
-      if (w.id === id) {
-        w.isDefault = true;
-        updated = w;
-      } else {
-        w.isDefault = false;
-      }
-    });
-
+    wallets.forEach((w) => { w.isDefault = w.id === id; if (w.id === id) updated = w; });
     setLocalStorageData('pm_wallets', wallets);
     return updated;
   },
@@ -637,14 +602,14 @@ export const api = {
   rates: {
     all: async () => {
       const res = await fetch(`${API_URL}/rates`);
-      if (!res.ok) throw new Error('Failed to fetch rates from backend');
+      if (!res.ok) throw new Error('Failed to fetch rates');
       return await res.json();
     }
   },
   payments: {
     estimate: async (amountUSD: number, currency: string) => {
-      const res = await fetch(`${API_URL}/payments/estimate?amount=${amountUSD}&currency=${currency}`);
-      if (!res.ok) throw new Error('Failed to get estimate from backend');
+      const res = await fetch(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currency}`);
+      if (!res.ok) throw new Error('Failed to get estimate');
       return await res.json();
     }
   },
@@ -653,22 +618,20 @@ export const api = {
       const res = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: accessToken }),
+        body: JSON.stringify({ idToken: accessToken }),
       });
-      if (!res.ok) throw new Error('Failed to authenticate with Google on backend');
+      if (!res.ok) throw new Error('Failed to authenticate');
       return await res.json();
     }
   },
 
   // --- ONBOARDING ---
   sendOTP: async (phone: string): Promise<{ success: boolean; message: string }> => {
-    // Simulate sending OTP
     await new Promise((resolve) => setTimeout(resolve, 1500));
     return { success: true, message: `Code envoyé au ${phone}` };
   },
 
   verifyOTP: async (phone: string, code: string): Promise<{ success: boolean; message: string }> => {
-    // Simulate OTP verification — accept any 6-digit code
     await new Promise((resolve) => setTimeout(resolve, 1200));
     if (code.length === 6 && /^\d{6}$/.test(code)) {
       return { success: true, message: 'Numéro vérifié avec succès' };
@@ -676,40 +639,17 @@ export const api = {
     return { success: false, message: 'Code invalide. Veuillez réessayer.' };
   },
 
-  validateDocumentAI: async (
-    file: File,
-    fullName: string
-  ): Promise<{ valid: boolean; detectedName: string; confidence: number; reason?: string }> => {
-    // Simulate AI document validation with a delay
+  validateDocumentAI: async (file: File, fullName: string): Promise<{ valid: boolean; detectedName: string; confidence: number; reason?: string }> => {
     await new Promise((resolve) => setTimeout(resolve, 3500));
-
-    const confidence = 0.7 + Math.random() * 0.3; // Between 70% and 100%
-    const approved = Math.random() > 0.25; // 75% approval rate
-
-    if (approved) {
-      return {
-        valid: true,
-        detectedName: fullName, // Simulate matched name
-        confidence: parseFloat(confidence.toFixed(2)),
-      };
-    } else {
-      // Simulate a mismatch or unreadable document
-      const reasons = [
-        'Le nom sur le document ne correspond pas au nom fourni.',
-        'Le document est illisible ou de mauvaise qualité.',
-        'Le document semble expiré.',
-      ];
-      return {
-        valid: false,
-        detectedName: 'Non détecté',
-        confidence: parseFloat((Math.random() * 0.4 + 0.1).toFixed(2)),
-        reason: reasons[Math.floor(Math.random() * reasons.length)],
-      };
+    const confidence = 0.7 + Math.random() * 0.3;
+    if (Math.random() > 0.25) {
+      return { valid: true, detectedName: fullName, confidence: parseFloat(confidence.toFixed(2)) };
     }
+    const reasons = ['Le nom ne correspond pas.', 'Document illisible.', 'Document expiré.'];
+    return { valid: false, detectedName: 'Non détecté', confidence: parseFloat((Math.random() * 0.4 + 0.1).toFixed(2)), reason: reasons[Math.floor(Math.random() * reasons.length)] };
   },
 
   updateUserProfile: async (data: Record<string, any>): Promise<any> => {
-    // Merge into localStorage user
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem('pm_auth_user');
       if (raw) {
@@ -725,7 +665,10 @@ export const api = {
   },
 };
 
-// Taux de change en direct depuis le backend
+// ==========================================
+// TAUX DE CHANGE EN DIRECT
+// ==========================================
+
 export async function fetchLiveRates(): Promise<any[]> {
   try {
     const res = await api.rates.all();
@@ -758,4 +701,3 @@ export function getFlagEmoji(currencyCode: string): string {
   };
   return flags[currencyCode] || '🌍';
 }
-
