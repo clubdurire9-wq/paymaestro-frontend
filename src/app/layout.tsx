@@ -1,10 +1,14 @@
-import { ReactNode } from 'react';
+﻿import type { Metadata } from 'next';
 
-type Props = {
-  children: ReactNode;
+export const metadata: Metadata = {
+  title: 'PayMaestro',
+  description: 'PayPal vers Mobile Money en Afrique',
 };
 
-// Minimal root layout required by Next.js for the root redirect page
-export default function RootLayout({ children }: Props) {
-  return children;
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  );
 }

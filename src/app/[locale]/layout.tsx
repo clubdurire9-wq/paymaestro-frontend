@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { ToastProvider } from '@/hooks/useToast';
 import ChatWidget from '@/components/chatbot/ChatWidget';
+import { OnboardingGuard } from '@/middleware/onboarding-guard';
 import '../globals.css';
 
 export const metadata: Metadata = {
@@ -57,9 +58,11 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages} locale={locale}>
           <GoogleAuthProvider>
             <ToastProvider>
-              <Header />
-              <main style={{ minHeight: '80vh' }}>{children}</main>
-              <Footer />
+              <OnboardingGuard>
+                <Header />
+                <main style={{ minHeight: '80vh' }}>{children}</main>
+                <Footer />
+              </OnboardingGuard>
               <ChatWidget />
             </ToastProvider>
           </GoogleAuthProvider>

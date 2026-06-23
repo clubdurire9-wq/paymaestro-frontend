@@ -27,8 +27,8 @@ export default function LoginPage() {
     try {
       await login(); // déclenche useGoogleLogin() → popup Google
       // La redirection se fait après que l'utilisateur se connecte
-      // on attend un court délai puis on redirige
-      setTimeout(() => router.push(`/${locale}/dashboard`), 500);
+      // Redirection vers la vérification du téléphone
+      setTimeout(() => router.push(`/${locale}/verify-phone`), 500);
     } catch {
       setIsGoogleLoading(false);
     }
@@ -38,7 +38,7 @@ export default function LoginPage() {
   const handleDemoLogin = () => {
     setIsDemoLoading(true);
     loginMock();
-    router.push(`/${locale}/dashboard`);
+    router.push(`/${locale}/verify-phone`);
   };
 
   return (

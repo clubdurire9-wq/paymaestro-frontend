@@ -18,10 +18,12 @@ import {
   Loader2,
   ShieldCheck,
   Settings,
+  ShieldAlert,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { useAuth } from '@/hooks/useAuth';
+import { isAdminEmail } from '@/hooks/useAdmin';
 
 export default function Header() {
   const t = useTranslations('nav');
@@ -31,12 +33,18 @@ export default function Header() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { user, isAuthenticated, isLoading, login, loginMock, logout } = useAuth();
 
+  // Vérification admin basée sur la liste blanche
+  const isAdmin = isAdminEmail(user?.email);
+
+  // Navigation items avec ajout conditionnel du lien Admin
   const navItems = [
     { href: `/${locale}/dashboard`, label: t('dashboard'), icon: LayoutDashboard },
     { href: `/${locale}/withdraw`, label: t('withdraw'), icon: ArrowUpRight },
     { href: `/${locale}/history`, label: t('history'), icon: History },
     { href: `/${locale}/kyc`, label: t('kyc'), icon: UserCheck },
     { href: `/${locale}/profile`, label: t('profile'), icon: User },
+    // Ajout conditionnel du lien Admin pour les utilisateurs de la liste blanche
+    ...(isAdmin ? [{ href: `/${locale}/admin`, label: '🔒 Admin', icon: ShieldAlert }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -106,11 +114,13 @@ export default function Header() {
                       flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
                       ${active
                         ? 'bg-violet-50 text-violet-700'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        : item.href.includes('/admin')
+                          ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                       }
                     `}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className={`w-4 h-4 ${item.href.includes('/admin') ? 'text-amber-500' : ''}`} />
                     {item.label}
                   </Link>
                 );
@@ -148,6 +158,12 @@ export default function Header() {
                   <div className="px-4 py-3 border-b border-slate-100">
                     <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
                     <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                    {isAdmin && (
+                      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">
+                        <ShieldAlert className="w-3 h-3" />
+                        Admin
+                      </span>
+                    )}
                   </div>
                   <div className="p-1.5">
                     <Link
@@ -157,13 +173,15 @@ export default function Header() {
                       <User className="w-4 h-4" />
                       Mon profil
                     </Link>
-                    <Link
-                      href={`/${locale}/admin`}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Administration
-                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href={`/${locale}/admin`}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                      >
+                        <ShieldAlert className="w-4 h-4" />
+                        Administration
+                      </Link>
+                    )}
                     <button
                       onClick={logout}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"
@@ -245,6 +263,12 @@ export default function Header() {
                 {user.kycStatus === 'APPROVED' && <ShieldCheck className="w-3 h-3" />}
                 {kycBadgeLabel}
               </p>
+              {isAdmin && (
+                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">
+                  <ShieldAlert className="w-2.5 h-2.5" />
+                  Admin
+                </span>
+              )}
             </div>
           </div>
         ) : (
@@ -263,6 +287,7 @@ export default function Header() {
             {navItems.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
+              const isAdminLink = item.href.includes('/admin');
               return (
                 <Link
                   key={item.href}
@@ -272,11 +297,13 @@ export default function Header() {
                     flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
                     ${active
                       ? 'bg-violet-50 text-violet-700'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      : isAdminLink
+                        ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }
                   `}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={`w-5 h-5 ${isAdminLink ? 'text-amber-500' : ''}`} />
                   {item.label}
                 </Link>
               );

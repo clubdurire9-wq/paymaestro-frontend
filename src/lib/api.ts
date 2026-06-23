@@ -216,16 +216,21 @@ export const WalletSchema = z.object({
 });
 
 // ==========================================
+// IMPORT DEPUIS LE FICHIER CENTRALISÉ
+// ==========================================
+
+import { LIVE_RATES as COUNTRIES_LIVE_RATES } from '@/data/countries';
+
+// ==========================================
 // LIVE EXCHANGE RATES (FALLBACK)
 // ==========================================
 
-export const LIVE_RATES: LiveRate[] = [
-  { currency: 'XOF', name: 'Franc CFA (BCEAO)', rate: 612.5, flag: '🇧🇯' },
-  { currency: 'XAF', name: 'Franc CFA (BEAC)', rate: 612.5, flag: '🇨🇲' },
-  { currency: 'GHS', name: 'Cedi ghanéen', rate: 14.8, flag: '🇬🇭' },
-  { currency: 'KES', name: 'Shilling kényan', rate: 129.2, flag: '🇰🇪' },
-  { currency: 'NGN', name: 'Naira nigérian', rate: 1540.0, flag: '🇳🇬' },
-];
+export const LIVE_RATES: LiveRate[] = COUNTRIES_LIVE_RATES.map((r: any) => ({
+  currency: r.currency,
+  name: r.name || r.currency,
+  rate: r.rate,
+  flag: r.flag,
+}));
 
 // ==========================================
 // API CONFIGURATION
@@ -333,7 +338,6 @@ const setLocalStorageData = <T>(key: string, data: T): void => {
 // ==========================================
 
 export const api = {
-  // --- AUTHENTICATION ---
   getCurrentUser: async () => {
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem('pm_auth_user');
@@ -344,7 +348,6 @@ export const api = {
     return null;
   },
 
-  // --- STATISTICS (via /dashboard/stats) ---
   getStats: async (): Promise<Stats> => {
     try {
       const res = await fetch(`${API_URL}/dashboard/stats`);
@@ -378,7 +381,6 @@ export const api = {
     };
   },
 
-  // --- TRANSACTIONS (via /dashboard/transactions) ---
   getTransactions: async (filters?: { status?: string; currency?: string }): Promise<Transaction[]> => {
     try {
       const params = new URLSearchParams();
@@ -417,7 +419,6 @@ export const api = {
     return txs.find((t) => t.id === id) || null;
   },
 
-  // --- ORDER CREATION (via /payments/create-order) ---
   createOrder: async (data: { amountUSD: number; currency: string; phone: string }): Promise<Transaction> => {
     const parsed = WithdrawSchema.parse(data);
 
@@ -435,7 +436,6 @@ export const api = {
       if (res.ok) return await res.json();
     } catch (e) {}
 
-    // Fallback mock
     const ratesMap = new Map(LIVE_RATES.map((r) => [r.currency, r.rate]));
     const exchangeRate = ratesMap.get(parsed.currency) || 612.5;
     const netUSD = parsed.amountUSD * 0.93;
@@ -484,7 +484,6 @@ export const api = {
     return newTx;
   },
 
-  // --- KYC (via /kyc) ---
   getKYCStatus: async (): Promise<KYCDetails> => {
     try {
       const res = await fetch(`${API_URL}/kyc/status`);
@@ -527,7 +526,6 @@ export const api = {
     return kyc;
   },
 
-  // --- WALLETS (via /dashboard/wallets) ---
   getWallets: async (): Promise<Wallet[]> => {
     try {
       const res = await fetch(`${API_URL}/dashboard/wallets`);
@@ -598,7 +596,6 @@ export const api = {
     return updated;
   },
 
-  // --- REAL BACKEND API ---
   rates: {
     all: async () => {
       const res = await fetch(`${API_URL}/rates`);
@@ -611,7 +608,20 @@ export const api = {
       const res = await fetch(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currency}`);
       if (!res.ok) throw new Error('Failed to get estimate');
       return await res.json();
-    }
+    },
+    captureOrder: async (paypalOrderId: string, transactionId: number) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('paymaestro_token') : null;
+      const res = await fetch(`${API_URL}/payments/capture-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ paypalOrderId, transactionId }),
+      });
+      if (!res.ok) throw new Error('Failed to capture PayPal order');
+      return await res.json();
+    },
   },
   auth: {
     google: async (accessToken: string) => {
@@ -625,7 +635,6 @@ export const api = {
     }
   },
 
-  // --- ONBOARDING ---
   sendOTP: async (phone: string): Promise<{ success: boolean; message: string }> => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     return { success: true, message: `Code envoyé au ${phone}` };
