@@ -6,6 +6,9 @@ import { createContext, useContext } from 'react';
 // USER TYPES
 // ==========================================
 
+console.log('🔍 [useAuth] NEXT_PUBLIC_API_URL =', process.env.NEXT_PUBLIC_API_URL);
+console.log('🔍 [useAuth] API_URL résolue =', API_URL);
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -215,7 +218,7 @@ export function isTokenExpired(token: string): boolean {
 // API CLIENT CONFIG
 // ==========================================
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1').replace(/\/$/, '');
 
 interface ApiResponse {
   token?: string;
