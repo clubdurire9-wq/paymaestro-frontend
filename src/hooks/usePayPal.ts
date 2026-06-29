@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { api } from '@/lib/api';
 
 interface WithdrawData {
   amountUSD: number;
   currencyCode: string;
   phoneNumber: string;
-  userEmail: string;
+  userEmail?: string;
 }
 
 interface PayPalOrderResult {
@@ -21,13 +22,6 @@ interface CaptureResult {
   transactionId: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
-
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('paymaestro_token');
-}
-
 export function usePayPal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,33 +33,16 @@ export function usePayPal() {
     setStep('creating');
 
     try {
-      const token = getToken();
-      const res = await fetch(`${API_URL}/payments/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          amountUSD: data.amountUSD,
-          currencyCode: data.currencyCode,
-          phoneNumber: data.phoneNumber,
-          userEmail: data.userEmail,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (result.success && result.data) {
+      const result = await api.payments.createOrder(data);
+      if (result) {
         setStep('approving');
         return {
-          paypalOrderId: result.data.paypalOrderId,
-          transactionId: result.data.transactionId,
-          approvalUrl: result.data.approvalUrl,
+          paypalOrderId: result.paypalOrderId,
+          transactionId: result.transactionId,
+          approvalUrl: result.approvalUrl,
         };
       }
-
-      throw new Error(result.error || 'Erreur création commande');
+      throw new Error('Erreur création commande');
     } catch (err: any) {
       setError(err.message);
       setStep('error');
@@ -81,28 +58,16 @@ export function usePayPal() {
     setStep('capturing');
 
     try {
-      const token = getToken();
-      const res = await fetch(`${API_URL}/payments/capture-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ paypalOrderId, transactionId }),
-      });
-
-      const result = await res.json();
-
-      if (result.success) {
+      const result = await api.payments.captureOrder(paypalOrderId, transactionId);
+      if (result) {
         setStep('done');
         return {
           success: true,
-          status: result.data?.status || 'PAYPAL_APPROVED',
+          status: result.status || 'PAYPAL_APPROVED',
           transactionId,
         };
       }
-
-      throw new Error(result.error || 'Erreur capture paiement');
+      throw new Error('Erreur capture paiement');
     } catch (err: any) {
       setError(err.message);
       setStep('error');

@@ -1,0 +1,291 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { 
+  Key, Plus, Copy, CheckCircle2, Eye, EyeOff, Loader2, 
+  Trash2, Shield, Code, BookOpen, Zap, Clock, AlertTriangle 
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { api } from '@/lib/api';
+
+export default function DeveloperPage() {
+
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyType, setNewKeyType] = useState<'test' | 'live'>('test');
+  const [newKey, setNewKey] = useState<any>(null);
+  const [showKey, setShowKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => { loadKeys(); }, []);
+
+  const loadKeys = async () => {
+    try {
+      const data = await api.auth.getApiKeys();
+      setApiKeys(data);
+    } catch {}
+    setLoading(false);
+  };
+
+  const handleCreateKey = async () => {
+    setCreating(true);
+    try {
+      const data = await api.auth.createApiKey();
+      setNewKey(data);
+      setShowCreate(false);
+      setNewKeyName('');
+      loadKeys();
+    } catch (e: any) {
+      alert(e.message);
+    }
+    setCreating(false);
+  };
+
+  const handleRevokeKey = async (keyId: number) => {
+    if (!confirm('Révoquer cette clé ? Toutes les intégrations l\'utilisant cesseront de fonctionner.')) return;
+    try {
+      await api.auth.revokeApiKey(String(keyId));
+      loadKeys();
+    } catch (e: any) {
+      alert(e.message);
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Code className="w-8 h-8 text-violet-600" />
+            Portail Développeur
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">Gérez vos clés API et intégrez PayMaestro à votre application</p>
+        </div>
+      </div>
+
+      {/* Documentation rapide */}
+      <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-200">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <BookOpen className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+              <p className="font-bold text-violet-800">Documentation API</p>
+              <p className="text-xs text-violet-600">Guide complet d'intégration</p>
+            </div>
+            <div className="text-center">
+              <Zap className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+              <p className="font-bold text-violet-800">Quick Start</p>
+              <p className="text-xs text-violet-600">Intégrez en 5 minutes</p>
+            </div>
+            <div className="text-center">
+              <Shield className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+              <p className="font-bold text-violet-800">Sécurisé</p>
+              <p className="text-xs text-violet-600">Authentification par clé API</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Clés API */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-violet-600" />
+              Vos clés API
+            </CardTitle>
+            <Button onClick={() => setShowCreate(true)} icon={<Plus className="w-4 h-4" />}>
+              Nouvelle clé
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {apiKeys.length === 0 ? (
+            <div className="text-center py-12">
+              <Key className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500">Aucune clé API</p>
+              <p className="text-xs text-slate-400 mt-1">Créez votre première clé pour commencer</p>
+              <Button className="mt-4" onClick={() => setShowCreate(true)}>
+                Créer une clé API
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {apiKeys.map(key => (
+                <div key={key.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      key.type === 'live' ? 'bg-green-100' : 'bg-yellow-100'
+                    }`}>
+                      <Key className={`w-5 h-5 ${key.type === 'live' ? 'text-green-600' : 'text-yellow-600'}`} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">{key.name}</p>
+                      <p className="text-xs font-mono text-slate-500">
+                        {key.key_prefix}...{key.last_four}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={key.type === 'live' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
+                          {key.type === 'live' ? 'Production' : 'Test'}
+                        </Badge>
+                        <Badge className={key.status === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}>
+                          {key.status === 'active' ? 'Active' : 'Révoquée'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    {key.last_used_at ? (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(key.last_used_at).toLocaleDateString('fr-FR')}
+                      </span>
+                    ) : (
+                      <span>Jamais utilisée</span>
+                    )}
+                    {key.status === 'active' && (
+                      <button onClick={() => handleRevokeKey(key.id)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Révoquer">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Start Code */}
+      <Card>
+        <CardHeader><CardTitle>🚀 Exemple d'intégration</CardTitle></CardHeader>
+        <CardContent>
+          <div className="bg-slate-900 text-green-400 p-6 rounded-xl font-mono text-sm overflow-x-auto">
+            <p className="text-slate-400">// Initialiser un paiement PayMaestro</p>
+            <p className="text-yellow-400">const</p> <span className="text-blue-400">API_KEY</span> = <span className="text-green-300">"pm_test_..."</span>;
+            <br /><br />
+            <p className="text-yellow-400">const</p> <span className="text-blue-400">response</span> = <span className="text-yellow-400">await</span> <span className="text-purple-400">fetch</span>(<span className="text-green-300">'https://api.paymaestro.com/api/v1/public/payments'</span>, {'{'});
+            <br />
+            &nbsp;&nbsp;<span className="text-blue-400">method</span>: <span className="text-green-300">'POST'</span>,
+            <br />
+            &nbsp;&nbsp;<span className="text-blue-400">headers</span>: {'{'}
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-green-300">'Authorization'</span>: <span className="text-green-300">`Bearer $</span>{'{'}API_KEY{'}'}<span className="text-green-300">`</span>,
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-green-300">'Content-Type'</span>: <span className="text-green-300">'application/json'</span>,
+            <br />
+            &nbsp;&nbsp;{'}'},
+            <br />
+            &nbsp;&nbsp;<span className="text-blue-400">body</span>: <span className="text-purple-400">JSON.stringify</span>({'{'}
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">amountUSD</span>: <span className="text-orange-400">100</span>,
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">currencyCode</span>: <span className="text-green-300">'XOF'</span>,
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">phoneNumber</span>: <span className="text-green-300">'+2250102030405'</span>,
+            <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">userEmail</span>: <span className="text-green-300">'client@example.com'</span>,
+            <br />
+            &nbsp;&nbsp;{'}'})
+            <br />
+            {'});'}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modale création de clé */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-violet-600" /> Nouvelle clé API
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold">Nom de la clé</label>
+                <input
+                  type="text"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  placeholder="Ex: Mon site e-commerce"
+                  className="w-full px-4 py-3 border rounded-xl text-sm mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold">Type de clé</label>
+                <div className="flex gap-3 mt-1">
+                  <button
+                    onClick={() => setNewKeyType('test')}
+                    className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
+                      newKeyType === 'test' ? 'border-yellow-500 bg-yellow-50' : 'border-slate-200'
+                    }`}
+                  >
+                    <p className="font-bold">🧪 Test</p>
+                    <p className="text-xs text-slate-500">Pour les tests</p>
+                  </button>
+                  <button
+                    onClick={() => setNewKeyType('live')}
+                    className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
+                      newKeyType === 'live' ? 'border-green-500 bg-green-50' : 'border-slate-200'
+                    }`}
+                  >
+                    <p className="font-bold">🚀 Production</p>
+                    <p className="text-xs text-slate-500">Transactions réelles</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Annuler</Button>
+              <Button fullWidth onClick={handleCreateKey} disabled={creating}>
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Générer la clé'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale clé générée */}
+      {newKey && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
+            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <h3 className="font-bold text-lg">Clé API générée !</h3>
+            <p className="text-sm text-red-600 font-bold mt-2">⚠️ Conservez cette clé — elle ne sera plus affichée</p>
+
+            <div className="bg-slate-50 rounded-xl p-4 mt-4 font-mono text-sm break-all text-left">
+              {showKey ? newKey.raw : '•'.repeat(40)}
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <Button variant="outline" fullWidth onClick={() => setShowKey(!showKey)} icon={showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}>
+                {showKey ? 'Cacher' : 'Afficher'}
+              </Button>
+              <Button fullWidth onClick={() => handleCopy(newKey.raw)} icon={copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}>
+                {copied ? 'Copié !' : 'Copier'}
+              </Button>
+            </div>
+
+            <Button fullWidth className="mt-3" onClick={() => setNewKey(null)}>Fermer</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

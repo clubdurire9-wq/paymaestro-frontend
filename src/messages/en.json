@@ -290,6 +290,28 @@
       "banReason": "Ban Reason"
     }
   },
+  "wallet": {
+    "title": "My Wallet",
+    "usdBalance": "USD Balance",
+    "totalDeposited": "Total Deposited",
+    "totalWithdrawn": "Total Withdrawn",
+    "transactionHistory": "Transaction History",
+    "depositFunds": "Deposit Funds",
+    "amount": "Amount (USD)",
+    "deposit": "Deposit",
+    "depositFee": "Deposit fee: 5%. For $100 deposited, $95 is credited.",
+    "withdrawToWallet": "Withdraw to local wallet",
+    "selectCurrency": "Select currency",
+    "amountUSD": "Amount (USD)",
+    "convertTo": "Convert to",
+    "withdrawFee": "Withdrawal to Mobile Money = 7% additional fees.",
+    "convertCurrency": "Convert between currencies",
+    "from": "From",
+    "to": "To",
+    "convert": "Convert",
+    "conversionFee": "Conversion fee: 2%.",
+    "noTransactions": "No transactions"
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications",

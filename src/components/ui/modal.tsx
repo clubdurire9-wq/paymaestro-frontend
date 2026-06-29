@@ -1,8 +1,8 @@
-// src/components/ui/modal.tsx
 'use client';
 
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   isOpen: boolean;
@@ -30,7 +30,6 @@ export function Modal({
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Fermer avec Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -47,49 +46,55 @@ export function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
-      }}
-    >
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" />
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          ref={overlayRef}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === overlayRef.current) onClose();
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          />
 
-      {/* Modal */}
-      <div
-        className={`
-          relative bg-white rounded-2xl shadow-xl
-          w-full ${sizes[size]}
-          animate-in slide-in-from-bottom-4 duration-300
-          max-h-[90vh] overflow-y-auto
-        `}
-      >
-        {/* Header */}
-        {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
-            {title && (
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className={`
+              relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl
+              w-full ${sizes[size]}
+              max-h-[90vh] overflow-y-auto
+            `}
+          >
+            {(title || showCloseButton) && (
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700/50">
+                {title && (
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+                )}
+                {showCloseButton && (
+                  <button
+                    onClick={onClose}
+                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Fermer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             )}
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Fermer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Body */}
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+            <div className="p-6">{children}</div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

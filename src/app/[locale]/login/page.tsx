@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Wallet, Shield, Zap, Globe2, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Shield, Zap, Globe2, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,22 +15,50 @@ const features = [
   { icon: CheckCircle2, label: 'Taux de change en temps réel' },
 ];
 
-const isDev = process.env.NODE_ENV === 'development';
-
 export default function LoginPage() {
   const locale = useLocale();
   const { login, loginMock } = useAuth();
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Déjà connecté → rediriger vers dashboard
+  useEffect(() => {
+    if (sessionStorage.getItem('paymaestro_token')) {
+      window.location.href = `/${locale}/dashboard`;
+    }
+  }, [locale]);
 
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
       await login();
-      setTimeout(() => router.push(`/${locale}/verify-phone`), 500);
-    } catch {
+      setIsGoogleLoading(false);
+
+      // DEBUG
+      const debugToken = sessionStorage.getItem('pm_login_token');
+      const debugStatus = sessionStorage.getItem('pm_login_status');
+      const debugUser = sessionStorage.getItem('pm_login_user');
+      console.log('🔍 DEBUG login page — pm_login_token:', debugToken ? 'OK ('+debugToken.slice(0,20)+'...)' : 'MANQUANT');
+      console.log('🔍 DEBUG login page — pm_login_status:', debugStatus);
+      console.log('🔍 DEBUG login page — pm_login_user:', debugUser);
+
+      // Vérifier si une étape intermédiaire est requise
+      const loginStatus = sessionStorage.getItem('pm_login_status');
+      if (loginStatus === 'PASSWORD_SETUP_REQUIRED') {
+        router.push(`/${locale}/onboarding/password`);
+        return;
+      }
+      if (loginStatus === 'PASSWORD_REQUIRED') {
+        router.push(`/${locale}/login/password`);
+        return;
+      }
+
+      router.push(`/${locale}/dashboard`);
+    } catch (error) {
+      console.error('Erreur Google login:', error);
       setIsGoogleLoading(false);
     }
   };
@@ -48,8 +77,8 @@ export default function LoginPage() {
       role: 'USER',
     };
 
-    localStorage.setItem('pm_auth_user', JSON.stringify(demoUser));
-    localStorage.setItem('paymaestro_token', 'demo-token-full-access');
+    sessionStorage.setItem('pm_auth_user', JSON.stringify(demoUser));
+    sessionStorage.setItem('paymaestro_token', 'demo-token-full-access');
 
     loginMock();
     router.push(`/${locale}/dashboard`);
@@ -62,8 +91,8 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-600 shadow-xl shadow-violet-600/40 mb-6">
-            <Wallet className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center mb-6">
+            <Image src="/PayMaestro_officiel_logo.png" alt="PayMaestro" width={80} height={80} className="drop-shadow-xl" priority />
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">PayMaestro</h1>
           <p className="text-slate-400 text-base">

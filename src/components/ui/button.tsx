@@ -1,4 +1,3 @@
-// src/components/ui/button.tsx
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -11,10 +10,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: 'bg-violet-600 text-white hover:bg-violet-700 focus:ring-violet-500',
-  secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400',
-  outline: 'bg-white text-violet-600 border-2 border-violet-600 hover:bg-violet-50 focus:ring-violet-500',
-  ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
+  primary: 'bg-violet-600 text-white hover:bg-violet-700 focus:ring-violet-500 dark:bg-violet-600 dark:hover:bg-violet-500',
+  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600',
+  outline: 'bg-white dark:bg-transparent text-violet-600 dark:text-violet-400 border-2 border-violet-600 dark:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20 focus:ring-violet-500',
+  ghost: 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
 };
 
@@ -40,9 +39,9 @@ export function Button({
       className={`
         inline-flex items-center justify-center gap-2
         font-medium rounded-lg
-        transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-offset-2
-        disabled:opacity-50 disabled:cursor-not-allowed
+        transition-all duration-200 active:scale-[0.97]
+        focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
         ${variants[variant]}
         ${sizes[size]}
         ${fullWidth ? 'w-full' : ''}

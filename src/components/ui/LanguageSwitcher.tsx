@@ -1,8 +1,8 @@
 // src/components/ui/LanguageSwitcher.tsx
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { useRouter, usePathname } from '@/i18n/routing';
 import { useState, useRef, useEffect } from 'react';
 
 const locales = ['fr', 'en'];
@@ -27,13 +27,7 @@ export default function LanguageSwitcher() {
   }, []);
 
   const switchLanguage = (newLocale: string) => {
-    const pathSegments = pathname.split('/').filter(Boolean);
-    if (locales.includes(pathSegments[0])) {
-      pathSegments[0] = newLocale;
-    } else {
-      pathSegments.unshift(newLocale);
-    }
-    router.push('/' + pathSegments.join('/'));
+    router.push(pathname, { locale: newLocale });
     setIsOpen(false);
   };
 

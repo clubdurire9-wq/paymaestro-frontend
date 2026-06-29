@@ -1,136 +1,777 @@
 // ==========================================
-// ZERO-DEPENDENCY ZOD POLYFILL / VALIDATOR
+// PAYMAESTRO API CLIENT
 // ==========================================
 
-class ZodError extends Error {
-  errors: { path: (string | number)[]; message: string }[];
-  constructor(errors: { path: (string | number)[]; message: string }[]) {
-    super(JSON.stringify(errors));
-    this.name = 'ZodError';
-    this.errors = errors;
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+
+// ==========================================
+// VALIDATION HELPERS
+// ==========================================
+
+function zPhone() {
+  return {
+    parse: (val: string) => {
+      if (!val || val.length < 8) throw new Error('Le numéro de téléphone est trop court.');
+      if (val.length > 15) throw new Error('Le numéro de téléphone est trop long.');
+      if (!/^\+?[1-9]\d{1,14}$/.test(val)) throw new Error('Format invalide. Exemple: +2250700000000');
+      return val;
+    },
+    safeParse: (val: string) => {
+      try { return { success: true as const, data: zPhone().parse(val) }; }
+      catch (e: any) { return { success: false as const, error: { errors: [{ path: ['phone'], message: e.message }] } }; }
+    },
+  };
+}
+
+function zOperator() {
+  const operators = ['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'];
+  return {
+    parse: (val: string) => {
+      if (!operators.includes(val)) throw new Error('Opérateur invalide');
+      return val;
+    },
+    safeParse: (val: string) => {
+      try { return { success: true as const, data: zOperator().parse(val) }; }
+      catch (e: any) { return { success: false as const, error: { errors: [{ path: ['operator'], message: e.message }] } }; }
+    },
+  };
+}
+
+export const WalletSchema = {
+  safeParse: (data: { phone: string; operator: string }): {
+    success: boolean;
+    data?: { phone: string; operator: string };
+    error?: { errors: { path: string[]; message: string }[] };
+  } => {
+    const errors: { path: string[]; message: string }[] = [];
+    if (!data.phone || data.phone.length < 8) errors.push({ path: ['phone'], message: 'Numéro trop court' });
+    if (!['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'].includes(data.operator)) errors.push({ path: ['operator'], message: 'Opérateur invalide' });
+    if (errors.length) return { success: false, error: { errors } };
+    return { success: true, data };
+  },
+};
+
+export const WithdrawSchema = {
+  safeParse: (data: { amountUSD: number; currency: string; phone: string }) => {
+    const errors: { path: string; message: string }[] = [];
+    if (!data.amountUSD || data.amountUSD < 10 || data.amountUSD > 2000) errors.push({ path: 'amountUSD', message: 'Le montant doit être entre 10 et 2000 USD' });
+    if (!['XOF', 'XAF', 'GHS', 'KES', 'NGN'].includes(data.currency)) errors.push({ path: 'currency', message: 'Devise invalide' });
+    if (!data.phone || data.phone.length < 8) errors.push({ path: 'phone', message: 'Téléphone invalide' });
+    if (errors.length) return { success: false as const, error: { errors } };
+    return { success: true as const, data };
+  },
+};
+
+// ==========================================
+// HELPERS
+// ==========================================
+
+function authHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = sessionStorage.getItem('paymaestro_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+      ...options?.headers,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || data.message || `Erreur ${res.status}`);
   }
+  return data.data !== undefined ? data.data : data;
 }
 
-interface Validator {
-  validate: (val: any) => string | null;
+async function requestFormData<T>(url: string, formData: FormData): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || data.message || `Erreur ${res.status}`);
+  }
+  return data.data !== undefined ? data.data : data;
 }
 
-const zNumber = () => {
-  let validators: ((val: number) => string | null)[] = [
-    (val) => (typeof val !== 'number' || isNaN(val) ? 'Le montant doit être un nombre.' : null),
-  ];
+// ==========================================
+// AUTH
+// ==========================================
 
-  const self = {
-    validate: (val: any) => {
-      for (const fn of validators) {
-        const err = fn(val);
-        if (err) return err;
-      }
+export const api = {
+  auth: {
+    google: async (accessToken: string) => {
+      const res = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || data?.message || "Erreur d'authentification Google");
+      return data;
+    },
+
+    verifyMFA: async (code: string, mfaToken: string) => {
+      const res = await fetch(`${API_URL}/auth/verify-mfa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${mfaToken}` },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) throw new Error(data.error || 'Code MFA invalide');
+      return data;
+    },
+
+    requestOTP: (phoneNumber: string) =>
+      request<{ message: string }>(`${API_URL}/auth/request-otp`, {
+        method: 'POST',
+        body: JSON.stringify({ phoneNumber }),
+      }),
+
+    verifyOTP: (phoneNumber: string, code: string) =>
+      request<{ phoneNumber: string; isPhoneVerified: boolean }>(`${API_URL}/auth/verify-otp`, {
+        method: 'POST',
+        body: JSON.stringify({ phoneNumber, code }),
+      }),
+
+    generateStepUpToken: (body: { password?: string; twoFactorCode?: string }) =>
+      request<{ stepUpToken: string; expiresIn: number }>(`${API_URL}/auth/step-up`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
+    getMe: () => request<any>(`${API_URL}/auth/me`),
+
+    updateProfile: (data: Record<string, any>) =>
+      request<any>(`${API_URL}/auth/profile`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+
+    createPassword: (password: string, confirmPassword: string) =>
+      request<{ message: string }>(`${API_URL}/auth/create-password`, {
+        method: 'POST',
+        body: JSON.stringify({ password, confirmPassword }),
+      }),
+
+    completeLogin: (body: { loginToken: string; password?: string; createPassword?: boolean; twoFactorCode?: string }) =>
+      request<{ token: string; user: any; status: string; loginToken?: string; geo?: { country: string; city: string; region: string; isp: string; ip: string } }>(`${API_URL}/auth/complete-login`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
+    changePassword: (oldPassword: string, newPassword: string, confirmPassword: string) =>
+      request<{ message: string }>(`${API_URL}/auth/change-password`, {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
+      }),
+
+    confirmLocation: (loginToken: string) =>
+      request<{ token: string; user: any; status: string }>(`${API_URL}/auth/confirm-location`, {
+        method: 'POST',
+        body: JSON.stringify({ loginToken }),
+      }),
+
+    getPasswordStatus: () =>
+      request<{ hasPassword: boolean }>(`${API_URL}/auth/password-status`),
+
+    getAdminCheck: () => request<any>(`${API_URL}/auth/admin-check`),
+
+    getOnboardingStatus: () => request<any>(`${API_URL}/auth/onboarding-status`),
+
+    getApiKeys: () => request<any[]>(`${API_URL}/auth/api-keys`),
+
+    createApiKey: () =>
+      request<any>(`${API_URL}/auth/api-keys`, { method: 'POST' }),
+
+    revokeApiKey: (id: string) =>
+      request<any>(`${API_URL}/auth/api-keys/${id}`, { method: 'DELETE' }),
+
+    createPaymentPage: (data: any) =>
+      request<any>(`${API_URL}/auth/payment-page`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    activateWhiteLabel: () =>
+      request<any>(`${API_URL}/auth/white-label/activate`, { method: 'POST' }),
+
+    deactivateWhiteLabel: () =>
+      request<any>(`${API_URL}/auth/white-label/deactivate`, { method: 'POST' }),
+  },
+
+  // ==========================================
+  // 2FA
+  // ==========================================
+
+  twoFactor: {
+    getStatus: () => request<{ enabled: boolean; enabledAt?: string }>(`${API_URL}/2fa/status`),
+    generateSecret: () => request<{ secret: string; qrCode?: string }>(`${API_URL}/2fa/generate`, { method: 'POST' }),
+    enable: (token: string) => request<any>(`${API_URL}/2fa/enable`, { method: 'POST', body: JSON.stringify({ token }) }),
+    disable: (token: string) => request<any>(`${API_URL}/2fa/disable`, { method: 'POST', body: JSON.stringify({ token }) }),
+  },
+
+  // ==========================================
+  // KYC
+  // ==========================================
+
+  kyc: {
+    getStatus: () => request<any>(`${API_URL}/kyc/status`),
+    upload: (documentType: string, file: File, backFile?: File | null) => {
+      const formData = new FormData();
+      formData.append('documentType', documentType);
+      formData.append('document', file);
+      if (backFile) formData.append('documentBack', backFile);
+      return requestFormData<any>(`${API_URL}/kyc/upload`, formData);
+    },
+    dispute: (reason: string) =>
+      request<any>(`${API_URL}/kyc/dispute`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  },
+
+  // ==========================================
+  // DASHBOARD
+  // ==========================================
+
+  dashboard: {
+    getStats: () => request<any>(`${API_URL}/dashboard/stats`),
+    getTransactions: (filters?: Record<string, string>) => {
+      const params = new URLSearchParams(filters || {});
+      const query = params.toString() ? `?${params.toString()}` : '';
+      return request<any>(`${API_URL}/dashboard/transactions${query}`);
+    },
+    getTransactionById: (id: string) => request<any>(`${API_URL}/dashboard/transactions/${id}`),
+    exportTransactions: (filters?: Record<string, string>) => {
+      const params = new URLSearchParams(filters || {});
+      return request<any>(`${API_URL}/dashboard/export?${params.toString()}`);
+    },
+    getWallets: () => request<any[]>(`${API_URL}/dashboard/wallets`),
+    getWalletSummary: () => request<any>(`${API_URL}/dashboard/wallets/summary`),
+    createWallet: (data: { currencyCode: string; phoneNumber?: string }) =>
+      request<any>(`${API_URL}/dashboard/wallets`, { method: 'POST', body: JSON.stringify(data) }),
+    setDefaultWallet: (id: string) =>
+      request<any>(`${API_URL}/dashboard/wallets/${id}/default`, { method: 'PUT' }),
+  },
+
+  // ==========================================
+  // WALLET
+  // ==========================================
+
+  wallet: {
+    getBalance: () => request<any>(`${API_URL}/wallet/balance`),
+    getTransactions: () => request<any[]>(`${API_URL}/wallet/transactions`),
+    deposit: (amountUSD: number, method: string) =>
+      request<any>(`${API_URL}/wallet/deposit`, { method: 'POST', body: JSON.stringify({ amountUSD, method }) }),
+    depositMobile: (data: { phoneNumber: string; amountLocal: number; currencyCode: string; operator?: string }) =>
+      request<any>(`${API_URL}/wallet/deposit-mobile`, { method: 'POST', body: JSON.stringify(data) }),
+    withdrawToWallet: (data: { amountUSD: number; targetCurrency: string; exchangeRate: number }) =>
+      request<any>(`${API_URL}/wallet/withdraw-to-wallet`, { method: 'POST', body: JSON.stringify(data) }),
+    withdrawMobile: (data: { amountLocal: number; currencyCode: string; phoneNumber: string; exchangeRate: number }) =>
+      request<any>(`${API_URL}/wallet/withdraw-mobile`, { method: 'POST', body: JSON.stringify(data) }),
+    withdrawPayPal: (paypalEmail: string, amount: number) =>
+      request<any>(`${API_URL}/wallet/withdraw-paypal`, { method: 'POST', body: JSON.stringify({ paypalEmail, amount }) }),
+    setPassword: (password: string) =>
+      request<any>(`${API_URL}/wallet/password`, { method: 'POST', body: JSON.stringify({ password }) }),
+    verifyPassword: (password: string) =>
+      request<{ verified: boolean }>(`${API_URL}/wallet/password/verify`, { method: 'POST', body: JSON.stringify({ password }) }),
+    hasPassword: () => request<{ hasPassword: boolean }>(`${API_URL}/wallet/password/exists`),
+    lookupRecipient: (data: { phoneNumber: string; currencyCode: string; operator?: string }) =>
+      request<any>(`${API_URL}/wallet/lookup-recipient`, { method: 'POST', body: JSON.stringify(data) }),
+    lookupUser: (email: string) =>
+      request<any>(`${API_URL}/wallet/lookup-user`, { method: 'POST', body: JSON.stringify({ email }) }),
+    transferToMobile: (data: any) =>
+      request<any>(`${API_URL}/wallet/transfer-mobile`, { method: 'POST', body: JSON.stringify(data) }),
+    pmToPm: (recipientEmail: string, amount: number) =>
+      request<any>(`${API_URL}/wallet/pm-to-pm`, { method: 'POST', body: JSON.stringify({ recipientEmail, amount }) }),
+  },
+
+  // ==========================================
+  // PAYMENTS
+  // ==========================================
+
+  payments: {
+    createOrder: (data: { amountUSD: number; phoneNumber: string; currencyCode: string; userEmail?: string }) => {
+      return request<any>(`${API_URL}/payments/create-order`, {
+        method: 'POST',
+        body: JSON.stringify({ ...data, userEmail: data.userEmail || '' }),
+      });
+    },
+    captureOrder: (paypalOrderId: string, transactionId?: number) =>
+      request<any>(`${API_URL}/payments/capture-order`, {
+        method: 'POST',
+        body: JSON.stringify({ paypalOrderId, transactionId }),
+      }),
+    verifyRecipient: (data: { phoneNumber: string; currencyCode: string; operator?: string }) =>
+      request<any>(`${API_URL}/payments/verify-recipient`, { method: 'POST', body: JSON.stringify(data) }),
+    getOrderStatus: (orderId: string) => request<any>(`${API_URL}/payments/order/${orderId}`),
+    getCurrencies: () => request<any[]>(`${API_URL}/payments/currencies`),
+    estimate: (amountUSD: number, currencyCode: string) =>
+      request<any>(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currencyCode}`),
+  },
+
+  // ==========================================
+  // VIRTUAL CARDS
+  // ==========================================
+
+  cards: {
+    list: () => request<any[]>(`${API_URL}/cards`),
+    create: (data?: { brand?: string; spendingLimit?: number; billingCurrency?: string }) =>
+      request<any>(`${API_URL}/cards`, { method: 'POST', body: JSON.stringify(data || {}) }),
+    toggle: (id: number | string, action: 'freeze' | 'unfreeze') =>
+      request<any>(`${API_URL}/cards/${id}/toggle`, { method: 'PUT', body: JSON.stringify({ action }) }),
+    cancel: (id: number | string) =>
+      request<any>(`${API_URL}/cards/${id}`, { method: 'DELETE' }),
+  },
+
+  // ==========================================
+  // CRYPTO
+  // ==========================================
+
+  crypto: {
+    getRates: () => request<any>(`${API_URL}/crypto/rates`),
+    generateAddress: (currency: string, network: string) =>
+      request<any>(`${API_URL}/crypto/address`, { method: 'POST', body: JSON.stringify({ currency, network }) }),
+    simulateDeposit: (currency: string, network: string, amountCrypto: number) =>
+      request<any>(`${API_URL}/crypto/deposit`, { method: 'POST', body: JSON.stringify({ currency, network, amountCrypto }) }),
+    withdraw: (data: { currency: string; network: string; amountUSD: number; destinationAddress: string }) =>
+      request<any>(`${API_URL}/crypto/withdraw`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
+  // BANK
+  // ==========================================
+
+  bank: {
+    transfer: (data: any) =>
+      request<any>(`${API_URL}/bank/transfer`, { method: 'POST', body: JSON.stringify(data) }),
+    getTransfers: () => request<any[]>(`${API_URL}/bank/transfers`),
+    verifyAccount: (data: { iban: string; swift?: string; accountHolder?: string }) =>
+      request<any>(`${API_URL}/bank/verify`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
+  // STRIPE
+  // ==========================================
+
+  stripe: {
+    createAccount: () => request<any>(`${API_URL}/stripe/account`, { method: 'POST' }),
+    createIBAN: () => request<any>(`${API_URL}/stripe/iban`, { method: 'POST' }),
+    getIBAN: () => request<any>(`${API_URL}/stripe/iban`),
+    receive: (data: { amount: number; currency: string; description?: string }) =>
+      request<any>(`${API_URL}/stripe/receive`, { method: 'POST', body: JSON.stringify(data) }),
+    send: (data: { amount: number; iban: string; swift?: string; accountHolder?: string }) =>
+      request<any>(`${API_URL}/stripe/send`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
+  // EXCHANGE RATES
+  // ==========================================
+
+  rates: {
+    all: () => request<any>(`${API_URL}/rates`),
+    convert: (amount: number, from?: string, to?: string) =>
+      request<any>(`${API_URL}/rates/convert?amount=${amount}&from=${from || 'USD'}&to=${to || 'XOF'}`),
+    health: () => request<any>(`${API_URL}/rates/health`),
+    refresh: () => request<any>(`${API_URL}/rates/refresh`, { method: 'POST' }),
+  },
+
+  // ==========================================
+  // REPORTS
+  // ==========================================
+
+  reports: {
+    transactions: (filters?: Record<string, string>) => {
+      const params = new URLSearchParams(filters || {});
+      return request<any>(`${API_URL}/reports/transactions?${params.toString()}`);
+    },
+    summary: () => request<any>(`${API_URL}/reports/summary`),
+    adminTransactions: (filters?: Record<string, string>) => {
+      const params = new URLSearchParams(filters || {});
+      return request<any>(`${API_URL}/reports/admin/transactions?${params.toString()}`);
+    },
+  },
+
+  // ==========================================
+  // CHATBOT
+  // ==========================================
+
+  chatbot: {
+    sendMessage: (message: string, sessionId?: string) =>
+      request<any>(`${API_URL}/chatbot/message`, { method: 'POST', body: JSON.stringify({ message, sessionId }) }),
+    reset: (sessionId: string) =>
+      request<any>(`${API_URL}/chatbot/reset`, { method: 'POST', body: JSON.stringify({ sessionId }) }),
+    health: () => request<any>(`${API_URL}/chatbot/health`),
+    getTicketMessages: (ticketId: string) => request<any[]>(`${API_URL}/chatbot/ticket/${ticketId}/messages`),
+    sendTicketMessage: (ticketId: string, message: string) =>
+      request<any>(`${API_URL}/chatbot/ticket/${ticketId}/message`, { method: 'POST', body: JSON.stringify({ message }) }),
+  },
+
+  // ==========================================
+  // SUPPORT
+  // ==========================================
+
+  support: {
+    getTickets: () => request<any[]>(`${API_URL}/support/tickets`),
+    assign: (ticketId: string) =>
+      request<any>(`${API_URL}/support/assign`, { method: 'POST', body: JSON.stringify({ ticketId }) }),
+    resolve: (ticketId: string) =>
+      request<any>(`${API_URL}/support/resolve`, { method: 'POST', body: JSON.stringify({ ticketId }) }),
+    getMessages: (ticketId: string) => request<any[]>(`${API_URL}/support/tickets/${ticketId}/messages`),
+    sendMessage: (ticketId: string, message: string) =>
+      request<any>(`${API_URL}/support/message`, { method: 'POST', body: JSON.stringify({ ticketId, message }) }),
+  },
+
+  // ==========================================
+  // REFERRAL
+  // ==========================================
+
+  referral: {
+    getCode: () => request<any>(`${API_URL}/referral/code`),
+    getStats: () => request<any>(`${API_URL}/referral/stats`),
+    register: (code: string) =>
+      request<any>(`${API_URL}/referral/register`, { method: 'POST', body: JSON.stringify({ code }) }),
+  },
+
+  // ==========================================
+  // ADMIN
+  // ==========================================
+
+  admin: {
+    getStats: () => request<any>(`${API_URL}/admin/stats`),
+    getLiveStats: () => request<any>(`${API_URL}/admin/stats/live`),
+    getLiveActivity: () => request<any[]>(`${API_URL}/admin/activity/live`),
+    getUserActivity: (userId: string) => request<any>(`${API_URL}/admin/activity/user/${userId}`),
+
+    // KYC
+    listPendingKYC: () => request<any[]>(`${API_URL}/admin/kyc/pending`),
+    reviewKYC: (userId: string, action: 'APPROVE' | 'REJECT', reason?: string) =>
+      request<any>(`${API_URL}/admin/kyc/review`, { method: 'POST', body: JSON.stringify({ userId, action, reason }) }),
+
+    // Transactions
+    searchTransactions: (query: string) =>
+      request<any>(`${API_URL}/admin/transactions/search?query=${encodeURIComponent(query)}`),
+
+    // Users
+    toggleBan: (userId: string, ban: boolean, reason?: string) =>
+      request<any>(`${API_URL}/admin/users/ban`, { method: 'POST', body: JSON.stringify({ userId, ban, reason }) }),
+    freeze: (userId: string, reason: string, freezeType?: string) =>
+      request<any>(`${API_URL}/admin/users/freeze`, { method: 'POST', body: JSON.stringify({ userId, reason, freezeType }) }),
+    unfreeze: (userId: string) =>
+      request<any>(`${API_URL}/admin/users/unfreeze`, { method: 'POST', body: JSON.stringify({ userId }) }),
+    getFrozenAccounts: () => request<any[]>(`${API_URL}/admin/users/frozen`),
+    blockServices: (userId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/users/block-services`, { method: 'POST', body: JSON.stringify({ userId, reason }) }),
+    restoreServices: (userId: string) =>
+      request<any>(`${API_URL}/admin/users/restore-services`, { method: 'POST', body: JSON.stringify({ userId }) }),
+
+    // Refunds
+    refund: (transactionId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/refund`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
+    refundWithOptions: (data: any) =>
+      request<any>(`${API_URL}/admin/refund/options`, { method: 'POST', body: JSON.stringify(data) }),
+    refundToMobile: (data: any) =>
+      request<any>(`${API_URL}/admin/refund-to-mobile`, { method: 'POST', body: JSON.stringify(data) }),
+    refundToPayPal: (data: any) =>
+      request<any>(`${API_URL}/admin/refund-to-paypal`, { method: 'POST', body: JSON.stringify(data) }),
+    refundToBank: (data: any) =>
+      request<any>(`${API_URL}/admin/refund-to-bank`, { method: 'POST', body: JSON.stringify(data) }),
+
+    // Claims
+    verifyClaim: (transactionId: string) => request<any>(`${API_URL}/admin/verify-claim/${transactionId}`),
+
+    // P2P
+    getPmToPmDetails: (transactionId: string) => request<any>(`${API_URL}/admin/pm-to-pm/${transactionId}`),
+    reversePmToPm: (transactionId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/pm-to-pm/reverse`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
+
+    // Sessions
+    revokeSessions: (userId: string) =>
+      request<any>(`${API_URL}/admin/sessions/revoke`, { method: 'POST', body: JSON.stringify({ userId }) }),
+
+    // Security
+    getBannedIPs: () => request<any[]>(`${API_URL}/admin/security/banned-ips`),
+    unbanIP: (ip: string) => request<any>(`${API_URL}/admin/security/unban-ip`, { method: 'POST', body: JSON.stringify({ ip }) }),
+    blockIP: (ip: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/security/block-ip`, { method: 'POST', body: JSON.stringify({ ip, reason }) }),
+    getTarpitStats: () => request<any[]>(`${API_URL}/admin/security/tarpit-stats`),
+    getFraudAlerts: () => request<any[]>(`${API_URL}/admin/security/fraud-alerts`),
+    getIPDetails: (ip: string) => request<any>(`${API_URL}/admin/security/ip/${ip}`),
+
+    // API Keys
+    getAllApiKeys: () => request<any[]>(`${API_URL}/admin/api-keys`),
+    revokeApiKey: (keyId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/api-keys/revoke`, { method: 'POST', body: JSON.stringify({ keyId, reason }) }),
+
+    // Cards
+    getAllCards: () => request<any[]>(`${API_URL}/admin/cards`),
+    toggleCard: (id: string, action: 'freeze' | 'unfreeze') =>
+      request<any>(`${API_URL}/admin/cards/${id}/toggle`, { method: 'POST', body: JSON.stringify({ action }) }),
+    cancelCard: (id: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/cards/${id}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+    // Crypto
+    getCryptoTransactions: () => request<any[]>(`${API_URL}/admin/crypto/transactions`),
+    getCryptoStats: () => request<any>(`${API_URL}/admin/crypto/stats`),
+    refundCrypto: (transactionId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/crypto/refund`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
+    freezeCryptoUser: (userId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/crypto/freeze`, { method: 'POST', body: JSON.stringify({ userId, reason }) }),
+
+    // Referrals
+    getAllReferrals: () => request<any[]>(`${API_URL}/admin/referrals`),
+    getReferralStats: () => request<any>(`${API_URL}/admin/referrals/stats`),
+    revokeReferral: (referralId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/referrals/revoke`, { method: 'POST', body: JSON.stringify({ referralId, reason }) }),
+    refundReferralCommission: (earningId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/referrals/refund-commission`, { method: 'POST', body: JSON.stringify({ earningId, reason }) }),
+    getUserReferrals: (userId: string) => request<any>(`${API_URL}/admin/referrals/user/${userId}`),
+
+    // Payment Pages
+    getAllPaymentPages: () => request<any[]>(`${API_URL}/admin/payment-pages`),
+    getPaymentPagesStats: () => request<any>(`${API_URL}/admin/payment-pages/stats`),
+    revokePaymentPage: (userId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/payment-pages/${userId}/revoke`, { method: 'POST', body: JSON.stringify({ reason }) }),
+    freezePaymentPage: (userId: string, reason?: string) =>
+      request<any>(`${API_URL}/admin/payment-pages/${userId}/freeze`, { method: 'POST', body: JSON.stringify({ reason }) }),
+    unfreezePaymentPage: (userId: string) =>
+      request<any>(`${API_URL}/admin/payment-pages/${userId}/unfreeze`, { method: 'POST' }),
+    getPaymentPageTransactions: (userId: string) =>
+      request<any[]>(`${API_URL}/admin/payment-pages/${userId}/transactions`),
+
+    // Geo
+    getUserGeo: (email: string) => request<any>(`${API_URL}/admin/user-geo/${encodeURIComponent(email)}`),
+
+    // Payroll
+    setSalary: (data: any) =>
+      request<any>(`${API_URL}/admin/payroll/set-salary`, { method: 'POST', body: JSON.stringify(data) }),
+    runPayroll: () => request<any>(`${API_URL}/admin/payroll/run-now`, { method: 'POST' }),
+    getPayrollAgents: () => request<any[]>(`${API_URL}/admin/payroll/agents`),
+    getPayrollHistory: () => request<any[]>(`${API_URL}/admin/payroll/history`),
+  },
+
+  // ==========================================
+  // FINANCE (admin)
+  // ==========================================
+
+  finance: {
+    getRevenueStats: () => request<any>(`${API_URL}/admin/finance/revenue/stats`),
+    getRevenueHistory: (months?: number) =>
+      request<any>(`${API_URL}/admin/finance/revenue/history${months ? `?months=${months}` : ''}`),
+    withdraw: (data: { amount: number; destination: string; destinationType: string }) =>
+      request<any>(`${API_URL}/admin/finance/withdraw`, { method: 'POST', body: JSON.stringify(data) }),
+    exportPDF: () => request<any>(`${API_URL}/admin/finance/export-pdf`),
+  },
+
+  // ==========================================
+  // AGENT
+  // ==========================================
+
+  agent: {
+    heartbeat: () => request<any>(`${API_URL}/agent/heartbeat`, { method: 'POST' }),
+    getStatus: () => request<any>(`${API_URL}/agent/status`),
+    chat: {
+      send: (message: string) => request<any>(`${API_URL}/agent/chat/send`, { method: 'POST', body: JSON.stringify({ message }) }),
+      sendWithImages: (message: string, images: string[]) =>
+        request<any>(`${API_URL}/agent/chat/send-with-images`, { method: 'POST', body: JSON.stringify({ message, images }) }),
+      getMessages: () => request<any[]>(`${API_URL}/agent/chat/messages`),
+      getMessagesPaged: (page?: number, limit?: number) =>
+        request<any[]>(`${API_URL}/agent/chat/messages-paged${page ? `?page=${page}&limit=${limit || 50}` : ''}`),
+      reply: (messageId: string, reply: string) =>
+        request<any>(`${API_URL}/agent/chat/reply`, { method: 'POST', body: JSON.stringify({ messageId, reply }) }),
+      getUnread: () => request<any>(`${API_URL}/agent/chat/unread`),
+      clear: () => request<any>(`${API_URL}/agent/chat/clear`, { method: 'DELETE' }),
+    },
+  },
+
+  // ==========================================
+  // PUBLIC
+  // ==========================================
+
+  public: {
+    payments: (data: any) =>
+      request<any>(`${API_URL}/public/payments`, { method: 'POST', body: JSON.stringify(data) }),
+    health: () => request<any>(`${API_URL}/public/health`),
+    rates: () => request<any>(`${API_URL}/public/rates`),
+  },
+
+  // ==========================================
+  // SECURITY
+  // ==========================================
+
+  security: {
+    report: (data: any) =>
+      request<any>(`${API_URL}/security/report`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
+  // LEGACY (for backward compatibility)
+  // ==========================================
+
+  getCurrentUser: async () => {
+    try {
+      return await api.auth.getMe();
+    } catch {
       return null;
-    },
-    min: (minVal: number, msg: string) => {
-      validators.push((val) => (val < minVal ? msg : null));
-      return self;
-    },
-    max: (maxVal: number, msg: string) => {
-      validators.push((val) => (val > maxVal ? msg : null));
-      return self;
-    },
-  };
+    }
+  },
 
-  return self;
-};
+  getStats: async () => {
+    try {
+      const data = await api.dashboard.getStats();
+      return {
+        totalReceived: parseFloat(data.financials?.totalVolumeUSD || 0),
+        totalTransactions: data.overview?.successfulTransactions || 0,
+        successRate: parseFloat(data.overview?.successRate || 0),
+        pendingTransactions: data.overview?.pendingTransactions || 0,
+      };
+    } catch {
+      return { totalReceived: 0, totalTransactions: 0, successRate: 100, pendingTransactions: 0 };
+    }
+  },
 
-const zString = () => {
-  let validators: ((val: string) => string | null)[] = [
-    (val) => (typeof val !== 'string' ? 'Veuillez saisir un texte.' : null),
-  ];
+  getTransactions: async (filters?: { status?: string; currency?: string }) => {
+    try {
+      const params: Record<string, string> = {};
+      if (filters?.status && filters.status !== 'ALL') params.status = filters.status;
+      if (filters?.currency && filters.currency !== 'ALL') params.currency = filters.currency;
+      return await api.dashboard.getTransactions(Object.keys(params).length ? params : undefined);
+    } catch {
+      return [];
+    }
+  },
 
-  const self = {
-    validate: (val: any) => {
-      for (const fn of validators) {
-        const err = fn(val);
-        if (err) return err;
-      }
+  getTransactionById: async (id: string) => {
+    try {
+      return await api.dashboard.getTransactionById(id);
+    } catch {
       return null;
-    },
-    min: (minLen: number, msg: string) => {
-      validators.push((val) => (val.length < minLen ? msg : null));
-      return self;
-    },
-    max: (maxLen: number, msg: string) => {
-      validators.push((val) => (val.length > maxLen ? msg : null));
-      return self;
-    },
-    regex: (re: RegExp, msg: string) => {
-      validators.push((val) => (!re.test(val) ? msg : null));
-      return self;
-    },
-  };
+    }
+  },
 
-  return self;
-};
+  createOrder: async (data: { amountUSD: number; currency: string; phone: string }) => {
+    return api.payments.createOrder({
+      amountUSD: data.amountUSD,
+      currencyCode: data.currency,
+      phoneNumber: data.phone,
+    });
+  },
 
-const zEnum = (values: string[], opts?: { errorMap?: () => { message: string } }) => {
-  return {
-    validate: (val: any) => {
-      if (typeof val !== 'string' || !values.includes(val)) {
-        return opts?.errorMap?.()?.message || 'Sélection invalide.';
-      }
+  getKYCStatus: async () => {
+    try {
+      return await api.kyc.getStatus();
+    } catch {
+      return { status: 'NONE' };
+    }
+  },
+
+  uploadKYC: async (documentType: string, file: File, backFile?: File | null) => {
+    return api.kyc.upload(documentType, file, backFile);
+  },
+
+  resetKYC: async (): Promise<KYCDetails> => {
+    return { status: 'NONE' as KYCStatus };
+  },
+
+  getWallets: async () => {
+    try {
+      return await api.dashboard.getWallets();
+    } catch {
+      return [];
+    }
+  },
+
+  addWallet: async (data: { phone: string; operator: string }) => {
+    return api.dashboard.createWallet({ currencyCode: 'XOF', phoneNumber: data.phone });
+  },
+
+  deleteWallet: async (id: string) => {
+    try {
+      await fetch(`${API_URL}/dashboard/wallets/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() },
+      });
+    } catch {}
+    return true;
+  },
+
+  setDefaultWallet: async (id: string) => {
+    try {
+      return await api.dashboard.setDefaultWallet(id);
+    } catch {
       return null;
-    },
-  };
-};
+    }
+  },
 
-const zObject = (shape: Record<string, Validator>) => {
-  return {
-    parse: (data: any) => {
-      const errors: { path: (string | number)[]; message: string }[] = [];
-      const result: any = {};
+  sendOTP: async (phone: string) => {
+    try {
+      await api.auth.requestOTP(phone);
+      return { success: true, message: `Code envoyé au ${phone}` };
+    } catch (e: any) {
+      return { success: false, message: e.message };
+    }
+  },
 
-      if (!data || typeof data !== 'object') {
-        throw new ZodError([{ path: [], message: 'Données invalides.' }]);
-      }
+  verifyOTP: async (phone: string, code: string) => {
+    try {
+      await api.auth.verifyOTP(phone, code);
+      return { success: true, message: 'Numéro vérifié avec succès' };
+    } catch (e: any) {
+      return { success: false, message: e.message };
+    }
+  },
 
-      for (const key in shape) {
-        const val = data[key];
-        const err = shape[key].validate(val);
-        if (err) {
-          errors.push({ path: [key], message: err });
-        } else {
-          result[key] = val;
-        }
-      }
-
-      if (errors.length > 0) {
-        throw new ZodError(errors);
-      }
-
-      return result;
-    },
-    safeParse: (data: any) => {
-      try {
-        const parsed = zObject(shape).parse(data);
-        return { success: true as const, data: parsed };
-      } catch (err: any) {
-        if (err instanceof ZodError) {
-          return { success: false as const, error: err };
-        }
-        return { success: false as const, error: new ZodError([{ path: [], message: err.message }]) };
-      }
-    },
-  };
-};
-
-export const z = {
-  object: zObject,
-  number: zNumber,
-  string: zString,
-  enum: zEnum,
+  updateUserProfile: async (data: Record<string, any>) => {
+    try {
+      return await api.auth.updateProfile(data);
+    } catch {
+      return data;
+    }
+  },
 };
 
 // ==========================================
-// TYPES & INTERFACES
+// TAUX DE CHANGE EN DIRECT
+// ==========================================
+
+export async function fetchLiveRates(): Promise<any[]> {
+  try {
+    const res = await api.rates.all();
+    if (res.data) {
+      return res.data.map((r: any) => ({
+        currency: r.code || r.currency,
+        rate: r.rate,
+        flag: getFlagEmoji(r.code || r.currency),
+        label: r.name || r.currency,
+      }));
+    }
+  } catch {}
+  return FALLBACK_RATES;
+}
+
+export const FALLBACK_RATES = [
+  { currency: 'XOF', rate: 618.50, flag: '🇨🇮', label: 'FCFA - UEMOA' },
+  { currency: 'XAF', rate: 618.50, flag: '🇨🇲', label: 'FCFA - CEMAC' },
+  { currency: 'KES', rate: 135, flag: '🇰🇪', label: 'Shilling Kenyan' },
+  { currency: 'NGN', rate: 1550, flag: '🇳🇬', label: 'Naira Nigérian' },
+  { currency: 'GHS', rate: 13.50, flag: '🇬🇭', label: 'Cedi Ghanéen' },
+];
+
+export function getFlagEmoji(currencyCode: string): string {
+  const flags: Record<string, string> = {
+    XOF: '🇨🇮', XAF: '🇨🇲', KES: '🇰🇪', NGN: '🇳🇬',
+    GHS: '🇬🇭', UGX: '🇺🇬', RWF: '🇷🇼', TZS: '🇹🇿',
+  };
+  return flags[currencyCode] || '🌍';
+}
+
+// ==========================================
+// LEGACY EXPORTS (for backward compatibility)
 // ==========================================
 
 export type TransactionStatus = 'PENDING' | 'PAYPAL_APPROVED' | 'MOBILE_MONEY_SENT' | 'FAILED';
@@ -162,7 +803,7 @@ export interface Stats {
   pendingTransactions: number;
 }
 
-export type KYCStatus = 'NONE' | 'PENDING_AI' | 'PENDING_HUMAN' | 'APPROVED' | 'REJECTED';
+export type KYCStatus = 'NONE' | 'PENDING_AI' | 'PENDING_HUMAN' | 'APPROVED' | 'REJECTED' | 'DISPUTED';
 
 export interface KYCDetails {
   status: KYCStatus;
@@ -186,527 +827,15 @@ export interface LiveRate {
   name: string;
   rate: number;
   flag: string;
+  iso2: string;
 }
 
-// ==========================================
-// VALIDATION SCHEMAS
-// ==========================================
-
-export const WithdrawSchema = z.object({
-  amountUSD: z.number()
-    .min(10, 'Le montant minimum est de 10 USD.')
-    .max(2000, 'Le montant maximum est de 2000 USD.'),
-  currency: z.enum(['XOF', 'XAF', 'GHS', 'KES', 'NGN'], {
-    errorMap: () => ({ message: 'Veuillez choisir une devise valide.' }),
-  }),
-  phone: z.string()
-    .min(8, 'Le numéro de téléphone est trop court.')
-    .max(15, 'Le numéro de téléphone est trop long.')
-    .regex(/^\+?[1-9]\d{1,14}$/, 'Le format du numéro de téléphone est invalide. Exemple: +2250700000000'),
-});
-
-export const WalletSchema = z.object({
-  phone: z.string()
-    .min(8, 'Le numéro est trop court.')
-    .max(15, 'Le numéro est trop long.')
-    .regex(/^\+?[1-9]\d{1,14}$/, 'Format invalide. Exemple: +2250700000000'),
-  operator: z.enum(['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'], {
-    errorMap: () => ({ message: 'Veuillez choisir un opérateur valide.' }),
-  }),
-});
-
-// ==========================================
-// IMPORT DEPUIS LE FICHIER CENTRALISÉ
-// ==========================================
-
 import { LIVE_RATES as COUNTRIES_LIVE_RATES } from '@/data/countries';
-
-// ==========================================
-// LIVE EXCHANGE RATES (FALLBACK)
-// ==========================================
 
 export const LIVE_RATES: LiveRate[] = COUNTRIES_LIVE_RATES.map((r: any) => ({
   currency: r.currency,
   name: r.name || r.currency,
   rate: r.rate,
   flag: r.flag,
+  iso2: r.iso2,
 }));
-
-// ==========================================
-// API CONFIGURATION
-// ==========================================
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1').replace(/\/$/, '');
-
-// ==========================================
-// MOCK DATABASE & LOCALSTORAGE FALLBACK
-// ==========================================
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: 'TX-892401',
-    date: new Date(Date.now() - 3600000 * 4).toISOString(),
-    amountUSD: 120.00,
-    receivedAmount: 68400,
-    currency: 'XOF',
-    status: 'MOBILE_MONEY_SENT',
-    reference: 'REF-MTN-94021',
-    phone: '+2250748123456',
-    paypalOrderId: 'PAY-8X720491B',
-    flutterwaveReference: 'FLW-MOCK-99120',
-    exchangeRate: 612.5,
-    timeline: [
-      { status: 'PENDING', timestamp: new Date(Date.now() - 3600000 * 4).toISOString(), description: 'Initiation du retrait' },
-      { status: 'PAYPAL_APPROVED', timestamp: new Date(Date.now() - 3600000 * 3.8).toISOString(), description: 'Paiement PayPal validé' },
-      { status: 'MOBILE_MONEY_SENT', timestamp: new Date(Date.now() - 3600000 * 3.7).toISOString(), description: 'Fonds transférés sur Mobile Money' },
-    ],
-  },
-  {
-    id: 'TX-892398',
-    date: new Date(Date.now() - 86400000 * 1.5).toISOString(),
-    amountUSD: 50.00,
-    receivedAmount: 688.2,
-    currency: 'GHS',
-    status: 'MOBILE_MONEY_SENT',
-    reference: 'REF-WAVE-88204',
-    phone: '+233201234567',
-    paypalOrderId: 'PAY-3V983204X',
-    flutterwaveReference: 'FLW-MOCK-98204',
-    exchangeRate: 14.8,
-    timeline: [
-      { status: 'PENDING', timestamp: new Date(Date.now() - 86400000 * 1.5).toISOString(), description: 'Initiation du retrait' },
-      { status: 'PAYPAL_APPROVED', timestamp: new Date(Date.now() - 86400000 * 1.49).toISOString(), description: 'Paiement PayPal validé' },
-      { status: 'MOBILE_MONEY_SENT', timestamp: new Date(Date.now() - 86400000 * 1.45).toISOString(), description: 'Fonds transférés sur Mobile Money' },
-    ],
-  },
-  {
-    id: 'TX-892392',
-    date: new Date(Date.now() - 86400000 * 3).toISOString(),
-    amountUSD: 250.00,
-    receivedAmount: 30039,
-    currency: 'KES',
-    status: 'PENDING',
-    reference: 'REF-MPESA-22041',
-    phone: '+254712345678',
-    paypalOrderId: 'PAY-1A908420C',
-    exchangeRate: 129.2,
-    timeline: [
-      { status: 'PENDING', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(), description: 'Initiation du retrait, en attente de validation PayPal' },
-    ],
-  },
-  {
-    id: 'TX-892381',
-    date: new Date(Date.now() - 86400000 * 7).toISOString(),
-    amountUSD: 80.00,
-    receivedAmount: 114268,
-    currency: 'NGN',
-    status: 'FAILED',
-    reference: 'REF-AIRTEL-55012',
-    phone: '+2348012345678',
-    paypalOrderId: 'PAY-4B892014M',
-    exchangeRate: 1540.0,
-    errorReason: 'Le compte PayPal de l\'expéditeur a un litige en cours.',
-    timeline: [
-      { status: 'PENDING', timestamp: new Date(Date.now() - 86400000 * 7).toISOString(), description: 'Initiation du retrait' },
-      { status: 'FAILED', timestamp: new Date(Date.now() - 86400000 * 6.9).toISOString(), description: 'Échec de la transaction' },
-    ],
-  },
-];
-
-const MOCK_WALLETS: Wallet[] = [
-  { id: 'W-01', phone: '+2250748123456', operator: 'Orange', isDefault: true, countryCode: '+225' },
-  { id: 'W-02', phone: '+2250567890123', operator: 'MTN', isDefault: false, countryCode: '+225' },
-];
-
-const getLocalStorageData = <T>(key: string, initialData: T): T => {
-  if (typeof window === 'undefined') return initialData;
-  const stored = localStorage.getItem(key);
-  if (!stored) {
-    localStorage.setItem(key, JSON.stringify(initialData));
-    return initialData;
-  }
-  return JSON.parse(stored);
-};
-
-const setLocalStorageData = <T>(key: string, data: T): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(data));
-};
-
-// ==========================================
-// API CLIENT IMPLEMENTATION
-// ==========================================
-
-export const api = {
-  getCurrentUser: async () => {
-    if (typeof window !== 'undefined') {
-      const raw = localStorage.getItem('pm_auth_user');
-      if (raw) {
-        try { return JSON.parse(raw); } catch {}
-      }
-    }
-    return null;
-  },
-
-  getStats: async (): Promise<Stats> => {
-    try {
-      const res = await fetch(`${API_URL}/dashboard/stats`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) {
-          return {
-            totalReceived: parseFloat(data.data.financials?.totalVolumeUSD || 0),
-            totalTransactions: data.data.overview?.successfulTransactions || 0,
-            successRate: parseFloat(data.data.overview?.successRate || 0),
-            pendingTransactions: data.data.overview?.pendingTransactions || 0,
-          };
-        }
-      }
-    } catch (e) {
-      console.warn('⚠️ Backend offline, using mock stats');
-    }
-
-    const txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
-    const successfulTxs = txs.filter((t) => t.status === 'MOBILE_MONEY_SENT');
-    const pendingTxs = txs.filter((t) => t.status === 'PENDING' || t.status === 'PAYPAL_APPROVED');
-    const totalReceived = successfulTxs.reduce((acc, curr) => acc + curr.amountUSD, 0);
-    const totalAttempted = txs.filter((t) => t.status !== 'PENDING').length;
-    const successRate = totalAttempted > 0 ? (successfulTxs.length / totalAttempted) * 100 : 100;
-
-    return {
-      totalReceived,
-      totalTransactions: successfulTxs.length,
-      successRate,
-      pendingTransactions: pendingTxs.length,
-    };
-  },
-
-  getTransactions: async (filters?: { status?: string; currency?: string }): Promise<Transaction[]> => {
-    try {
-      const params = new URLSearchParams();
-      if (filters?.status && filters.status !== 'ALL') params.append('status', filters.status);
-      if (filters?.currency && filters.currency !== 'ALL') params.append('currency', filters.currency);
-      const query = params.toString() ? `?${params.toString()}` : '';
-      const res = await fetch(`${API_URL}/dashboard/transactions${query}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) return data.data;
-      }
-    } catch (e) {
-      console.warn('⚠️ Backend offline, using mock transactions');
-    }
-
-    let txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
-    if (filters?.status && filters.status !== 'ALL') {
-      txs = txs.filter((t) => t.status === filters.status);
-    }
-    if (filters?.currency && filters.currency !== 'ALL') {
-      txs = txs.filter((t) => t.currency === filters.currency);
-    }
-    return txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  },
-
-  getTransactionById: async (id: string): Promise<Transaction | null> => {
-    try {
-      const res = await fetch(`${API_URL}/dashboard/transactions/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) return data.data;
-      }
-    } catch (e) {}
-
-    const txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
-    return txs.find((t) => t.id === id) || null;
-  },
-
-  createOrder: async (data: { amountUSD: number; currency: string; phone: string }): Promise<Transaction> => {
-    const parsed = WithdrawSchema.parse(data);
-
-    try {
-      const res = await fetch(`${API_URL}/payments/create-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amountUSD: parsed.amountUSD,
-          currencyCode: parsed.currency,
-          phoneNumber: parsed.phone,
-          userEmail: 'user@paymaestro.com',
-        }),
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
-    const ratesMap = new Map(LIVE_RATES.map((r) => [r.currency, r.rate]));
-    const exchangeRate = ratesMap.get(parsed.currency) || 612.5;
-    const netUSD = parsed.amountUSD * 0.93;
-    const receivedAmount = Math.round(netUSD * exchangeRate);
-
-    const newTx: Transaction = {
-      id: `TX-${Math.floor(100000 + Math.random() * 900000)}`,
-      date: new Date().toISOString(),
-      amountUSD: parsed.amountUSD,
-      receivedAmount,
-      currency: parsed.currency,
-      status: 'PENDING',
-      reference: `REF-${parsed.currency}-${Math.floor(10000 + Math.random() * 90000)}`,
-      phone: parsed.phone,
-      paypalOrderId: `PAY-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
-      exchangeRate,
-      timeline: [
-        { status: 'PENDING', timestamp: new Date().toISOString(), description: 'Initiation du retrait' },
-      ],
-    };
-
-    const txs = getLocalStorageData<Transaction[]>('pm_transactions', MOCK_TRANSACTIONS);
-    txs.unshift(newTx);
-    setLocalStorageData('pm_transactions', txs);
-
-    setTimeout(() => {
-      const currentTxs = getLocalStorageData<Transaction[]>('pm_transactions', []);
-      const match = currentTxs.find((t) => t.id === newTx.id);
-      if (match) {
-        match.status = 'PAYPAL_APPROVED';
-        match.timeline.push({ status: 'PAYPAL_APPROVED', timestamp: new Date().toISOString(), description: 'Paiement PayPal validé.' });
-        setLocalStorageData('pm_transactions', currentTxs);
-        setTimeout(() => {
-          const finalTxs = getLocalStorageData<Transaction[]>('pm_transactions', []);
-          const finalMatch = finalTxs.find((t) => t.id === newTx.id);
-          if (finalMatch) {
-            finalMatch.status = 'MOBILE_MONEY_SENT';
-            finalMatch.flutterwaveReference = `FLW-${Math.floor(100000 + Math.random() * 900000)}`;
-            finalMatch.timeline.push({ status: 'MOBILE_MONEY_SENT', timestamp: new Date().toISOString(), description: 'Fonds transférés sur Mobile Money.' });
-            setLocalStorageData('pm_transactions', finalTxs);
-          }
-        }, 10000);
-      }
-    }, 10000);
-
-    return newTx;
-  },
-
-  getKYCStatus: async (): Promise<KYCDetails> => {
-    try {
-      const res = await fetch(`${API_URL}/kyc/status`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) return data.data;
-      }
-    } catch (e) {}
-    return getLocalStorageData<KYCDetails>('pm_kyc', { status: 'NONE' });
-  },
-
-  uploadKYC: async (documentType: string, file: File): Promise<KYCDetails> => {
-    try {
-      const formData = new FormData();
-      formData.append('documentType', documentType);
-      formData.append('document', file);
-      const res = await fetch(`${API_URL}/kyc/upload`, { method: 'POST', body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) return data.data;
-      }
-    } catch (e) {}
-
-    const newKyc: KYCDetails = { status: 'PENDING_AI', documentType, submittedAt: new Date().toISOString() };
-    setLocalStorageData('pm_kyc', newKyc);
-    setTimeout(() => {
-      const currentKyc = getLocalStorageData<KYCDetails>('pm_kyc', { status: 'NONE' });
-      if (currentKyc.status === 'PENDING_AI') {
-        currentKyc.status = Math.random() > 0.3 ? 'APPROVED' : 'REJECTED';
-        if (currentKyc.status === 'REJECTED') currentKyc.reason = 'Document illisible ou expiré.';
-        setLocalStorageData('pm_kyc', currentKyc);
-      }
-    }, 8000);
-    return newKyc;
-  },
-
-  resetKYC: async (): Promise<KYCDetails> => {
-    const kyc = { status: 'NONE' as KYCStatus };
-    setLocalStorageData('pm_kyc', kyc);
-    return kyc;
-  },
-
-  getWallets: async (): Promise<Wallet[]> => {
-    try {
-      const res = await fetch(`${API_URL}/dashboard/wallets`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.data) return data.data;
-      }
-    } catch (e) {}
-    return getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-  },
-
-  addWallet: async (data: { phone: string; operator: MobileOperator }): Promise<Wallet> => {
-    const parsed = WalletSchema.parse(data);
-    try {
-      const res = await fetch(`${API_URL}/dashboard/wallets`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: parsed.phone, currencyCode: 'XOF' }),
-      });
-      if (res.ok) {
-        const d = await res.json();
-        if (d.success && d.data) return d.data;
-      }
-    } catch (e) {}
-
-    const wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-    let countryCode = '+225';
-    if (parsed.phone.startsWith('+233')) countryCode = '+233';
-    else if (parsed.phone.startsWith('+254')) countryCode = '+254';
-    else if (parsed.phone.startsWith('+234')) countryCode = '+234';
-    else if (parsed.phone.startsWith('+221')) countryCode = '+221';
-
-    const newWallet: Wallet = {
-      id: `W-${Math.floor(10 + Math.random() * 90)}`,
-      phone: parsed.phone,
-      operator: parsed.operator,
-      isDefault: wallets.length === 0,
-      countryCode,
-    };
-    wallets.push(newWallet);
-    setLocalStorageData('pm_wallets', wallets);
-    return newWallet;
-  },
-
-  deleteWallet: async (id: string): Promise<boolean> => {
-    try {
-      await fetch(`${API_URL}/dashboard/wallets/${id}`, { method: 'DELETE' });
-    } catch (e) {}
-    let wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-    wallets = wallets.filter((w) => w.id !== id);
-    if (wallets.length > 0) wallets[0].isDefault = true;
-    setLocalStorageData('pm_wallets', wallets);
-    return true;
-  },
-
-  setDefaultWallet: async (id: string): Promise<Wallet | null> => {
-    try {
-      const res = await fetch(`${API_URL}/dashboard/wallets/${id}/default`, { method: 'PUT' });
-      if (res.ok) {
-        const d = await res.json();
-        if (d.success && d.data) return d.data;
-      }
-    } catch (e) {}
-    const wallets = getLocalStorageData<Wallet[]>('pm_wallets', MOCK_WALLETS);
-    let updated: Wallet | null = null;
-    wallets.forEach((w) => { w.isDefault = w.id === id; if (w.id === id) updated = w; });
-    setLocalStorageData('pm_wallets', wallets);
-    return updated;
-  },
-
-  rates: {
-    all: async () => {
-      const res = await fetch(`${API_URL}/rates`);
-      if (!res.ok) throw new Error('Failed to fetch rates');
-      return await res.json();
-    }
-  },
-  payments: {
-    estimate: async (amountUSD: number, currency: string) => {
-      const res = await fetch(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currency}`);
-      if (!res.ok) throw new Error('Failed to get estimate');
-      return await res.json();
-    },
-    captureOrder: async (paypalOrderId: string, transactionId: number) => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('paymaestro_token') : null;
-      const res = await fetch(`${API_URL}/payments/capture-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ paypalOrderId, transactionId }),
-      });
-      if (!res.ok) throw new Error('Failed to capture PayPal order');
-      return await res.json();
-    },
-  },
-  auth: {
-    google: async (accessToken: string) => {
-      const res = await fetch(`${API_URL}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: accessToken }),
-      });
-      if (!res.ok) throw new Error('Failed to authenticate');
-      return await res.json();
-    }
-  },
-
-  sendOTP: async (phone: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    return { success: true, message: `Code envoyé au ${phone}` };
-  },
-
-  verifyOTP: async (phone: string, code: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    if (code.length === 6 && /^\d{6}$/.test(code)) {
-      return { success: true, message: 'Numéro vérifié avec succès' };
-    }
-    return { success: false, message: 'Code invalide. Veuillez réessayer.' };
-  },
-
-  validateDocumentAI: async (file: File, fullName: string): Promise<{ valid: boolean; detectedName: string; confidence: number; reason?: string }> => {
-    await new Promise((resolve) => setTimeout(resolve, 3500));
-    const confidence = 0.7 + Math.random() * 0.3;
-    if (Math.random() > 0.25) {
-      return { valid: true, detectedName: fullName, confidence: parseFloat(confidence.toFixed(2)) };
-    }
-    const reasons = ['Le nom ne correspond pas.', 'Document illisible.', 'Document expiré.'];
-    return { valid: false, detectedName: 'Non détecté', confidence: parseFloat((Math.random() * 0.4 + 0.1).toFixed(2)), reason: reasons[Math.floor(Math.random() * reasons.length)] };
-  },
-
-  updateUserProfile: async (data: Record<string, any>): Promise<any> => {
-    if (typeof window !== 'undefined') {
-      const raw = localStorage.getItem('pm_auth_user');
-      if (raw) {
-        try {
-          const user = JSON.parse(raw);
-          const updated = { ...user, ...data };
-          localStorage.setItem('pm_auth_user', JSON.stringify(updated));
-          return updated;
-        } catch {}
-      }
-    }
-    return data;
-  },
-};
-
-// ==========================================
-// TAUX DE CHANGE EN DIRECT
-// ==========================================
-
-export async function fetchLiveRates(): Promise<any[]> {
-  try {
-    const res = await api.rates.all();
-    if (res.success && res.data) {
-      return (res.data as any[]).map((r: any) => ({
-        currency: r.code,
-        rate: r.rate,
-        flag: getFlagEmoji(r.code),
-        label: r.name,
-      }));
-    }
-  } catch (error) {
-    console.warn('⚠️ Backend offline, using fallback rates');
-  }
-  return FALLBACK_RATES;
-}
-
-export const FALLBACK_RATES = [
-  { currency: 'XOF', rate: 618.50, flag: '🇨🇮', label: 'FCFA - UEMOA' },
-  { currency: 'XAF', rate: 618.50, flag: '🇨🇲', label: 'FCFA - CEMAC' },
-  { currency: 'KES', rate: 135, flag: '🇰🇪', label: 'Shilling Kenyan' },
-  { currency: 'NGN', rate: 1550, flag: '🇳🇬', label: 'Naira Nigérian' },
-  { currency: 'GHS', rate: 13.50, flag: '🇬🇭', label: 'Cedi Ghanéen' },
-];
-
-export function getFlagEmoji(currencyCode: string): string {
-  const flags: Record<string, string> = {
-    XOF: '🇨🇮', XAF: '🇨🇲', KES: '🇰🇪', NGN: '🇳🇬',
-    GHS: '🇬🇭', UGX: '🇺🇬', RWF: '🇷🇼', TZS: '🇹🇿',
-  };
-  return flags[currencyCode] || '🌍';
-}

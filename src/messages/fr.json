@@ -290,6 +290,28 @@
       "banReason": "Motif du bannissement"
     }
   },
+  "wallet": {
+    "title": "Mon Portefeuille",
+    "usdBalance": "Solde USD",
+    "totalDeposited": "Total déposé",
+    "totalWithdrawn": "Total retiré",
+    "transactionHistory": "Historique des transactions",
+    "depositFunds": "Déposer des fonds",
+    "amount": "Montant (USD)",
+    "deposit": "Déposer",
+    "depositFee": "Frais de dépôt : 5%. Pour 100$ déposés, 95$ sont crédités.",
+    "withdrawToWallet": "Retirer vers le portefeuille local",
+    "selectCurrency": "Sélectionner la devise",
+    "amountUSD": "Montant (USD)",
+    "convertTo": "Convertir en",
+    "withdrawFee": "Retrait vers Mobile Money = 7% de frais supplémentaires.",
+    "convertCurrency": "Convertir entre devises",
+    "from": "De",
+    "to": "Vers",
+    "convert": "Convertir",
+    "conversionFee": "Frais de conversion : 2%.",
+    "noTransactions": "Aucune transaction"
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "Aucune notification",

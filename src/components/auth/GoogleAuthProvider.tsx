@@ -8,6 +8,7 @@ import {
   AuthState,
   MOCK_USER,
   saveUserToStorage,
+  saveTokenToStorage,
   getUserFromStorage,
   removeUserFromStorage,
 } from '@/hooks/useAuth';
@@ -50,44 +51,75 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
 
   // --- Callback de succès Google OAuth ---
   const handleGoogleSuccess = useCallback(async (tokenResponse: { access_token: string }) => {
+    console.log('✅ handleGoogleSuccess appelé avec access_token');
     setIsLoading(true);
     let authUser: AuthUser | null = null;
 
     // 1. Essayer le vrai backend PayMaestro
     try {
       const backendRes = await api.auth.google(tokenResponse.access_token);
-      if (backendRes?.user) {
-        authUser = {
-          id: backendRes.user.id || 'google-user',
-          name: backendRes.user.name,
-          email: backendRes.user.email,
-          avatar: backendRes.user.avatar || backendRes.user.picture,
-          googleId: backendRes.user.googleId,
-          joinedAt: backendRes.user.joinedAt || new Date().toISOString(),
-          kycStatus: backendRes.user.kycStatus || 'NONE',
-          is_onboarded: backendRes.user.is_onboarded ?? false,
-          phone: backendRes.user.phone,
-          phoneVerified: backendRes.user.phoneVerified,
-          firstName: backendRes.user.firstName,
-          lastName: backendRes.user.lastName,
-          postName: backendRes.user.postName,
-          country: backendRes.user.country,
-          city: backendRes.user.city,
-        };
+      console.log('📦 Réponse backend:', backendRes);
+      const backendStatus = backendRes?.status;
+      const loginToken = backendRes?.loginToken;
+
+      // Nouveaux statuts : redirection vers création/vérification mot de passe
+      if (backendStatus === 'PASSWORD_SETUP_REQUIRED' || backendStatus === 'PASSWORD_REQUIRED') {
+        sessionStorage.setItem('pm_login_token', loginToken || '');
+        sessionStorage.setItem('pm_login_status', backendStatus);
+        sessionStorage.setItem('pm_login_user', JSON.stringify(backendRes?.user || {}));
+        // DEBUG
+        console.log('🔍 DEBUG handleGoogleSuccess — stocké pm_login_token:', sessionStorage.getItem('pm_login_token') ? 'OK' : 'MANQUANT');
+        console.log('🔍 DEBUG handleGoogleSuccess — stocké pm_login_status:', sessionStorage.getItem('pm_login_status'));
+        // NE PAS setUser — l'utilisateur n'est pas encore connecté
+        setIsLoading(false);
+        if (loginResolveRef.current) {
+          console.log('🔍 DEBUG handleGoogleSuccess — résolution de la promesse...');
+          loginResolveRef.current(null);
+          loginResolveRef.current = null;
+        } else {
+          console.warn('🔍 DEBUG handleGoogleSuccess — loginResolveRef.current est NULL!');
+        }
+        return;
       }
-    } catch {
-      console.warn('⚠️ Backend offline, récupération du profil Google directement');
+
+      if (backendRes?.data?.user) {
+        const u = backendRes.data.user;
+        authUser = {
+          id: u.id || 'google-user',
+          name: u.name || u.email?.split('@')[0] || '',
+          email: u.email,
+          avatar: u.avatar || u.picture || undefined,
+          googleId: u.googleId || undefined,
+          joinedAt: u.joinedAt || new Date().toISOString(),
+          kycStatus: u.kycStatus || 'NONE',
+          is_onboarded: u.is_onboarded ?? false,
+          phone: u.phone || u.phoneNumber || undefined,
+          phoneVerified: u.phoneVerified ?? u.isPhoneVerified ?? false,
+          firstName: u.firstName || '',
+          lastName: u.lastName || '',
+          postName: u.postName || '',
+          country: u.country || '',
+          city: u.city || '',
+        };
+        const jwt = backendRes.data.token;
+        if (jwt) {
+          saveTokenToStorage(jwt);
+          console.log('🔑 JWT sauvegardé dans localStorage');
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Backend Google auth failed:', err);
     }
 
-    // 2. Fallback : endpoint Google userinfo
+    // 2. Fallback : endpoint Google userinfo (si backend indisponible)
     if (!authUser) {
+      console.log('⬇️ Fallback: appel direct à Google UserInfo API');
       try {
         const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          // Check if user was previously onboarded (stored in localStorage)
           const existingUser = getUserFromStorage();
           const wasOnboarded = existingUser?.email === profile.email ? existingUser.is_onboarded : false;
           authUser = {
@@ -99,10 +131,10 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
             joinedAt: new Date().toISOString(),
             kycStatus: 'NONE',
             is_onboarded: wasOnboarded || false,
-            // Pre-fill firstName from Google if available
             firstName: profile.given_name || '',
             lastName: profile.family_name || '',
           };
+          console.log('✅ Fallback réussi:', profile.email);
         }
       } catch {
         console.warn('⚠️ Impossible de récupérer le profil Google');
@@ -112,11 +144,14 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     if (authUser) {
       setUser(authUser);
       saveUserToStorage(authUser);
+      console.log('👤 Utilisateur connecté:', authUser.email);
+    } else {
+      console.warn('❌ Aucun utilisateur après Google auth');
     }
     setIsLoading(false);
 
-    // Résoudre la Promise en attente (depuis login())
     if (loginResolveRef.current) {
+      console.log('🔄 Résolution de la promesse login()');
       loginResolveRef.current(authUser);
       loginResolveRef.current = null;
     }
@@ -139,9 +174,17 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
   // --- login() : déclenche la popup Google et retourne une Promise ---
   const login = useCallback((): Promise<void> => {
     return new Promise((resolve) => {
-      // Stocker le resolve pour l'appeler dans handleGoogleSuccess/Error
       loginResolveRef.current = () => resolve();
-      googleLogin(); // ouvre la popup Google
+      googleLogin();
+      // Sécurité : timeout 30s pour éviter le blocage infini
+      setTimeout(() => {
+        if (loginResolveRef.current) {
+          console.warn('⏱️ Google OAuth timeout — déverrouillage');
+          setIsLoading(false);
+          loginResolveRef.current(null);
+          loginResolveRef.current = null;
+        }
+      }, 30000);
     });
   }, [googleLogin]);
 
@@ -150,6 +193,13 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     const mockUser = { ...MOCK_USER, is_onboarded: false };
     setUser(mockUser);
     saveUserToStorage(mockUser);
+    saveTokenToStorage('mock-token-paymaestro');
+  }, []);
+
+  // --- loginReal() : connexion réelle (après validation mot de passe/2FA) ---
+  const loginReal = useCallback((realUser: AuthUser) => {
+    setUser(realUser);
+    saveUserToStorage(realUser);
   }, []);
 
   // --- logout() ---
@@ -164,6 +214,7 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     login,
     loginMock,
+    loginReal,
     logout,
     updateUser,
   };
@@ -223,6 +274,7 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     const mockUser = { ...MOCK_USER, is_onboarded: false };
     setUser(mockUser);
     saveUserToStorage(mockUser);
+    saveTokenToStorage('mock-token-paymaestro');
   }, []);
 
   const logout = useCallback(() => {
@@ -235,12 +287,15 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     loginMock();
   }, [loginMock]);
 
+  const loginReal = useCallback(() => {}, []);
+
   const value: AuthState = {
     user,
     isLoading,
     isAuthenticated: !!user,
     login,
     loginMock,
+    loginReal,
     logout,
     updateUser,
   };

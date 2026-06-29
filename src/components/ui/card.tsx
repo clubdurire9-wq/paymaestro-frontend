@@ -1,4 +1,4 @@
-// src/components/ui/card.tsx
+'use client';
 import React from 'react';
 
 interface CardProps {
@@ -13,8 +13,8 @@ export function Card({ children, className = '', onClick, hoverable = false }: C
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-xl p-5 shadow-sm border border-gray-200
-        ${hoverable ? 'hover:shadow-md hover:border-violet-200 transition-all duration-200 cursor-pointer' : ''}
+        bg-white dark:bg-slate-800/60 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700/50
+        ${hoverable ? 'hover:shadow-md hover:border-violet-200 dark:hover:border-violet-700/50 hover:dark:bg-slate-700/40 transition-all duration-200 cursor-pointer' : ''}
         ${className}
       `}
     >
@@ -28,7 +28,7 @@ export function CardHeader({ children, className = '' }: { children: React.React
 }
 
 export function CardTitle({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <h3 className={`text-sm font-medium text-gray-500 uppercase tracking-wide ${className}`}>{children}</h3>;
+  return <h3 className={`text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide ${className}`}>{children}</h3>;
 }
 
 export function CardContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -36,5 +36,5 @@ export function CardContent({ children, className = '' }: { children: React.Reac
 }
 
 export function CardFooter({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mt-4 pt-4 border-t border-gray-100 ${className}`}>{children}</div>;
+  return <div className={`mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 ${className}`}>{children}</div>;
 }

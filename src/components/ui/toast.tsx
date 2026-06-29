@@ -1,4 +1,3 @@
-// src/components/ui/toast.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -20,25 +19,25 @@ const icons = {
 
 const styles = {
   success: {
-    wrapper: 'bg-emerald-950 border-emerald-800/50',
+    wrapper: 'bg-emerald-950/95 border-emerald-700/50 shadow-emerald-900/30',
     icon: 'text-emerald-400',
     text: 'text-emerald-50',
     bar: 'bg-emerald-500',
   },
   error: {
-    wrapper: 'bg-red-950 border-red-800/50',
+    wrapper: 'bg-red-950/95 border-red-700/50 shadow-red-900/30',
     icon: 'text-red-400',
     text: 'text-red-50',
     bar: 'bg-red-500',
   },
   warning: {
-    wrapper: 'bg-amber-950 border-amber-800/50',
+    wrapper: 'bg-amber-950/95 border-amber-700/50 shadow-amber-900/30',
     icon: 'text-amber-400',
     text: 'text-amber-50',
     bar: 'bg-amber-500',
   },
   info: {
-    wrapper: 'bg-slate-900 border-slate-700/50',
+    wrapper: 'bg-slate-900/95 border-slate-700/50 shadow-slate-900/30',
     icon: 'text-violet-400',
     text: 'text-slate-50',
     bar: 'bg-violet-500',
@@ -52,10 +51,8 @@ export function Toast({ message, type = 'info', duration = 5000, onClose }: Toas
   const s = styles[type];
 
   useEffect(() => {
-    // Animate in
     requestAnimationFrame(() => setIsVisible(true));
 
-    // Progress bar
     const start = Date.now();
     const interval = setInterval(() => {
       const elapsed = Date.now() - start;
@@ -77,15 +74,16 @@ export function Toast({ message, type = 'info', duration = 5000, onClose }: Toas
   return (
     <div
       className={`
-        relative overflow-hidden flex items-start gap-3 px-4 py-3.5 rounded-2xl border shadow-2xl shadow-black/30
+        relative overflow-hidden flex items-start gap-3 px-4 py-3.5 rounded-2xl border shadow-2xl
+        backdrop-blur-md
+        ${isVisible ? 'animate-slide-up opacity-100' : 'opacity-0 translate-y-2 scale-95'}
         transition-all duration-300 ease-out
-        ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}
         ${s.wrapper}
       `}
+      style={{ animation: isVisible ? 'toastIn 0.35s ease-out forwards' : 'toastOut 0.3s ease-in forwards' }}
     >
-      {/* Progress bar */}
       <div
-        className={`absolute bottom-0 left-0 h-0.5 ${s.bar} transition-all duration-100 ease-linear`}
+        className={`absolute bottom-0 left-0 h-0.5 ${s.bar} transition-all duration-100 ease-linear rounded-full`}
         style={{ width: `${progress}%` }}
       />
 
@@ -105,7 +103,6 @@ export function Toast({ message, type = 'info', duration = 5000, onClose }: Toas
   );
 }
 
-// Container pour les toasts
 export function ToastContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
@@ -114,4 +111,4 @@ export function ToastContainer({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-}
+}

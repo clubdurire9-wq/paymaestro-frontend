@@ -28,7 +28,7 @@ export function useAdmin() {
     async function checkAdmin() {
       try {
         // Vérifier d'abord côté client (localStorage)
-        const storedUser = localStorage.getItem('pm_auth_user');
+        const storedUser = sessionStorage.getItem('pm_auth_user');
         if (storedUser) {
           const user = JSON.parse(storedUser);
           if (user.email && isAdminEmail(user.email)) {
@@ -39,7 +39,7 @@ export function useAdmin() {
         }
 
         // Vérifier via l'API backend
-        const token = localStorage.getItem('paymaestro_token');
+        const token = sessionStorage.getItem('paymaestro_token');
         if (token) {
           const res = await api.auth.google('check'); // Utilise le token existant
           if (res.success) {

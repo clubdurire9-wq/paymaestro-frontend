@@ -3,6 +3,7 @@
 export const metadata: Metadata = {
   title: 'PayMaestro',
   description: 'PayPal vers Mobile Money en Afrique',
+  icons: { icon: '/PayMaestro_officiel_logo.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

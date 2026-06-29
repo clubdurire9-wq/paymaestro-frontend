@@ -18,7 +18,7 @@ export function useOnboarding() {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('paymaestro_token');
+      const token = sessionStorage.getItem('paymaestro_token');
       if (!token) {
         setStatus({
           isAuthenticated: false,
@@ -31,13 +31,18 @@ export function useOnboarding() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+      console.log('🔍 DEBUG useOnboarding — URL:', `${API_URL}/auth/onboarding-status`);
+      console.log('🔍 DEBUG useOnboarding — token:', token ? token.slice(0, 30) + '...' : 'MANQUANT');
       const res = await fetch(`${API_URL}/auth/onboarding-status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('🔍 DEBUG useOnboarding — res.status:', res.status);
       const data = await res.json();
+      console.log('🔍 DEBUG useOnboarding — data reçue:', JSON.stringify(data).slice(0, 200));
       setStatus(data.data);
-    } catch {
+    } catch (err) {
+      console.error('🔍 DEBUG useOnboarding — ERREUR fetch:', err);
       setStatus({
         isAuthenticated: false,
         isPhoneVerified: false,

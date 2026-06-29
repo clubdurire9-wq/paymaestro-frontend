@@ -67,9 +67,7 @@ export default function WithdrawPage() {
   const [createdTx, setCreatedTx] = useState<TransactionData | null>(null);
 
   const amountNum = parseFloat(amount) || 0;
-  const fee = 0.07;
-  const platformFee = amountNum * fee;
-  const netAmount = amountNum * (1 - fee);
+  const netAmount = amountNum * 0.93;
   const receivedAmount = Math.floor(netAmount * currency.rate);
 
   useEffect(() => {
@@ -90,12 +88,13 @@ export default function WithdrawPage() {
       return;
     }
     const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+    const userEmail = typeof window !== 'undefined' ? JSON.parse(sessionStorage.getItem('pm_auth_user') || '{}').email || '' : '';
     try {
       const result = await createOrder({
         amountUSD: amountNum,
         currencyCode: currency.code,
         phoneNumber: fullPhone,
-        userEmail: 'user@paymaestro.com',
+        userEmail,
       });
       if (result) {
         setPaypalData(result);
@@ -300,7 +299,7 @@ export default function WithdrawPage() {
               </div>
               <div className="border-t border-white/10 pt-6 space-y-3.5 text-sm text-slate-300 relative z-10">
                 <div className="flex justify-between"><span>Montant brut :</span><span className="font-semibold text-white">${amountNum.toFixed(2)} USD</span></div>
-                <div className="flex justify-between"><span className="text-red-300">Frais (7%) :</span><span className="font-semibold text-red-400">-${platformFee.toFixed(2)} USD</span></div>
+                <div className="flex justify-between"><span className="text-red-300">Frais (7%) :</span><span className="font-semibold text-red-400">-${(amountNum * 0.07).toFixed(2)} USD</span></div>
                 <div className="flex justify-between border-t border-white/5 pt-3.5"><span className="text-slate-400">Montant net :</span><span className="font-bold text-white">${netAmount.toFixed(2)} USD</span></div>
                 <div className="flex justify-between"><span>Arrivée estimée :</span><span className="text-emerald-400 font-semibold flex items-center gap-1"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />Moins de 5 min</span></div>
               </div>

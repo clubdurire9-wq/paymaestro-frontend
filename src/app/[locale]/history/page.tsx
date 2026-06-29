@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
+import { Skeleton, SkeletonTable } from '@/components/ui/skeleton';
 import { api, Transaction, LIVE_RATES } from '@/lib/api';
 
 export default function HistoryPage() {
@@ -151,8 +152,8 @@ export default function HistoryPage() {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Visualisez et exportez l&apos;ensemble de vos retraits passés.
           </p>
         </div>
@@ -171,20 +172,20 @@ export default function HistoryPage() {
         <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
           {/* Search bar */}
           <div className="sm:col-span-2 relative">
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Rechercher</label>
+            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Rechercher</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
                 placeholder="ID, Référence ou Téléphone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
               />
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -194,7 +195,7 @@ export default function HistoryPage() {
 
           {/* Status Filter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Statut</label>
+            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Statut</label>
             <Select
               options={[
                 { value: 'ALL', label: t('filters.all') },
@@ -209,7 +210,7 @@ export default function HistoryPage() {
 
           {/* Currency Filter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t('filters.currency')}</label>
+            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{t('filters.currency')}</label>
             <Select
               options={[
                 { value: 'ALL', label: 'Toutes les devises' },
@@ -226,19 +227,21 @@ export default function HistoryPage() {
       <Card className="border border-slate-100 shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-slate-400">{tCommon('loading')}</div>
+            <div className="p-8">
+              <SkeletonTable rows={5} cols={5} />
+            </div>
           ) : paginatedTransactions.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 space-y-2">
-              <Clock className="w-10 h-10 mx-auto text-slate-300 stroke-[1.5]" />
-              <p className="font-semibold text-slate-700">{t('empty')}</p>
+            <div className="p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
+              <Clock className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 stroke-[1.5]" />
+              <p className="font-semibold text-slate-700 dark:text-slate-300">{t('empty')}</p>
               <p className="text-xs">Essayez de modifier ou de réinitialiser vos filtres de recherche.</p>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600">
+                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs uppercase font-semibold">
+                    <tr className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 text-xs uppercase font-semibold">
                       <th className="py-4 px-6">{t('table.date')}</th>
                       <th className="py-4 px-6">ID Retrait</th>
                       <th className="py-4 px-6">{t('table.amount')} USD</th>
@@ -248,10 +251,10 @@ export default function HistoryPage() {
                       <th className="py-4 px-6 text-right">{t('table.actions')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                     {paginatedTransactions.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-slate-50/40 transition-colors">
-                        <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                      <tr key={tx.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
                           {new Date(tx.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
                             day: 'numeric',
                             month: 'short',
@@ -260,12 +263,12 @@ export default function HistoryPage() {
                             minute: '2-digit'
                           })}
                         </td>
-                        <td className="py-4 px-6 font-semibold text-slate-900">{tx.id}</td>
-                        <td className="py-4 px-6 font-semibold text-slate-800">${tx.amountUSD.toFixed(2)}</td>
-                        <td className="py-4 px-6 font-bold text-slate-950">
+                        <td className="py-4 px-6 font-semibold text-slate-900 dark:text-white">{tx.id}</td>
+                        <td className="py-4 px-6 font-semibold text-slate-800 dark:text-slate-200">${tx.amountUSD.toFixed(2)}</td>
+                        <td className="py-4 px-6 font-bold text-slate-950 dark:text-white">
                           {formatCurrency(tx.receivedAmount, tx.currency)}
                         </td>
-                        <td className="py-4 px-6 text-xs text-slate-600 font-mono">{tx.phone}</td>
+                        <td className="py-4 px-6 text-xs text-slate-600 dark:text-slate-400 font-mono">{tx.phone}</td>
                         <td className="py-4 px-6">{getStatusBadge(tx.status)}</td>
                         <td className="py-4 px-6 text-right">
                           <Button 
@@ -288,8 +291,8 @@ export default function HistoryPage() {
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <div className="border-t border-slate-100 px-6 py-4 flex items-center justify-between text-sm bg-slate-55/20">
-                  <span className="text-xs text-slate-400">
+                <div className="border-t border-slate-100 dark:border-slate-700/50 px-6 py-4 flex items-center justify-between text-sm bg-slate-55/20 dark:bg-slate-800/30">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
                     Page {currentPage} sur {totalPages} ({filteredTransactions.length} résultats)
                   </span>
                   <div className="flex gap-2">
@@ -329,73 +332,73 @@ export default function HistoryPage() {
         {selectedTx && (
           <div className="space-y-6">
             {/* Header info */}
-            <div className="text-center pb-4 border-b border-slate-100">
-              <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t('detail.receivedAmount')}</p>
-              <h3 className="text-2xl font-bold text-slate-950 mt-1">
+            <div className="text-center pb-4 border-b border-slate-100 dark:border-slate-700/50">
+              <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold">{t('detail.receivedAmount')}</p>
+              <h3 className="text-2xl font-bold text-slate-950 dark:text-white mt-1">
                 {formatCurrency(selectedTx.receivedAmount, selectedTx.currency)}
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Initialisé le {new Date(selectedTx.date).toLocaleString()}
               </p>
             </div>
 
             {/* Financial breakdown */}
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="text-slate-500">{t('detail.transactionId')}</div>
-              <div className="text-right font-semibold text-slate-900">{selectedTx.id}</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.transactionId')}</div>
+              <div className="text-right font-semibold text-slate-900 dark:text-white">{selectedTx.id}</div>
 
-              <div className="text-slate-500">{t('detail.paypalOrderId')}</div>
-              <div className="text-right font-mono text-xs text-slate-950">{selectedTx.paypalOrderId || '-'}</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.paypalOrderId')}</div>
+              <div className="text-right font-mono text-xs text-slate-950 dark:text-slate-200">{selectedTx.paypalOrderId || '-'}</div>
 
-              <div className="text-slate-500">{t('detail.grossAmount')}</div>
-              <div className="text-right font-medium text-slate-950">${selectedTx.amountUSD.toFixed(2)} USD</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.grossAmount')}</div>
+              <div className="text-right font-medium text-slate-950 dark:text-white">${selectedTx.amountUSD.toFixed(2)} USD</div>
 
-              <div className="text-slate-500">{t('detail.fee')} (7%)</div>
-              <div className="text-right text-red-500 font-medium">-${(selectedTx.amountUSD * 0.07).toFixed(2)} USD</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.fee')} (7%)</div>
+              <div className="text-right text-red-500 dark:text-red-400 font-medium">-${(selectedTx.amountUSD * 0.07).toFixed(2)} USD</div>
 
-              <div className="text-slate-500">{t('detail.netAmount')}</div>
-              <div className="text-right font-semibold text-slate-950">${(selectedTx.amountUSD * 0.93).toFixed(2)} USD</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.netAmount')}</div>
+              <div className="text-right font-semibold text-slate-950 dark:text-white">${(selectedTx.amountUSD * 0.93).toFixed(2)} USD</div>
 
-              <div className="text-slate-500">{t('detail.exchangeRate')}</div>
-              <div className="text-right font-medium text-slate-950">1 USD = {selectedTx.exchangeRate} {selectedTx.currency}</div>
+              <div className="text-slate-500 dark:text-slate-400">{t('detail.exchangeRate')}</div>
+              <div className="text-right font-medium text-slate-950 dark:text-white">1 USD = {selectedTx.exchangeRate} {selectedTx.currency}</div>
 
-              <div className="text-slate-500">Téléphone Mobile Money</div>
-              <div className="text-right font-semibold text-slate-950">{selectedTx.phone}</div>
+              <div className="text-slate-500 dark:text-slate-400">Téléphone Mobile Money</div>
+              <div className="text-right font-semibold text-slate-950 dark:text-white">{selectedTx.phone}</div>
 
               {selectedTx.reference && (
                 <>
-                  <div className="text-slate-500">{t('detail.flutterwaveReference')}</div>
-                  <div className="text-right font-mono text-xs text-slate-950">{selectedTx.reference}</div>
+                  <div className="text-slate-500 dark:text-slate-400">{t('detail.flutterwaveReference')}</div>
+                  <div className="text-right font-mono text-xs text-slate-950 dark:text-slate-200">{selectedTx.reference}</div>
                 </>
               )}
             </div>
 
             {/* Timeline log */}
             <div>
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t('detail.timeline')}</h4>
-              <div className="relative border-l border-slate-200 pl-4 ml-2 space-y-4">
+              <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">{t('detail.timeline')}</h4>
+              <div className="relative border-l border-slate-200 dark:border-slate-700 pl-4 ml-2 space-y-4">
                 {selectedTx.timeline.map((step, idx) => (
                   <div key={idx} className="relative">
                     {/* Indicator node */}
                     <span 
                       className={`
-                        absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-white
+                        absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-slate-800
                         ${step.status === 'MOBILE_MONEY_SENT' ? 'bg-emerald-500' : ''}
                         ${step.status === 'PENDING' ? 'bg-amber-500' : ''}
                         ${step.status === 'PAYPAL_APPROVED' ? 'bg-sky-500' : ''}
                         ${step.status === 'FAILED' ? 'bg-red-500' : ''}
                       `} 
                     />
-                    <p className="text-xs font-semibold text-slate-900">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-white">
                       {step.status === 'MOBILE_MONEY_SENT' && 'Fonds envoyés'}
                       {step.status === 'PAYPAL_APPROVED' && 'Paiement PayPal validé'}
                       {step.status === 'PENDING' && 'Transaction initialisée'}
                       {step.status === 'FAILED' && 'Transaction échouée'}
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                       {new Date(step.timestamp).toLocaleString()}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">{step.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{step.description}</p>
                   </div>
                 ))}
               </div>
@@ -403,11 +406,11 @@ export default function HistoryPage() {
 
             {/* Error reason alert */}
             {selectedTx.status === 'FAILED' && selectedTx.errorReason && (
-              <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3 text-red-700 text-xs">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl p-4 flex gap-3 text-red-700 dark:text-red-400 text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold">{t('detail.error')}</p>
-                  <p className="mt-1 text-red-600">{selectedTx.errorReason}</p>
+                  <p className="mt-1 text-red-600 dark:text-red-400">{selectedTx.errorReason}</p>
                 </div>
               </div>
             )}

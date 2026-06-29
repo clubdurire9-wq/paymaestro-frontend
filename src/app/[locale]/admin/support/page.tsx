@@ -1,0 +1,190 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useLocale } from 'next-intl';
+import { MessageCircle, Send, User, Clock, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+export default function AdminSupportPage() {
+  const locale = useLocale();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { loadTickets(); }, []);
+  useEffect(() => {
+    if (selectedTicket) loadMessages(selectedTicket.id);
+  }, [selectedTicket]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // Rafraîchir les tickets toutes les 5 secondes
+  useEffect(() => {
+    const interval = setInterval(loadTickets, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadTickets = async () => {
+    const res = await fetch(`${API_URL}/support/tickets`, { headers });
+    const d = await res.json();
+    if (d.success) setTickets(d.data);
+    setLoading(false);
+  };
+
+  const loadMessages = async (ticketId: number) => {
+    const res = await fetch(`${API_URL}/support/messages/${ticketId}`, { headers });
+    const d = await res.json();
+    if (d.success) setMessages(d.data);
+  };
+
+  const handleAssign = async (ticketId: number) => {
+    await fetch(`${API_URL}/support/assign`, { method: 'POST', headers, body: JSON.stringify({ ticketId }) });
+    loadTickets();
+  };
+
+  const handleResolve = async (ticketId: number) => {
+    await fetch(`${API_URL}/support/resolve`, { method: 'POST', headers, body: JSON.stringify({ ticketId }) });
+    setSelectedTicket(null);
+    loadTickets();
+  };
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || !selectedTicket) return;
+    await fetch(`${API_URL}/support/message`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ ticketId: selectedTicket.id, message: newMessage }),
+    });
+    setNewMessage('');
+    loadMessages(selectedTicket.id);
+  };
+
+  const priorityColor: any = { LOW: 'bg-gray-100', MEDIUM: 'bg-blue-100', HIGH: 'bg-orange-100', URGENT: 'bg-red-100 text-red-800' };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2 mb-6">
+        <MessageCircle className="w-8 h-8 text-violet-600" />
+        Support Live
+      </h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[70vh]">
+        {/* Liste des tickets */}
+        <Card className="lg:col-span-1 overflow-y-auto">
+          <CardHeader><CardTitle>Tickets ouverts ({tickets.length})</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {tickets.map(ticket => (
+              <button
+                key={ticket.id}
+                onClick={() => setSelectedTicket(ticket)}
+                className={`w-full text-left p-3 rounded-xl transition-all ${
+                  selectedTicket?.id === ticket.id ? 'bg-violet-100 border-2 border-violet-400' : 'bg-slate-50 hover:bg-slate-100'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-semibold truncate">{ticket.user_name || ticket.user_email}</p>
+                    <p className="text-xs text-slate-400 truncate">{ticket.subject || 'Sans sujet'}</p>
+                  </div>
+                  <Badge className={priorityColor[ticket.priority]}>
+                    {ticket.priority}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                  <Clock className="w-3 h-3" />
+                  {new Date(ticket.created_at).toLocaleTimeString('fr-FR')}
+                  {ticket.assigned_to && <span>• {ticket.assigned_to}</span>}
+                </div>
+              </button>
+            ))}
+            {tickets.length === 0 && <p className="text-slate-400 text-center py-8">Aucun ticket en attente 🎉</p>}
+          </CardContent>
+        </Card>
+
+        {/* Conversation */}
+        <Card className="lg:col-span-2 flex flex-col">
+          {selectedTicket ? (
+            <>
+              <CardHeader className="border-b">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg">
+                    {selectedTicket.user_name || selectedTicket.user_email}
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    {!selectedTicket.assigned_to && (
+                      <Button size="sm" onClick={() => handleAssign(selectedTicket.id)}>Prendre en charge</Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleResolve(selectedTicket.id)} icon={<CheckCircle2 className="w-4 h-4" />}>
+                      Résoudre
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
+                {messages.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.sender_type === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                      msg.sender_type === 'ADMIN' ? 'bg-violet-600 text-white' :
+                      msg.sender_type === 'BOT' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300' :
+                      'bg-slate-100 text-slate-800'
+                    }`}>
+                      {msg.sender_type === 'ADMIN' && <p className="text-[10px] opacity-70">Admin</p>}
+                      {msg.sender_type === 'BOT' && <p className="text-[10px] opacity-70">🤖 Escalade automatique</p>}
+                      
+                      {/* Affichage de l'image si le message est de type [IMAGE] */}
+                      {msg.message === '[IMAGE]' && msg.metadata?.imageBase64 && (
+                        <img 
+                          src={`data:${msg.metadata.mimeType};base64,${msg.metadata.imageBase64}`}
+                          alt="Capture utilisateur"
+                          className="max-w-full rounded-lg cursor-pointer hover:opacity-90 mb-2"
+                          onClick={() => window.open(`data:${msg.metadata.mimeType};base64,${msg.metadata.imageBase64}`)}
+                        />
+                      )}
+                      
+                      {/* Afficher le texte du message s'il n'est pas [IMAGE] */}
+                      {msg.message !== '[IMAGE]' && <p className="text-sm">{msg.message}</p>}
+                      
+                      <p className="text-[10px] opacity-50 text-right mt-1">
+                        {new Date(msg.created_at).toLocaleTimeString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </CardContent>
+              <div className="p-4 border-t flex gap-2">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder="Votre réponse..."
+                  className="flex-1 px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none"
+                />
+                <Button onClick={handleSend} disabled={!newMessage.trim()} icon={<Send className="w-4 h-4" />}>
+                  Envoyer
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Sélectionnez un ticket pour voir la conversation</p>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}

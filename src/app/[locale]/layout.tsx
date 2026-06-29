@@ -3,10 +3,12 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import AppShell from '@/components/layout/AppShell';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { ToastProvider } from '@/hooks/useToast';
+import { ActivityProvider } from '@/contexts/ActivityContext';
+import LockScreen from '@/components/auth/LockScreen';
 import ChatWidget from '@/components/chatbot/ChatWidget';
 import { OnboardingGuard } from '@/middleware/onboarding-guard';
 import '../globals.css';
@@ -50,23 +52,26 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body>
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          <GoogleAuthProvider>
-            <ToastProvider>
-              <OnboardingGuard>
-                <Header />
-                <main style={{ minHeight: '80vh' }}>{children}</main>
-                <Footer />
-              </OnboardingGuard>
-              <ChatWidget />
-            </ToastProvider>
-          </GoogleAuthProvider>
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages} locale={locale}>
+            <GoogleAuthProvider>
+              <ActivityProvider>
+                <ToastProvider>
+                  <OnboardingGuard>
+                    <AppShell>{children}</AppShell>
+                    <LockScreen />
+                  </OnboardingGuard>
+                  <ChatWidget />
+                </ToastProvider>
+              </ActivityProvider>
+            </GoogleAuthProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

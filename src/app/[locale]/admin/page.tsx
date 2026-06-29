@@ -18,46 +18,23 @@ import {
   AlertTriangle,
   TrendingUp,
   DollarSign,
+  Activity,
+  Headphones,
+  Key,
+  CreditCard,
+  Bitcoin,
+  PiggyBank,
+  Snowflake,
+  FileText,
+  BookOpen,
+  Shield,
+  LifeBuoy,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api, Transaction, KYCDetails } from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
-
-// Mock KYC queue for admin review
-const MOCK_KYC_QUEUE = [
-  {
-    id: 'KYC-001',
-    userId: 'U-124',
-    name: 'Mamadou Koné',
-    email: 'mamadou.kone@example.com',
-    documentType: 'passport',
-    submittedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    aiConfidence: 87,
-    status: 'PENDING_HUMAN' as const,
-  },
-  {
-    id: 'KYC-002',
-    userId: 'U-125',
-    name: 'Amina Traoré',
-    email: 'amina.traore@example.com',
-    documentType: 'nationalId',
-    submittedAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-    aiConfidence: 62,
-    status: 'PENDING_HUMAN' as const,
-  },
-  {
-    id: 'KYC-003',
-    userId: 'U-126',
-    name: 'Koffi Asante',
-    email: 'koffi.asante@example.com',
-    documentType: 'drivingLicense',
-    submittedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-    aiConfidence: 94,
-    status: 'PENDING_HUMAN' as const,
-  },
-];
 
 type AdminTab = 'overview' | 'kyc' | 'transactions' | 'users';
 
@@ -68,44 +45,67 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [kycQueue, setKycQueue] = useState(MOCK_KYC_QUEUE);
+  const [kycQueue, setKycQueue] = useState<any[]>([]);
+  const [adminStats, setAdminStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Stats mock
-  const adminStats = {
-    totalUsers: 1284,
-    totalVolume: 284500,
-    pendingKYC: kycQueue.length,
-    successRate: 96.4,
-  };
+  const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const txs = await api.getTransactions();
+        const [txs, stats, pendingKyc] = await Promise.all([
+          api.getTransactions(),
+          api.admin.getStats(),
+          api.admin.listPendingKYC(),
+        ]);
         setTransactions(txs);
+        setAdminStats(stats);
+        setKycQueue(pendingKyc || []);
       } catch {}
       setLoading(false);
     }
     load();
   }, []);
 
-  const handleApproveKYC = (id: string) => {
-    setKycQueue((prev) => prev.filter((k) => k.id !== id));
-    success('KYC approuvé avec succès !');
+  const handleApproveKYC = async (userId: string) => {
+    setReviewingKycId(userId);
+    try {
+      await api.admin.reviewKYC(userId, 'APPROVE');
+      setKycQueue((prev) => prev.filter((k) => k.userId !== userId && k.id !== userId));
+      success('KYC approuvé avec succès !');
+    } catch (e: any) { error(e.message); }
+    setReviewingKycId(null);
   };
 
-  const handleRejectKYC = (id: string) => {
-    setKycQueue((prev) => prev.filter((k) => k.id !== id));
-    error('KYC rejeté.');
+  const handleRejectKYC = async (userId: string) => {
+    setReviewingKycId(userId);
+    try {
+      await api.admin.reviewKYC(userId, 'REJECT');
+      setKycQueue((prev) => prev.filter((k) => k.userId !== userId && k.id !== userId));
+      error('KYC rejeté.');
+    } catch (e: any) { error(e.message); }
+    setReviewingKycId(null);
   };
 
-  const sidebarItems: { tab: AdminTab; label: string; icon: React.ElementType }[] = [
+  const tabs: { tab: AdminTab; label: string; icon: React.ElementType }[] = [
     { tab: 'overview', label: t('sidebar.dashboard'), icon: LayoutDashboard },
     { tab: 'kyc', label: t('sidebar.kyc'), icon: ShieldCheck },
     { tab: 'transactions', label: t('sidebar.transactions'), icon: BarChart3 },
     { tab: 'users', label: t('sidebar.users'), icon: Users },
+  ];
+  const links: { href: string; label: string; icon: React.ElementType }[] = [
+    { href: `/${locale}/admin/live`, label: 'Live', icon: Activity },
+    { href: `/${locale}/admin/agents`, label: 'Agents', icon: Headphones },
+    { href: `/${locale}/admin/api-keys`, label: 'API Keys', icon: Key },
+    { href: `/${locale}/admin/cards`, label: 'Cartes', icon: CreditCard },
+    { href: `/${locale}/admin/crypto`, label: 'Crypto', icon: Bitcoin },
+    { href: `/${locale}/admin/finance`, label: 'Finance', icon: PiggyBank },
+    { href: `/${locale}/admin/frozen`, label: 'Comptes gelés', icon: Snowflake },
+    { href: `/${locale}/admin/payment-pages`, label: 'Pages de paiement', icon: FileText },
+    { href: `/${locale}/admin/protocol`, label: 'Protocole', icon: BookOpen },
+    { href: `/${locale}/admin/security`, label: 'Sécurité', icon: Shield },
+    { href: `/${locale}/admin/support`, label: 'Support', icon: LifeBuoy },
   ];
 
   return (
@@ -113,13 +113,13 @@ export default function AdminPage() {
       <div className="flex items-center gap-3 mb-8">
         <Link
           href={`/${locale}/dashboard`}
-          className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+          className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Console de gestion PayMaestro</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Console de gestion PayMaestro</p>
         </div>
       </div>
 
@@ -127,14 +127,15 @@ export default function AdminPage() {
         {/* Sidebar */}
         <aside className="w-48 shrink-0">
           <nav className="space-y-1">
-            {sidebarItems.map(({ tab, label, icon: Icon }) => (
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-4 mb-1">Principal</p>
+            {tabs.map(({ tab, label, icon: Icon }) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-left ${
                   activeTab === tab
                     ? 'bg-violet-50 text-violet-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/50 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -145,6 +146,18 @@ export default function AdminPage() {
                   </span>
                 )}
               </button>
+            ))}
+            <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-4 mb-1">Administration</p>
+            {links.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/50 dark:hover:text-white"
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Link>
             ))}
           </nav>
         </aside>
@@ -158,32 +171,25 @@ export default function AdminPage() {
                 <Card className="border-l-4 border-l-violet-600">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Utilisateurs</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">{adminStats.totalUsers.toLocaleString()}</h3>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600">
-                      <TrendingUp className="w-3 h-3" />
-                      <span>+12% ce mois</span>
-                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(adminStats?.totalUsers || 0).toLocaleString()}</h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-emerald-500">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Volume total</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">${adminStats.totalVolume.toLocaleString()}</h3>
-                    <p className="text-xs text-slate-400 mt-2">USD transférés</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">${(adminStats?.totalVolumeUSD || 0).toLocaleString()}</h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-amber-500">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">KYC en attente</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">{adminStats.pendingKYC}</h3>
-                    <p className="text-xs text-amber-600 mt-2 font-medium">À valider manuellement</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{adminStats?.pendingKYC || kycQueue.length}</h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-sky-500">
                   <CardContent className="pt-6">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Taux de succès</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">{adminStats.successRate}%</h3>
-                    <p className="text-xs text-slate-400 mt-2">Global sur 30 jours</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transactions</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{adminStats?.totalTransactions || 0}</h3>
                   </CardContent>
                 </Card>
               </div>
@@ -198,11 +204,11 @@ export default function AdminPage() {
                     {transactions.slice(0, 5).map((tx) => (
                       <div key={tx.id} className="flex items-center justify-between py-3">
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{tx.id}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{tx.id}</p>
                           <p className="text-xs text-slate-400">{tx.phone}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-slate-800">${tx.amountUSD}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">${tx.amountUSD}</p>
                           <Badge
                             variant={
                               tx.status === 'MOBILE_MONEY_SENT'
@@ -227,7 +233,7 @@ export default function AdminPage() {
           {activeTab === 'kyc' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-900">{t('kyc.title')}</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('kyc.title')}</h2>
                 <Badge variant="warning">{kycQueue.length} en attente</Badge>
               </div>
 
@@ -240,35 +246,33 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               ) : (
-                kycQueue.map((kyc) => (
-                  <Card key={kyc.id} className="border border-slate-100">
+                kycQueue.map((kyc: any) => {
+                  const kycId = kyc.id || kyc.userId;
+                  const kycName = kyc.name || kyc.fullName || kyc.email?.split('@')[0] || 'Utilisateur';
+                  return (
+                  <Card key={kycId} className="border border-slate-100 dark:border-slate-700">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-slate-900">{kyc.name}</h3>
-                            <Badge variant="info">
-                              {t('kyc.confidence')} : {kyc.aiConfidence}%
-                            </Badge>
+                            <h3 className="font-bold text-slate-900 dark:text-white">{kycName}</h3>
+                            {kyc.confidence != null && (
+                              <Badge variant="info">Confiance : {kyc.confidence}%</Badge>
+                            )}
                           </div>
-                          <p className="text-xs text-slate-500">{kyc.email}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{kyc.email}</p>
                           <p className="text-xs text-slate-400">
-                            Document : <span className="font-medium text-slate-700">{kyc.documentType}</span> •
-                            Soumis le {new Date(kyc.submittedAt).toLocaleString('fr-FR')}
+                            Document : <span className="font-medium text-slate-700">{kyc.documentType || kyc.document_type || 'N/A'}</span>
+                            {kyc.submittedAt && <> • Soumis le {new Date(kyc.submittedAt).toLocaleString('fr-FR')}</>}
                           </p>
-                          {kyc.aiConfidence < 70 && (
-                            <div className="flex items-center gap-1.5 text-xs text-amber-600 mt-1">
-                              <AlertTriangle className="w-3.5 h-3.5" />
-                              <span>Confiance IA faible — revue manuelle recommandée</span>
-                            </div>
-                          )}
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <Button
                             variant="primary"
                             size="sm"
                             icon={<CheckCircle className="w-4 h-4" />}
-                            onClick={() => handleApproveKYC(kyc.id)}
+                            loading={reviewingKycId === kycId}
+                            onClick={() => handleApproveKYC(kyc.userId || kycId)}
                           >
                             {t('kyc.approve')}
                           </Button>
@@ -276,7 +280,8 @@ export default function AdminPage() {
                             variant="danger"
                             size="sm"
                             icon={<XCircle className="w-4 h-4" />}
-                            onClick={() => handleRejectKYC(kyc.id)}
+                            loading={reviewingKycId === kycId}
+                            onClick={() => handleRejectKYC(kyc.userId || kycId)}
                           >
                             {t('kyc.reject')}
                           </Button>
@@ -284,7 +289,8 @@ export default function AdminPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                  );
+                })
               )}
             </div>
           )}
@@ -292,13 +298,13 @@ export default function AdminPage() {
           {/* Transactions Tab */}
           {activeTab === 'transactions' && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-slate-900">{t('sidebar.transactions')}</h2>
-              <Card className="border border-slate-100 overflow-hidden">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('sidebar.transactions')}</h2>
+              <Card className="border border-slate-100 dark:border-slate-700 overflow-hidden">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs uppercase font-semibold">
+                        <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 dark:border-slate-700 dark:bg-slate-800/50 text-xs uppercase font-semibold">
                           <th className="py-3 px-5">ID</th>
                           <th className="py-3 px-5">Date</th>
                           <th className="py-3 px-5">Montant</th>
@@ -309,8 +315,8 @@ export default function AdminPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-50">
                         {transactions.map((tx) => (
-                          <tr key={tx.id} className="hover:bg-slate-50/40 transition-colors">
-                            <td className="py-3 px-5 font-semibold text-slate-900">{tx.id}</td>
+                          <tr key={tx.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="py-3 px-5 font-semibold text-slate-900 dark:text-white">{tx.id}</td>
                             <td className="py-3 px-5 text-xs text-slate-400">
                               {new Date(tx.date).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
@@ -319,9 +325,9 @@ export default function AdminPage() {
                                 minute: '2-digit',
                               })}
                             </td>
-                            <td className="py-3 px-5 font-bold text-slate-800">${tx.amountUSD}</td>
-                            <td className="py-3 px-5 text-slate-600">{tx.currency}</td>
-                            <td className="py-3 px-5 font-mono text-xs text-slate-500">{tx.phone}</td>
+                            <td className="py-3 px-5 font-bold text-slate-800 dark:text-white">${tx.amountUSD}</td>
+                            <td className="py-3 px-5 text-slate-600 dark:text-slate-300">{tx.currency}</td>
+                            <td className="py-3 px-5 font-mono text-xs text-slate-500 dark:text-slate-400">{tx.phone}</td>
                             <td className="py-3 px-5">
                               <Badge
                                 variant={
@@ -351,7 +357,7 @@ export default function AdminPage() {
           {activeTab === 'users' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-900">{t('users.title')}</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('users.title')}</h2>
               </div>
               <Card>
                 <CardContent className="p-4">
@@ -362,59 +368,15 @@ export default function AdminPage() {
                       placeholder={t('users.search')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Mock Users */}
-              <Card className="border border-slate-100 overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="divide-y divide-slate-100">
-                    {[
-                      { name: 'Abdoulaye Diallo', email: 'abdoulaye@example.com', kyc: 'APPROVED', totalUSD: 450 },
-                      { name: 'Mamadou Koné', email: 'mamadou@example.com', kyc: 'PENDING_HUMAN', totalUSD: 120 },
-                      { name: 'Amina Traoré', email: 'amina@example.com', kyc: 'NONE', totalUSD: 0 },
-                      { name: 'Koffi Asante', email: 'koffi@example.com', kyc: 'APPROVED', totalUSD: 680 },
-                    ]
-                      .filter(
-                        (u) =>
-                          !searchTerm ||
-                          u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase())
-                      )
-                      .map((u) => (
-                        <div
-                          key={u.email}
-                          className="flex items-center justify-between px-5 py-4 hover:bg-slate-50/40 transition-colors"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">{u.name}</p>
-                            <p className="text-xs text-slate-400">{u.email}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-slate-700">${u.totalUSD}</span>
-                            <Badge
-                              variant={
-                                u.kyc === 'APPROVED'
-                                  ? 'success'
-                                  : u.kyc === 'PENDING_HUMAN'
-                                  ? 'warning'
-                                  : 'default'
-                              }
-                            >
-                              {u.kyc}
-                            </Badge>
-                            <Button variant="ghost" size="sm">
-                              {t('users.ban')}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <p className="text-xs text-slate-400 text-center py-4">
+                Utilisez la recherche ci-dessus pour trouver un utilisateur par email ou téléphone.
+              </p>
             </div>
           )}
         </div>
