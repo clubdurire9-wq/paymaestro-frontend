@@ -52,27 +52,20 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
-      <body>
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages} locale={locale}>
-            <GoogleAuthProvider>
-              <ActivityProvider>
-                <ToastProvider>
-                  <OnboardingGuard>
-                    <AppShell>{children}</AppShell>
-                    <LockScreen />
-                  </OnboardingGuard>
-                  <ChatWidget />
-                </ToastProvider>
-              </ActivityProvider>
-            </GoogleAuthProvider>
-          </NextIntlClientProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider>
+      <NextIntlClientProvider messages={messages} locale={locale}>
+        <GoogleAuthProvider>
+          <ActivityProvider>
+            <ToastProvider>
+              <OnboardingGuard>
+                <AppShell>{children}</AppShell>
+                <LockScreen />
+              </OnboardingGuard>
+              <ChatWidget />
+            </ToastProvider>
+          </ActivityProvider>
+        </GoogleAuthProvider>
+      </NextIntlClientProvider>
+    </ThemeProvider>
   );
 }

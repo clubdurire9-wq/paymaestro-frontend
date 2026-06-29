@@ -10,6 +10,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  role?: 'USER' | 'AGENT' | 'ADMIN' | 'SUPER_ADMIN';
   avatar?: string;
   googleId?: string;
   joinedAt: string;
