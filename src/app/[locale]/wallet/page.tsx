@@ -784,7 +784,6 @@ export default function WalletPage() {
                     />
                   </div>
                 </div>
-              </div>
 
               <div className="flex gap-4">
                 <input
