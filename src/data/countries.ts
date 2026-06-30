@@ -24,7 +24,7 @@ export const ALL_COUNTRIES: CountryData[] = [
   { code: 'NGN', flag: '🇳🇬', country: 'Nigeria', rate: 1620.3, countryCode: '+234', operators: ['MTN', 'Airtel', 'Glo', '9mobile'], available: true, iso2: 'ng' },
   { code: 'UGX', flag: '🇺🇬', country: 'Ouganda', rate: 3850, countryCode: '+256', operators: ['MTN', 'Airtel', 'Africell'], available: true, iso2: 'ug' },
   { code: 'RWF', flag: '🇷🇼', country: 'Rwanda', rate: 1350, countryCode: '+250', operators: ['MTN', 'Airtel'], available: true, iso2: 'rw' },
-  { code: 'TZS', flag: '🇹🇿', country: 'Tanzanie', rate: 2550, countryCode: '+255', operators: ['M-Pesa', 'Tigo', 'Airtel'], available: true, iso2: 'tz' },
+  { code: 'TZS', flag: '🇹🇿', country: 'Tanzanie', rate: 2550, countryCode: '+255', operators: ['M-Pesa', 'Tigo', 'Airtel', 'Halotel'], available: true, iso2: 'tz' },
   { code: 'CDF', flag: '🇨🇩', country: 'RDC', rate: 2850, countryCode: '+243', operators: ['Orange', 'Airtel', 'M-Pesa'], available: true, iso2: 'cd' },
 
   // ==========================================
