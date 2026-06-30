@@ -242,10 +242,11 @@ export default function WalletPage() {
     if (!mobileAmount || !mobilePhone || !mobileCountry) return;
     setMobileDepositLoading(true);
     setMobileDepositMessage(null);
-    const currencyToUse = mobileAccountCurrency === 'USD' ? 'USD' : mobileCountry.code;
+    const currencyToUse = mobileCountry.code;
     try {
+      const cleanPhone = mobilePhone.replace(/^0+/, '');
       const result = await api.wallet.depositMobile({
-        phoneNumber: `${mobileCountry.countryCode}${mobilePhone}`,
+        phoneNumber: `${mobileCountry.countryCode}${cleanPhone}`,
         amountLocal: parseFloat(mobileAmount),
         currencyCode: currencyToUse,
         operator: mobileOperator,
@@ -254,7 +255,7 @@ export default function WalletPage() {
         setMobilePendingTxId(result.transactionId);
         setMobileDepositMessage({
           type: 'info',
-          text: `📱 Demande envoyée ! Vérifiez votre téléphone ${mobileCountry.countryCode}${mobilePhone} pour confirmer le paiement via ${mobileOperator}. Un push OTP vous a été envoyé.`
+          text: `📱 Demande envoyée ! Vérifiez votre téléphone ${mobileCountry.countryCode}${mobilePhone.replace(/^0+/, '')} pour confirmer le paiement via ${mobileOperator}. Un push OTP vous a été envoyé.`
         });
         setMobileAmount('');
         setMobilePhone('');
@@ -810,7 +811,7 @@ export default function WalletPage() {
                       type="tel"
                       value={mobilePhone}
                       onChange={(e) => setMobilePhone(e.target.value)}
-                      placeholder="0123456789"
+                      placeholder="991234567"
                       className="flex-1 px-3 py-2 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white"
                     />
                   </div>
