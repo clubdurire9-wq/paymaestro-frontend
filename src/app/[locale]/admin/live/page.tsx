@@ -57,10 +57,9 @@ export default function AdminLivePage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [act, st, geo] = await Promise.all([
+      const [act, st] = await Promise.all([
         api.admin.getLiveActivity(),
         api.admin.getLiveStats(),
-        api.admin.getUserGeo('').then(() => null).catch(() => null),
       ]);
       setActivities(act || []);
       setStats(st);
