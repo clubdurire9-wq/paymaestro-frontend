@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { AuthContext } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { Loader2 } from 'lucide-react';
 
@@ -25,38 +26,57 @@ function getRemainingKYCAttempts(): number {
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const route = pathname.replace(LOCALE_PREFIX, '') || '/';
+  const isPublicRoute = PUBLIC_ROUTES.includes(route);
+
+  if (isPublicRoute) {
+    return <PublicRouteGuard route={route}>{children}</PublicRouteGuard>;
+  }
+
+  return <ProtectedRouteGuard route={route}>{children}</ProtectedRouteGuard>;
+}
+
+function PublicRouteGuard({ children, route }: { children: React.ReactNode; route: string }) {
+  const { user } = useContext(AuthContext);
   const { status, loading } = useOnboarding();
   const locale = useLocale();
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     if (loading || !status) return;
+    if (status.canAccessDashboard && route === '/login') {
+      router.replace(`/${locale}/dashboard`);
+    }
+  }, [status, loading, locale, router, route]);
 
-    // Extraire la route sans le préfixe de locale
-    const route = pathname.replace(LOCALE_PREFIX, '') || '/';
+  return <>{children}</>;
+}
 
-    // Si l'utilisateur n'est pas authentifié et essaie d'accéder à une route protégée
-    if (!status.isAuthenticated && !PUBLIC_ROUTES.includes(route) && route !== '/') {
+function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; route: string }) {
+  const { user, isLoading: authLoading } = useContext(AuthContext);
+  const { status, loading } = useOnboarding();
+  const locale = useLocale();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (authLoading || loading || !status) return;
+
+    if (!user) {
       router.replace(`/${locale}/login`);
       return;
     }
 
-    // Si authentifié mais onboarding incomplet
-    if (status.isAuthenticated && !status.canAccessDashboard) {
-      // Routes protégées (dashboard, withdraw, history, profile)
+    if (user && !status.canAccessDashboard) {
       const protectedRoutes = ['/dashboard', '/withdraw', '/history', '/profile', '/admin'];
-      
       if (protectedRoutes.some(r => route.startsWith(r))) {
-        // Rediriger vers l'étape suivante
         router.replace(`/${locale}/${status.nextStep}`);
         return;
       }
     }
 
-    // Blocage définitif si KYC rejeté ET tentatives épuisées
     if (
-      status.isAuthenticated &&
+      user &&
       status.kycStatus === 'REJECTED' &&
       getRemainingKYCAttempts() === 0 &&
       SENSITIVE_ROUTES.some(r => route.startsWith(r))
@@ -64,14 +84,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
       router.replace(`/${locale}/kyc`);
       return;
     }
+  }, [user, authLoading, status, loading, locale, router, route]);
 
-    // Si onboarding complet et sur login → rediriger vers dashboard
-    if (status.canAccessDashboard && route === '/login') {
-      router.replace(`/${locale}/dashboard`);
-    }
-  }, [status, loading, pathname, locale, router]);
-
-  if (loading) {
+  if (authLoading || loading || !status) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
