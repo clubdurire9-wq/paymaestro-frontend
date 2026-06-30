@@ -31,12 +31,7 @@ export default function LoginPasswordPage() {
     const userRaw = sessionStorage.getItem('pm_login_user');
     const status = sessionStorage.getItem('pm_login_status');
 
-    console.log('🔍 DEBUG login/password mount — token:', token ? 'OK' : 'MANQUANT');
-    console.log('🔍 DEBUG login/password mount — status:', status);
-    console.log('🔍 DEBUG login/password mount — userRaw:', userRaw);
-
     if (!token) {
-      console.log('🔍 DEBUG login/password mount — PAS DE TOKEN, redirect /login');
       router.replace(`/${locale}/login`);
       return;
     }
@@ -44,20 +39,16 @@ export default function LoginPasswordPage() {
     setLoginToken(token);
 
     if (status === '2FA_REQUIRED') {
-      console.log('🔍 DEBUG login/password mount → step: 2fa');
       setStep('2fa');
     } else if (status === 'NEW_LOCATION_REQUIRED') {
-      console.log('🔍 DEBUG login/password mount → step: location');
       const geoRaw = sessionStorage.getItem('pm_login_geo');
       if (geoRaw) {
         try { setNewGeo(JSON.parse(geoRaw)); } catch { /* ignore */ }
       }
       setStep('location');
     } else if (status === 'PASSWORD_REQUIRED') {
-      console.log('🔍 DEBUG login/password mount → step: password');
       setStep('password');
     } else {
-      console.log('🔍 DEBUG login/password mount — STATUS INCONNU "'+status+'", redirect /login');
       router.replace(`/${locale}/login`);
       return;
     }
@@ -69,7 +60,6 @@ export default function LoginPasswordPage() {
   }, [locale, router]);
 
   const handleCompleteSuccess = (res: any) => {
-    console.log('🔍 DEBUG handleCompleteSuccess — APPELÉE, token reçu:', res.token ? res.token.slice(0, 30) + '...' : 'MANQUANT');
     const u = res.user;
     const authUser: AuthUser = {
       id: u.id || '',
@@ -89,25 +79,20 @@ export default function LoginPasswordPage() {
       city: u.city || '',
     };
     sessionStorage.setItem('paymaestro_token', res.token);
-    console.log('🔍 DEBUG handleCompleteSuccess — token stocké dans sessionStorage:', sessionStorage.getItem('paymaestro_token') ? 'OK' : 'MANQUANT');
     sessionStorage.setItem('pm_auth_user', JSON.stringify(authUser));
     loginReal(authUser);
     toastSuccess('Connexion réussie');
-    console.log('🔍 DEBUG handleCompleteSuccess — navigation vers dashboard...');
     window.location.href = `/${locale}/dashboard`;
   };
 
   const handleSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔍 DEBUG handleSubmitPassword — CLIC submit, password.length:', password.length, 'loginToken:', loginToken ? loginToken.slice(0, 20) + '...' : 'MANQUANT');
     if (!password) { setError('Veuillez entrer votre mot de passe'); return; }
     setError('');
     setLoading(true);
 
     try {
-      console.log('🔍 DEBUG handleSubmitPassword — appel API completeLogin...');
       const res = await api.auth.completeLogin({ loginToken, password });
-      console.log('🔍 DEBUG handleSubmitPassword — réponse API:', JSON.stringify(res).slice(0, 200));
 
       if (res.status === '2FA_REQUIRED') {
         if (res.loginToken) sessionStorage.setItem('pm_login_token', res.loginToken);

@@ -36,7 +36,6 @@ interface Stats {
 import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardPage() {
-  console.log('🔍 DEBUG DashboardPage — RENDU');
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
   const tHistory = useTranslations('history');

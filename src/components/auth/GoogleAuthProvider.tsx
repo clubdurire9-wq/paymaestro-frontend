@@ -51,33 +51,23 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
 
   // --- Callback de succès Google OAuth ---
   const handleGoogleSuccess = useCallback(async (tokenResponse: { access_token: string }) => {
-    console.log('✅ handleGoogleSuccess appelé avec access_token');
     setIsLoading(true);
     let authUser: AuthUser | null = null;
 
     // 1. Essayer le vrai backend PayMaestro
     try {
       const backendRes = await api.auth.google(tokenResponse.access_token);
-      console.log('📦 Réponse backend:', backendRes);
       const backendStatus = backendRes?.status;
       const loginToken = backendRes?.loginToken;
 
-      // Nouveaux statuts : redirection vers création/vérification mot de passe
       if (backendStatus === 'PASSWORD_SETUP_REQUIRED' || backendStatus === 'PASSWORD_REQUIRED') {
         sessionStorage.setItem('pm_login_token', loginToken || '');
         sessionStorage.setItem('pm_login_status', backendStatus);
         sessionStorage.setItem('pm_login_user', JSON.stringify(backendRes?.user || {}));
-        // DEBUG
-        console.log('🔍 DEBUG handleGoogleSuccess — stocké pm_login_token:', sessionStorage.getItem('pm_login_token') ? 'OK' : 'MANQUANT');
-        console.log('🔍 DEBUG handleGoogleSuccess — stocké pm_login_status:', sessionStorage.getItem('pm_login_status'));
-        // NE PAS setUser — l'utilisateur n'est pas encore connecté
         setIsLoading(false);
         if (loginResolveRef.current) {
-          console.log('🔍 DEBUG handleGoogleSuccess — résolution de la promesse...');
           loginResolveRef.current(null);
           loginResolveRef.current = null;
-        } else {
-          console.warn('🔍 DEBUG handleGoogleSuccess — loginResolveRef.current est NULL!');
         }
         return;
       }
@@ -104,7 +94,6 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
         const jwt = backendRes.data.token;
         if (jwt) {
           saveTokenToStorage(jwt);
-          console.log('🔑 JWT sauvegardé dans localStorage');
         }
       }
     } catch (err) {
@@ -113,7 +102,6 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
 
     // 2. Fallback : endpoint Google userinfo (si backend indisponible)
     if (!authUser) {
-      console.log('⬇️ Fallback: appel direct à Google UserInfo API');
       try {
         const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
@@ -134,7 +122,6 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
             firstName: profile.given_name || '',
             lastName: profile.family_name || '',
           };
-          console.log('✅ Fallback réussi:', profile.email);
         }
       } catch {
         console.warn('⚠️ Impossible de récupérer le profil Google');
@@ -144,14 +131,12 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     if (authUser) {
       setUser(authUser);
       saveUserToStorage(authUser);
-      console.log('👤 Utilisateur connecté:', authUser.email);
     } else {
       console.warn('❌ Aucun utilisateur après Google auth');
     }
     setIsLoading(false);
 
     if (loginResolveRef.current) {
-      console.log('🔄 Résolution de la promesse login()');
       loginResolveRef.current(authUser);
       loginResolveRef.current = null;
     }
