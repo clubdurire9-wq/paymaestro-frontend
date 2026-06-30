@@ -250,6 +250,10 @@ export default function WalletPage() {
         currencyCode: currencyToUse,
         operator: mobileOperator,
       });
+      if (result?.needsRedirect && result?.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
       if (result?.pending) {
         setMobilePendingTxId(result.transactionId);
         setMobileDepositMessage({
