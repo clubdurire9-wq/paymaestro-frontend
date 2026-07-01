@@ -42,7 +42,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
   const navItems = [
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
     { href: `/${locale}/wallet`, label: 'Wallet', icon: Wallet },
-    { href: `/${locale}/withdraw`, label: 'Retrait', icon: ArrowUpRight },
+    { href: `/${locale}/paypal`, label: 'PayPal', icon: ArrowUpRight },
     { href: `/${locale}/history`, label: 'Historique', icon: History },
     { href: `/${locale}/cards`, label: 'Cartes', icon: CreditCard },
     ...(isGatewayAdmin ? [{ href: `/${locale}/crypto`, label: 'Crypto', icon: Bitcoin }] : []),

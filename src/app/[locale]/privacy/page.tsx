@@ -48,34 +48,34 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-slate-900 mb-2">Politique de Confidentialité</h1>
-        <p className="text-slate-500">Dernière mise à jour : Juin 2026</p>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Politique de Confidentialité</h1>
+        <p className="text-slate-500 dark:text-slate-400">Dernière mise à jour : Juin 2026</p>
       </div>
 
-      <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6 mb-8 text-center">
-        <Shield className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-        <p className="text-sm text-violet-800 font-medium">
+      <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/50 rounded-2xl p-6 mb-8 text-center">
+        <Shield className="w-8 h-8 text-violet-600 dark:text-violet-300 mx-auto mb-2" />
+        <p className="text-sm text-violet-800 dark:text-violet-300 font-medium">
           Chez PayMaestro, la protection de vos données est notre priorité. Nous nous engageons à traiter vos informations personnelles avec le plus grand soin.
         </p>
       </div>
 
       <div className="space-y-4">
         {sections.map((section) => (
-          <Card key={section.title} className="border-slate-100">
+          <Card key={section.title} className="border-slate-100 dark:border-slate-700">
             <CardContent className="p-6 space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <section.icon className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <section.icon className="w-4 h-4 text-blue-600 dark:text-blue-300" />
                 </div>
-                <h3 className="font-bold text-slate-900">{section.title}</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white">{section.title}</h3>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{section.content}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{section.content}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="mt-8 text-center text-sm text-slate-400">
+      <div className="mt-8 text-center text-sm text-slate-400 dark:text-slate-500">
         <p>Pour toute question sur notre politique de confidentialité : support@paymaestro.com</p>
       </div>
     </div>
