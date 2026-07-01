@@ -117,10 +117,21 @@ export default function WalletPage() {
   const [showWallet2PaypalConfirm, setShowWallet2PaypalConfirm] = useState(false);
   const [mobilePendingTxId, setMobilePendingTxId] = useState<number | null>(null);
 
+  // Retrait Mobile Money
+  const [withdrawCountry, setWithdrawCountry] = useState<CountryData | null>(null);
+  const [withdrawPhone, setWithdrawPhone] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawOperator, setWithdrawOperator] = useState('Orange');
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     setIsMounted(true);
     if (!mobileCountry) {
       setMobileCountry(ALL_COUNTRIES[0]);
+    }
+    if (!withdrawCountry) {
+      setWithdrawCountry(ALL_COUNTRIES[0]);
     }
   }, []);
 
@@ -309,6 +320,35 @@ export default function WalletPage() {
     } catch (error) {
       console.error('Erreur de retrait PayPal:', error);
     }
+  };
+
+  const handleMobileWithdraw = async () => {
+    if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
+    setWithdrawLoading(true);
+    setWithdrawMessage(null);
+    try {
+      const cleanPhone = withdrawPhone.replace(/^0+/, '');
+      const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
+      const result = await api.wallet.withdrawMobile({
+        amountLocal: parseFloat(withdrawAmount),
+        currencyCode: withdrawCountry.code,
+        phoneNumber: `${withdrawCountry.countryCode}${cleanPhone}`,
+        exchangeRate: rate,
+      });
+      setWithdrawMessage({
+        type: 'success',
+        text: `✅ Retrait de ${withdrawAmount} ${withdrawCountry.code} envoyé vers ${withdrawCountry.countryCode}${cleanPhone}.`,
+      });
+      setWithdrawAmount('');
+      setWithdrawPhone('');
+      loadData();
+    } catch (error: any) {
+      setWithdrawMessage({
+        type: 'error',
+        text: error?.message || 'Erreur lors du retrait. Veuillez réessayer.',
+      });
+    }
+    setWithdrawLoading(false);
   };
 
   const handleWallet2PayPal = async () => {
@@ -945,6 +985,117 @@ export default function WalletPage() {
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 {t('wallet.withdrawFee') || 'Retrait vers Mobile Money = 7% de frais supplémentaires.'}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Retrait Mobile Money */}
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800/50">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <Phone className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Retrait Mobile Money</h3>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">Retirez vos fonds vers votre compte Mobile Money</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Pays</label>
+                  <select
+                    value={withdrawCountry?.country || ''}
+                    onChange={(e) => {
+                      const country = ALL_COUNTRIES.find(c => c.country === e.target.value);
+                      if (country) {
+                        setWithdrawCountry(country);
+                        setWithdrawOperator(country.operators[0] || 'Orange');
+                      }
+                    }}
+                    className="w-full px-3 py-2 border dark:border-slate-600 rounded-xl text-sm mt-1 dark:bg-slate-800 dark:text-white"
+                  >
+                    {ALL_COUNTRIES.map(c => (
+                      <option key={c.country} value={c.country}>{c.flag} {c.country}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Opérateur</label>
+                  <select
+                    value={withdrawOperator}
+                    onChange={(e) => setWithdrawOperator(e.target.value)}
+                    className="w-full px-3 py-2 border dark:border-slate-600 rounded-xl text-sm mt-1 dark:bg-slate-800 dark:text-white"
+                  >
+                    {(withdrawCountry?.operators || []).map((op: string) => (
+                      <option key={op} value={op}>{op}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Votre numéro Mobile Money</label>
+                <div className="flex gap-2 mt-1">
+                  <span className="px-2 py-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-semibold dark:text-white shrink-0">
+                    {withdrawCountry?.countryCode || ''}
+                  </span>
+                  <input
+                    type="tel"
+                    value={withdrawPhone}
+                    onChange={(e) => setWithdrawPhone(e.target.value)}
+                    placeholder="991234567"
+                    className="flex-1 px-3 py-2 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
+                    Montant en {withdrawCountry?.code || 'XOF'}
+                  </label>
+                  <input
+                    type="number"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={handleMobileWithdraw}
+                    disabled={withdrawLoading || !withdrawAmount || !withdrawPhone}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {withdrawLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <ArrowUp className="w-4 h-4 mr-2" />
+                    )}
+                    {withdrawLoading ? 'Traitement...' : 'Retirer'}
+                  </Button>
+                </div>
+              </div>
+
+              {withdrawMessage && (
+                <div className={`rounded-xl p-3 text-xs ${
+                  withdrawMessage.type === 'success'
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800/50'
+                }`}>
+                  {withdrawMessage.text}
+                </div>
+              )}
+
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-400 space-y-1">
+                <p><strong>💰 Frais :</strong> 3% du montant</p>
+                <p><strong>⏱️ Délai :</strong> Quelques minutes</p>
+                {withdrawAmount && withdrawCountry && (
+                  <p className="font-bold mt-1">
+                    Vous recevrez {parseFloat(withdrawAmount).toFixed(2)} {withdrawCountry.code} sur votre Mobile Money
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
