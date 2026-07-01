@@ -21,6 +21,7 @@ export default function VirtualCardsPage() {
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<'visa' | 'mastercard'>('visa');
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
   const [copied, setCopied] = useState('');
   const [showNumber, setShowNumber] = useState<number | null>(null);
   const [cardNumbers, setCardNumbers] = useState<Record<number, { number: string; cvv: string }>>({});
@@ -37,12 +38,16 @@ export default function VirtualCardsPage() {
 
   const handleCreateCard = async () => {
     setCreating(true);
+    setCreateError('');
     try {
       const d = await api.cards.create({ brand: selectedBrand, billingCurrency: 'USD', provider: 'auto' });
       setNewCard(d.card || d);
       setShowCreate(false);
       loadCards();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      setCreateError(e.message || 'Erreur lors de la création de la carte');
+      console.error(e);
+    }
     setCreating(false);
   };
 
@@ -262,6 +267,12 @@ export default function VirtualCardsPage() {
                 <p>💰 Frais de création : <strong>2$</strong></p>
                 <p>💱 Frais de change : <strong>2%</strong></p>
               </div>
+
+              {createError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+                  ❌ {createError}
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">
