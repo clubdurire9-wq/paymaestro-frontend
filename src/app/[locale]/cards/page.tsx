@@ -203,8 +203,8 @@ export default function VirtualCardsPage() {
                     <Snowflake className="w-3 h-3" /> Geler
                   </button>
                   <button onClick={() => setShowNumber(showNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                    {showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    {showNumber === card.id ? 'Masquer' : 'Afficher'}
+                    {showNumber === card.id ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {showNumber === card.id ? 'Afficher' : 'Masquer'}
                   </button>
                   {card.cardNumber && (
                     <>
