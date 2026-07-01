@@ -23,7 +23,7 @@ export default function VirtualCardsPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [cancelTarget, setCancelTarget] = useState<any>(null);
-  const [hideNumber, setHideNumber] = useState<number | null>(null);
+  const [showNumber, setShowNumber] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [copied, setCopied] = useState('');
 
@@ -149,7 +149,7 @@ export default function VirtualCardsPage() {
 
               {/* Numéro */}
               <p className="text-xl font-mono tracking-wider mb-4">
-                {hideNumber === card.id || !card.cardNumber
+                {showNumber !== card.id || !card.cardNumber
                   ? `•••• •••• •••• ${card.last_four}`
                   : formatCardNumber(card.cardNumber)}
               </p>
@@ -163,7 +163,7 @@ export default function VirtualCardsPage() {
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">CVV</p>
                   <p className="font-mono">
-                    {hideNumber === card.id || !card.cvv ? '•••' : card.cvv}
+                    {showNumber !== card.id || !card.cvv ? '•••' : card.cvv}
                   </p>
                 </div>
                 <div>
@@ -198,9 +198,9 @@ export default function VirtualCardsPage() {
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                     <Snowflake className="w-3 h-3" /> Geler
                   </button>
-                  <button onClick={() => setHideNumber(hideNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                    {hideNumber === card.id ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    {hideNumber === card.id ? 'Afficher' : 'Masquer'}
+                  <button onClick={() => setShowNumber(showNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                    {showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {showNumber === card.id ? 'Masquer' : 'Afficher'}
                   </button>
                   {card.cardNumber && (
                     <>
@@ -329,7 +329,7 @@ export default function VirtualCardsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CreditCard className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <h3 className="font-bold text-lg">Carte créée !</h3>
-            <p className="text-sm text-red-600 font-bold mt-2">⚠️ Ces informations ne seront plus affichées</p>
+            <p className="text-sm text-amber-600 font-bold mt-2">💡 Vous pourrez revoir ces informations à tout moment</p>
 
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mt-4 space-y-2 text-left">
               <p><strong>N° :</strong> <span className="font-mono">{formatCardNumber(newCard.cardNumber)}</span></p>
