@@ -60,11 +60,15 @@ export default function VirtualCardsPage() {
   };
 
   const handleCancelCard = async (cardId: number) => {
-    setCancelTarget(null);
     try {
       await api.cards.cancel(cardId);
+      setCancelTarget(null);
       loadCards();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      setCancelTarget(null);
+      setToast({ message: e.message || 'Erreur lors de l\'annulation', type: 'error' });
+      console.error(e);
+    }
   };
 
   const handleCopy = (text: string, type: string) => {
