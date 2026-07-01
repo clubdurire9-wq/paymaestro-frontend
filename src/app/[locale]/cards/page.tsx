@@ -38,7 +38,7 @@ export default function VirtualCardsPage() {
   const handleCreateCard = async () => {
     setCreating(true);
     try {
-      const d = await api.cards.create({ brand: selectedBrand, billingCurrency: 'USD' });
+      const d = await api.cards.create({ brand: selectedBrand, billingCurrency: 'USD', provider: 'auto' });
       setNewCard(d.card || d);
       setShowCreate(false);
       loadCards();
