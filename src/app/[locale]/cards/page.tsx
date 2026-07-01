@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ToastContainer, Toast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
 
 export default function VirtualCardsPage() {
@@ -18,14 +19,13 @@ export default function VirtualCardsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newCard, setNewCard] = useState<any>(null);
-  const [showCardDetails, setShowCardDetails] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<'visa' | 'mastercard'>('visa');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [cancelTarget, setCancelTarget] = useState<any>(null);
+  const [hideNumber, setHideNumber] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [copied, setCopied] = useState('');
-  const [showNumber, setShowNumber] = useState<number | null>(null);
-  const [cardNumbers, setCardNumbers] = useState<Record<number, { number: string; cvv: string }>>({});
 
   useEffect(() => { loadCards(); }, []);
 
@@ -149,9 +149,9 @@ export default function VirtualCardsPage() {
 
               {/* Numéro */}
               <p className="text-xl font-mono tracking-wider mb-4">
-                {showNumber === card.id && cardNumbers[card.id] 
-                  ? formatCardNumber(cardNumbers[card.id].number)
-                  : `•••• •••• •••• ${card.last_four}`}
+                {hideNumber === card.id || !card.cardNumber
+                  ? `•••• •••• •••• ${card.last_four}`
+                  : formatCardNumber(card.cardNumber)}
               </p>
 
               {/* Infos */}
@@ -163,7 +163,7 @@ export default function VirtualCardsPage() {
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">CVV</p>
                   <p className="font-mono">
-                    {showNumber === card.id && cardNumbers[card.id] ? cardNumbers[card.id].cvv : '•••'}
+                    {hideNumber === card.id || !card.cvv ? '•••' : card.cvv}
                   </p>
                 </div>
                 <div>
@@ -198,29 +198,16 @@ export default function VirtualCardsPage() {
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                     <Snowflake className="w-3 h-3" /> Geler
                   </button>
-                  <button onClick={async () => {
-                    if (showNumber === card.id) {
-                      setShowNumber(null);
-                    } else {
-                      try {
-                        const details = await api.cards.details(card.id);
-                        setCardNumbers(prev => ({ ...prev, [card.id]: { number: details.cardNumber, cvv: details.cvv } }));
-                        setShowNumber(card.id);
-                      } catch (e: any) {
-                        console.error(e);
-                        alert(e.message || 'Impossible de récupérer les détails de la carte');
-                      }
-                    }
-                  }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                    {showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    {showNumber === card.id ? 'Cacher' : 'Infos carte'}
+                  <button onClick={() => setHideNumber(hideNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                    {hideNumber === card.id ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {hideNumber === card.id ? 'Afficher' : 'Masquer'}
                   </button>
-                  {showNumber === card.id && (
+                  {card.cardNumber && (
                     <>
-                      <button onClick={() => handleCopy(cardNumbers[card.id]?.number || '', 'number')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                      <button onClick={() => { navigator.clipboard.writeText(card.cardNumber); setCopied('number'); setTimeout(() => setCopied(''), 2000); }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                         <Copy className="w-3 h-3" /> {copied === 'number' ? 'Copié !' : 'N°'}
                       </button>
-                      <button onClick={() => handleCopy(cardNumbers[card.id]?.cvv || '', 'cvv')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                      <button onClick={() => { navigator.clipboard.writeText(card.cvv); setCopied('cvv'); setTimeout(() => setCopied(''), 2000); }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                         <Copy className="w-3 h-3" /> {copied === 'cvv' ? 'Copié !' : 'CVV'}
                       </button>
                     </>
@@ -327,6 +314,13 @@ export default function VirtualCardsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast notifications */}
+      {toast && (
+        <ToastContainer>
+          <Toast message={toast.message} type={toast.type as any} onClose={() => setToast(null)} />
+        </ToastContainer>
       )}
 
       {/* Modale carte créée */}
