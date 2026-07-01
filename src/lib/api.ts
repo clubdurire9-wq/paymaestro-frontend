@@ -333,6 +333,8 @@ export const api = {
     list: () => request<any[]>(`${API_URL}/cards`),
     create: (data?: { brand?: string; spendingLimit?: number; billingCurrency?: string; provider?: string }) =>
       request<any>(`${API_URL}/cards`, { method: 'POST', body: JSON.stringify(data || {}) }),
+    details: (id: number | string) =>
+      request<any>(`${API_URL}/cards/${id}/details`),
     toggle: (id: number | string, action: 'freeze' | 'unfreeze') =>
       request<any>(`${API_URL}/cards/${id}/toggle`, { method: 'PUT', body: JSON.stringify({ action }) }),
     cancel: (id: number | string) =>

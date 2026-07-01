@@ -197,7 +197,20 @@ export default function VirtualCardsPage() {
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                     <Snowflake className="w-3 h-3" /> Geler
                   </button>
-                  <button onClick={() => setShowNumber(showNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                  <button onClick={async () => {
+                    if (showNumber === card.id) {
+                      setShowNumber(null);
+                    } else {
+                      try {
+                        const details = await api.cards.details(card.id);
+                        setCardNumbers(prev => ({ ...prev, [card.id]: { number: details.cardNumber, cvv: details.cvv } }));
+                        setShowNumber(card.id);
+                      } catch (e: any) {
+                        console.error(e);
+                        alert(e.message || 'Impossible de récupérer les détails de la carte');
+                      }
+                    }
+                  }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                     {showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                     {showNumber === card.id ? 'Cacher' : 'Infos carte'}
                   </button>
