@@ -7,15 +7,16 @@ import { AuthContext } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { Loader2 } from 'lucide-react';
 
-// Routes accessibles sans onboarding complet
-const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/onboarding', '/onboarding/password', '/kyc', '/'];
+// Routes accessibles sans authentification
+const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location'];
 const LOCALE_PREFIX = /^\/(fr|en)/;
 
 // Routes sensibles nécessitant un KYC valide
 const SENSITIVE_ROUTES = [
-  '/wallet', '/withdraw', '/history', '/cards', '/crypto',
+  '/wallet', '/withdraw', '/paypal', '/history', '/cards', '/crypto',
   '/bank', '/referral', '/payment-page', '/developer', '/admin',
-  '/profile', '/dashboard',
+  '/profile', '/dashboard', '/iban', '/pricing', '/privacy',
+  '/terms', '/white-label',
 ];
 
 function getRemainingKYCAttempts(): number {

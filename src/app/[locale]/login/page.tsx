@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const isDev = process.env.NODE_ENV === 'development';
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Déjà connecté → rediriger vers dashboard
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function LoginPage() {
 
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
+    if (!acceptedTerms) return;
     setIsGoogleLoading(true);
     try {
       await login();
@@ -107,11 +109,31 @@ export default function LoginPage() {
             Connectez-vous avec votre compte Google pour accéder à votre tableau de bord PayMaestro.
           </p>
 
+          {/* Case à cocher conditions */}
+          <label className="flex items-start gap-3 mb-4 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/10 text-violet-600 focus:ring-violet-500 focus:ring-offset-0 cursor-pointer"
+            />
+            <span className="text-xs text-slate-400 leading-relaxed">
+              J&apos;accepte les{' '}
+              <Link href={`/${locale}/terms`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+                Conditions d&apos;utilisation
+              </Link>{' '}
+              et la{' '}
+              <Link href={`/${locale}/privacy`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+                Politique de confidentialité
+              </Link>
+            </span>
+          </label>
+
           {/* Vrai bouton Google OAuth */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isGoogleLoading || isDemoLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 rounded-2xl text-base font-semibold hover:bg-slate-100 active:scale-[0.98] transition-all duration-200 shadow-md shadow-black/20 disabled:opacity-70"
+            disabled={isGoogleLoading || isDemoLoading || !acceptedTerms}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 rounded-2xl text-base font-semibold hover:bg-slate-100 active:scale-[0.98] transition-all duration-200 shadow-md shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
@@ -125,6 +147,12 @@ export default function LoginPage() {
             )}
             {isGoogleLoading ? 'Vérification en cours...' : 'Continuer avec Google'}
           </button>
+
+          {!acceptedTerms && (
+            <p className="text-xs text-amber-400/80 text-center mt-2">
+              Veuillez accepter les conditions pour continuer
+            </p>
+          )}
 
           {/* Mode démo — UNIQUEMENT en développement */}
           {isDev && (
@@ -150,17 +178,7 @@ export default function LoginPage() {
             </>
           )}
 
-          <p className="text-center text-xs text-slate-500 mt-6">
-            En continuant, vous acceptez nos{' '}
-            <Link href={`/${locale}`} className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
-              Conditions d&apos;utilisation
-            </Link>{' '}
-            et notre{' '}
-            <Link href={`/${locale}`} className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
-              Politique de confidentialité
-            </Link>
-            .
-          </p>
+
         </div>
 
         <div className="grid grid-cols-2 gap-3">
