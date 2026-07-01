@@ -1003,6 +1003,7 @@ export default function WalletPage() {
               </CardContent>
             </Card>
           )}
+
         </div>
       )}
 

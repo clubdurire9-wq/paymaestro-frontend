@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { fetchLiveRates, api } from '@/lib/api';
-import { HOME_COUNTRIES } from '@/data/countries';
+import { ALL_COUNTRIES, HOME_COUNTRIES } from '@/data/countries';
 import { getFlagUrl } from '@/data/flags';
 
 export default function HomePage() {
@@ -117,11 +117,12 @@ export default function HomePage() {
                 {ratesLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500" />}
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Devise</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {(liveRates.length > 0 ? liveRates : [{ currency: 'XOF', flag: '🇨🇮' }, { currency: 'XAF', flag: '🇨🇲' }, { currency: 'KES', flag: '🇰🇪' }, { currency: 'NGN', flag: '🇳🇬' }, { currency: 'GHS', flag: '🇬🇭' }]).slice(0, 5).map((r: any) => (
-                    <button key={r.currency} onClick={() => setCurrency(r.currency)} className={`p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${currency === r.currency ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-900 dark:text-violet-300 font-bold' : 'border-slate-100 dark:border-slate-600 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700'}`}>
-                      <span className="text-xl">{r.flag}</span><span className="text-[10px]">{r.currency}</span>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Devise (54 pays)</label>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-[260px] overflow-y-auto">
+                  {ALL_COUNTRIES.map((c: any) => (
+                    <button key={`${c.code}-${c.country}`} onClick={() => setCurrency(c.code)} title={c.country} className={`p-1.5 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${currency === c.code ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-900 dark:text-violet-300 font-bold' : 'border-slate-100 dark:border-slate-600 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700'}`}>
+                      <img src={getFlagUrl(c.countryCode)} alt={c.country} className="w-5 h-3.5 object-cover rounded-sm" />
+                      <span className="text-[9px] font-bold">{c.code}</span>
                     </button>
                   ))}
                 </div>
