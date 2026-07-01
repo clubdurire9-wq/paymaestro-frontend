@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Wallet, Loader2, ShieldCheck, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
+import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import PayPalButton from '@/components/payment/PayPalButton';
 import { api } from '@/lib/api';
 
 export default function PayPalPage() {
@@ -14,32 +13,33 @@ export default function PayPalPage() {
   const locale = params.locale || 'fr';
 
   const [amount, setAmount] = useState('100');
-  const [step, setStep] = useState<'form' | 'paypal' | 'success' | 'error'>('form');
-  const [paypalProcessing, setPaypalProcessing] = useState(false);
+  const [step, setStep] = useState<'form' | 'redirecting' | 'success' | 'error'>('form');
   const [paypalError, setPaypalError] = useState<string | null>(null);
 
   const amountNum = parseFloat(amount) || 0;
   const fee = amountNum * 0.05;
   const netAmount = amountNum - fee;
 
-  const handleStart = () => {
+  const handlePayWithPayPal = async () => {
     if (!amountNum || amountNum < 10 || amountNum > 2000) return;
-    setStep('paypal');
-  };
+    setStep('redirecting');
+    setPaypalError(null);
 
-  const handlePayPalSuccess = async (details: any) => {
-    setPaypalProcessing(true);
     try {
-      await api.wallet.deposit(amountNum, 'PAYPAL');
-      setStep('success');
-    } catch {
-      setPaypalError('Erreur lors du crédit du wallet. Contactez le support.');
+      const baseUrl = window.location.origin;
+      const returnUrl = `${baseUrl}/${locale}/paypal/success`;
+      const cancelUrl = `${baseUrl}/${locale}/paypal`;
+      const result = await api.payments.createPayPalDeposit(amountNum, returnUrl, cancelUrl);
+      if (!result.approvalUrl) {
+        throw new Error('URL d\'approbation PayPal non reçue');
+      }
+      window.location.href = result.approvalUrl;
+    } catch (err: any) {
+      setPaypalError(err.message || 'Erreur de communication avec PayPal.');
       setStep('error');
     }
-    setPaypalProcessing(false);
   };
 
-  const handlePayPalError = () => { setPaypalError('Le paiement PayPal a échoué.'); setStep('error'); };
   const handleReset = () => { setStep('form'); setPaypalError(null); setAmount('100'); };
 
   if (step === 'success') {
@@ -51,7 +51,7 @@ export default function PayPalPage() {
             <h2 className="text-2xl font-bold">Dépôt PayPal réussi !</h2>
           </div>
           <CardContent className="p-8 space-y-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300">${netAmount.toFixed(2)} USD crédités sur votre wallet.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">Fonds crédités sur votre wallet.</p>
             <Button variant="primary" fullWidth onClick={() => router.push(`/${locale}/wallet`)}>Voir mon wallet</Button>
           </CardContent>
         </Card>
@@ -87,18 +87,17 @@ export default function PayPalPage() {
             <div className="flex justify-between mt-1"><span className="text-xs text-slate-400">Min: 10 USD</span><span className="text-xs text-slate-400">Max: 2 000 USD</span></div>
           </div>
 
-          {step === 'paypal' ? (
+          {step === 'redirecting' ? (
             <div className="space-y-4">
               <div className="bg-slate-50 dark:bg-slate-700 rounded-2xl p-4 text-sm space-y-2">
                 <div className="flex justify-between text-slate-600 dark:text-slate-300"><span>Montant :</span><span className="font-bold text-slate-900 dark:text-white">${amountNum.toFixed(2)} USD</span></div>
                 <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Frais (5%) :</span><span className="text-red-500 font-bold">-${fee.toFixed(2)} USD</span></div>
                 <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2"><span className="font-bold text-slate-900 dark:text-white">Crédité sur wallet :</span><span className="font-bold text-emerald-600">${netAmount.toFixed(2)} USD</span></div>
               </div>
-              {paypalProcessing ? (
-                <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-violet-500" /></div>
-              ) : (
-                <PayPalButton amount={amountNum} currency="USD" onSuccess={handlePayPalSuccess} onError={handlePayPalError} onCancel={() => setStep('form')} />
-              )}
+              <div className="flex flex-col items-center justify-center p-8 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+                <p className="text-sm text-slate-500 dark:text-slate-400">Redirection vers PayPal...</p>
+              </div>
             </div>
           ) : (
             <>
@@ -109,7 +108,7 @@ export default function PayPalPage() {
 
               {paypalError && <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl text-xs text-red-700 dark:text-red-400">{paypalError}</div>}
 
-              <Button onClick={handleStart} variant="primary" fullWidth size="lg" disabled={!amountNum || amountNum < 10}>
+              <Button onClick={handlePayWithPayPal} variant="primary" fullWidth size="lg" disabled={!amountNum || amountNum < 10}>
                 <span className="flex items-center gap-2"><Lock className="w-5 h-5" />Payer avec PayPal - ${amountNum.toFixed(2)} USD</span>
               </Button>
             </>

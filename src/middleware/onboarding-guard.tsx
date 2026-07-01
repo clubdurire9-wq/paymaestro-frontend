@@ -8,7 +8,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { Loader2 } from 'lucide-react';
 
 // Routes accessibles sans authentification
-const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/', '/terms', '/privacy'];
+const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/', '/terms', '/privacy', '/auth/google/callback'];
 const LOCALE_PREFIX = /^\/(fr|en)/;
 
 // Routes sensibles nécessitant un KYC valide

@@ -313,6 +313,16 @@ export const api = {
     getCurrencies: () => request<any[]>(`${API_URL}/payments/currencies`),
     estimate: (amountUSD: number, currencyCode: string) =>
       request<any>(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currencyCode}`),
+    createPayPalDeposit: (amountUSD: number, returnUrl?: string, cancelUrl?: string) =>
+      request<{ paypalOrderId: string; approvalUrl: string; amountUSD: number }>(`${API_URL}/payments/create-paypal-deposit`, {
+        method: 'POST',
+        body: JSON.stringify({ amountUSD, returnUrl, cancelUrl }),
+      }),
+    capturePayPalDeposit: (paypalOrderId: string) =>
+      request<{ amountCredited: number; currency: string; payerEmail: string; captureId: string }>(`${API_URL}/payments/capture-paypal-deposit`, {
+        method: 'POST',
+        body: JSON.stringify({ paypalOrderId }),
+      }),
   },
 
   // ==========================================
