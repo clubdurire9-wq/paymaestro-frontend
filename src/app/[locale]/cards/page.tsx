@@ -22,6 +22,7 @@ export default function VirtualCardsPage() {
   const [selectedBrand, setSelectedBrand] = useState<'visa' | 'mastercard'>('visa');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  const [cancelTarget, setCancelTarget] = useState<any>(null);
   const [copied, setCopied] = useState('');
   const [showNumber, setShowNumber] = useState<number | null>(null);
   const [cardNumbers, setCardNumbers] = useState<Record<number, { number: string; cvv: string }>>({});
@@ -59,7 +60,7 @@ export default function VirtualCardsPage() {
   };
 
   const handleCancelCard = async (cardId: number) => {
-    if (!confirm('Annuler définitivement cette carte ?')) return;
+    setCancelTarget(null);
     try {
       await api.cards.cancel(cardId);
       loadCards();
@@ -231,7 +232,7 @@ export default function VirtualCardsPage() {
                   🔓 Dégeler
                 </button>
               )}
-              <button onClick={() => handleCancelCard(card.id)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
+              <button onClick={() => setCancelTarget(card)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
                 <XCircle className="w-3 h-3" /> Annuler
               </button>
             </div>
@@ -293,6 +294,36 @@ export default function VirtualCardsPage() {
               <Button fullWidth onClick={handleCreateCard} disabled={creating}>
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Créer (2$)'}
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale confirmation annulation */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <XCircle className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Annuler la carte</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+              Êtes-vous sûr de vouloir annuler définitivement la carte <strong>{cancelTarget.brand?.toUpperCase()} •••• {cancelTarget.last_four}</strong> ?
+            </p>
+            <p className="text-xs text-red-500 mt-2 font-semibold">Cette action est irréversible.</p>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setCancelTarget(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Non, conserver
+              </button>
+              <button
+                onClick={() => handleCancelCard(cancelTarget.id)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+              >
+                Oui, annuler
+              </button>
             </div>
           </div>
         </div>
