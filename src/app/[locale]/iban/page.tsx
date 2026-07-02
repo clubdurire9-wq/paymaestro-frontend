@@ -35,6 +35,7 @@ export default function IBANPage() {
   const [selectedCountry, setSelectedCountry] = useState('FR');
   const [stripeDetails, setStripeDetails] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [isFirstIBAN, setIsFirstIBAN] = useState(true);
 
   useEffect(() => { loadIBAN(); }, []);
 
@@ -50,12 +51,15 @@ export default function IBANPage() {
     setCreating(true);
     try {
       await api.stripe.createAccount();
+      const alreadyHasIBAN = !!iban;
+      setIsFirstIBAN(!alreadyHasIBAN);
       setStripeDetails({
         email: user?.email,
         name: user?.name,
         country: selectedCountry,
         estimatedTime: 'Immédiat',
-        fees: 'Gratuit (réception) / 2% (conversion)',
+        fees: alreadyHasIBAN ? 'Gratuit (réception) / 2% (conversion)' : 'Gratuit (réception) / 2% (conversion)',
+        creationFee: alreadyHasIBAN ? 5 : 0,
       });
       setShowConfirm(true);
     } catch (e: any) {
@@ -172,7 +176,8 @@ export default function IBANPage() {
                     setSelectedCountry(e.target.value);
                     setStripeDetails({ ...stripeDetails, country: e.target.value });
                   }}
-                  className="font-bold text-slate-800 dark:text-white bg-transparent border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  style={{ colorScheme: 'dark' as any }}
                 >
                   {SEPA_COUNTRIES.map((c) => (
                     <option key={c.code} value={c.code}>{c.label}</option>
@@ -187,7 +192,20 @@ export default function IBANPage() {
                 <span className="text-slate-500 dark:text-slate-400">Disponibilité :</span>
                 <span className="text-green-600 dark:text-green-400 font-semibold">{stripeDetails.estimatedTime}</span>
               </div>
+              {stripeDetails.creationFee > 0 && (
+                <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2 mt-2">
+                  <span className="text-slate-500 dark:text-slate-400">Frais de création :</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">{stripeDetails.creationFee}$</span>
+                </div>
+              )}
             </div>
+
+            {stripeDetails.creationFee > 0 && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-200 mb-4">
+                💰 Le premier IBAN est gratuit. La création d'un nouvel IBAN coûte <strong>{stripeDetails.creationFee}$</strong>.
+                Ce montant sera déduit de votre solde PayMaestro.
+              </div>
+            )}
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-200 mb-4">
               ⚠️ Assurez-vous que ces informations sont correctes.
