@@ -12,6 +12,7 @@ import {
   CreditCard,
   Bitcoin,
   Building,
+  Globe,
   Gift,
   UserCheck,
   User,
