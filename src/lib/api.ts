@@ -155,6 +155,12 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
+    uploadAvatar: (image: string) =>
+      request<any>(`${API_URL}/auth/avatar`, {
+        method: 'POST',
+        body: JSON.stringify({ image }),
+      }),
+
     createPassword: (password: string, confirmPassword: string) =>
       request<{ message: string }>(`${API_URL}/auth/create-password`, {
         method: 'POST',

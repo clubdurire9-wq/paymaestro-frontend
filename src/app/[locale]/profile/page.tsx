@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
@@ -25,6 +25,7 @@ import {
   Smartphone,
   FileText,
   AlertTriangle,
+  Upload,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -89,6 +90,41 @@ export default function ProfilePage() {
   });
   const [profileSaving, setProfileSaving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier la taille (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showError('Image trop volumineuse. Maximum 2MB.');
+      return;
+    }
+
+    // Vérifier le format
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+      showError('Format invalide. Utilisez PNG, JPEG, WebP ou GIF.');
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const result = await api.auth.uploadAvatar(base64);
+        setUser((prev: any) => ({ ...prev, avatar: result.data.avatar }));
+        success('Photo de profil mise à jour !');
+        setAvatarUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      showError(err.message || 'Erreur lors du téléchargement');
+      setAvatarUploading(false);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -324,11 +360,25 @@ export default function ProfilePage() {
           {/* User Details */}
           <Card className="border border-slate-100 dark:border-slate-700 shadow-sm rounded-2xl bg-white dark:bg-slate-800 text-center">
             <CardContent className="pt-8 space-y-4">
-              <div className="relative w-20 h-20 mx-auto">
+              <div className="relative w-20 h-20 mx-auto group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <img 
                   src={user?.avatar} 
                   alt={user?.name} 
                   className="rounded-full w-full h-full object-cover border-2 border-violet-500/20"
+                />
+                <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  {avatarUploading ? (
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-white" />
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleAvatarChange}
                 />
                 <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white" title="Identité vérifiée">✓</span>
               </div>
