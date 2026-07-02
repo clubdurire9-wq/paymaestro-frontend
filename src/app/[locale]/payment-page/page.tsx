@@ -20,7 +20,7 @@ export default function PaymentPageSetup() {
   const [result, setResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
-  const balance = parseFloat(user?.balance_usd || '0');
+  const balance = parseFloat((user as any)?.balance_usd || '0');
 
   const handleCreate = async () => {
     setLoading(true);
