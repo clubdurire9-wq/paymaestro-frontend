@@ -12,7 +12,6 @@ export default function PaymentPageSetup() {
 
   const [plan, setPlan] = useState<'free' | 'premium'>('free');
   const [subdomain, setSubdomain] = useState('');
-  const [customDomain, setCustomDomain] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#667eea');
@@ -25,9 +24,7 @@ export default function PaymentPageSetup() {
   const handleCreate = async () => {
     setLoading(true);
     try {
-      const data = plan === 'free'
-        ? await api.auth.createPaymentPage({ subdomain, title, description, color })
-        : await api.auth.activateWhiteLabel({ domain: customDomain, title, description, color });
+      const data = await api.auth.createPaymentPage({ subdomain, title, description, color, plan });
       setResult(data);
     } catch (e: any) {
       alert(e.message);
@@ -123,7 +120,7 @@ export default function PaymentPageSetup() {
           <Crown className="w-8 h-8 text-amber-500 mb-3" />
           <h3 className="font-bold text-lg">Premium</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Votre propre domaine <span className="font-mono">.me</span>
+            Sous-domaine <span className="font-mono">.paymaestro.me</span> — <span className="text-amber-600">sans marque PayMaestro</span>
           </p>
           <ul className="mt-3 text-sm space-y-1 text-slate-600 dark:text-slate-300">
             <li>✅ Domaine personnalisé</li>
@@ -138,7 +135,7 @@ export default function PaymentPageSetup() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Edit3 className="w-5 h-5 text-violet-600" />
-            {plan === 'free' ? 'Personnalisez votre sous-domaine' : 'Personnalisez votre domaine'}
+            {plan === 'free' ? 'Personnalisez votre sous-domaine' : 'Personnalisez votre sous-domaine Premium'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -159,19 +156,19 @@ export default function PaymentPageSetup() {
             </div>
           ) : (
             <div>
-              <label className="text-sm font-semibold">Votre domaine personnalisé</label>
+              <label className="text-sm font-semibold">Votre sous-domaine Premium</label>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-slate-500 dark:text-slate-400 font-mono text-sm">https://</span>
                 <input
                   type="text"
-                  value={customDomain}
-                  onChange={(e) => setCustomDomain(e.target.value.toLowerCase().replace(/[^a-z0-9.-]/g, ''))}
-                  placeholder="football-club.me"
+                  value={subdomain}
+                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="bible-blueprint"
                   className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-sm font-mono dark:bg-slate-800 dark:text-white"
                 />
+                <span className="text-slate-500 dark:text-slate-400 font-mono text-sm whitespace-nowrap">.paymaestro.me</span>
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                Vous devez posséder ce domaine et pointer son DNS vers nous
+                3$/mois — Aucune marque PayMaestro visible sur votre page
               </p>
             </div>
           )}
@@ -224,7 +221,7 @@ export default function PaymentPageSetup() {
               <p className="font-bold text-lg dark:text-white">{title || 'Votre titre'}</p>
               <p className="text-xs text-slate-400 dark:text-slate-500">{description || 'Votre description'}</p>
               <p className="text-xs text-slate-300 dark:text-slate-600 mt-2 font-mono">
-                {plan === 'free' ? `${subdomain || 'votre-page'}.paymaestro.me` : customDomain || 'votre-domaine.me'}
+                {plan === 'free' ? `${subdomain || 'votre-page'}.paymaestro.me` : `${subdomain || 'votre-page'}.paymaestro.me`}
               </p>
             </div>
           </div>
@@ -238,7 +235,7 @@ export default function PaymentPageSetup() {
           <Button
             onClick={handleCreate}
             fullWidth
-            disabled={loading || (plan === 'free' ? !subdomain : !customDomain || balance < 3)}
+            disabled={loading || !subdomain || (plan === 'premium' && balance < 3)}
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
