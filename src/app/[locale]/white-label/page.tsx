@@ -15,7 +15,7 @@ export default function WhiteLabelPage() {
   const handleActivate = async () => {
     setLoading(true);
     try {
-      await api.auth.activateWhiteLabel();
+      await api.auth.activateWhiteLabel({ domain });
       setStatus({ active: true, domain });
     } catch (e: any) {
       alert(e.message);
