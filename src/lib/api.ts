@@ -447,7 +447,7 @@ export const api = {
     getCode: () => request<any>(`${API_URL}/referral/code`),
     getStats: () => request<any>(`${API_URL}/referral/stats`),
     register: (code: string) =>
-      request<any>(`${API_URL}/referral/register`, { method: 'POST', body: JSON.stringify({ code }) }),
+      request<any>(`${API_URL}/referral/register`, { method: 'POST', body: JSON.stringify({ referralCode: code }) }),
   },
 
   // ==========================================

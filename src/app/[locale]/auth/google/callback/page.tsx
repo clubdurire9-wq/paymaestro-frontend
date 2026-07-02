@@ -72,6 +72,14 @@ export default function GoogleCallbackPage() {
           const jwt = res.data.token;
           if (jwt) saveTokenToStorage(jwt);
           saveUserToStorage(authUser);
+
+          // Enregistrer le code de parrainage si présent
+          const refCode = sessionStorage.getItem('pm_referral_code');
+          if (refCode && jwt) {
+            api.referral.register(refCode).catch(() => {});
+            sessionStorage.removeItem('pm_referral_code');
+          }
+
           router.replace(`/${locale}/dashboard`);
           return;
         }

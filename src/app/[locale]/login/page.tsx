@@ -31,6 +31,15 @@ export default function LoginPage() {
     }
   }, [locale]);
 
+  // Stocker le code de parrainage depuis l'URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      sessionStorage.setItem('pm_referral_code', ref);
+    }
+  }, []);
+
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
     if (!acceptedTerms) return;
