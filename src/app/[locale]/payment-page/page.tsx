@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Globe, CheckCircle2, Loader2, Copy, ExternalLink, Palette, Edit3, Crown, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,10 +21,15 @@ export default function PaymentPageSetup() {
 
   const balance = parseFloat((user as any)?.balance_usd || '0');
 
+  const meDomain = useMemo(() => {
+    const slug = title.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    return slug ? `${slug}.me` : 'votre-domaine.me';
+  }, [title]);
+
   const handleCreate = async () => {
     setLoading(true);
     try {
-      const data = await api.auth.createPaymentPage({ subdomain, title, description, color, plan });
+      const data = await api.auth.createPaymentPage({ subdomain, title, description, color, plan, meDomain });
       setResult(data);
     } catch (e: any) {
       alert(e.message);
@@ -120,10 +125,10 @@ export default function PaymentPageSetup() {
           <Crown className="w-8 h-8 text-amber-500 mb-3" />
           <h3 className="font-bold text-lg">Premium</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Sous-domaine <span className="font-mono">.paymaestro.me</span> — <span className="text-amber-600">sans marque PayMaestro</span>
+            Votre domaine <span className="font-mono">.me</span>
           </p>
           <ul className="mt-3 text-sm space-y-1 text-slate-600 dark:text-slate-300">
-            <li>✅ Domaine personnalisé</li>
+            <li>✅ Domaine .me personnalisé</li>
             <li>✅ Aucune marque PayMaestro</li>
             <li>✅ Design 100% personnalisable</li>
           </ul>
@@ -135,7 +140,7 @@ export default function PaymentPageSetup() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Edit3 className="w-5 h-5 text-violet-600" />
-            {plan === 'free' ? 'Personnalisez votre sous-domaine' : 'Personnalisez votre sous-domaine Premium'}
+            {plan === 'free' ? 'Personnalisez votre sous-domaine' : 'Votre domaine .me'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -155,20 +160,12 @@ export default function PaymentPageSetup() {
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Exemple: bible-blueprint.paymaestro.me</p>
             </div>
           ) : (
-            <div>
-              <label className="text-sm font-semibold">Votre sous-domaine Premium</label>
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="text"
-                  value={subdomain}
-                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="bible-blueprint"
-                  className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-sm font-mono dark:bg-slate-800 dark:text-white"
-                />
-                <span className="text-slate-500 dark:text-slate-400 font-mono text-sm whitespace-nowrap">.paymaestro.me</span>
-              </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                3$/mois — Aucune marque PayMaestro visible sur votre page
+            <div className="bg-amber-50 dark:bg-amber-900/10 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Votre domaine <strong>.me</strong> est généré automatiquement à partir du titre de votre page.
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                Exemple : si vous mettez "Football" comme titre, votre domaine sera <strong className="font-mono">football.me</strong>
               </p>
             </div>
           )}
@@ -179,7 +176,7 @@ export default function PaymentPageSetup() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Soutenir ma chaîne"
+              placeholder={plan === 'free' ? 'Soutenir ma chaîne' : 'Football'}
               className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl text-sm mt-1 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -221,7 +218,7 @@ export default function PaymentPageSetup() {
               <p className="font-bold text-lg dark:text-white">{title || 'Votre titre'}</p>
               <p className="text-xs text-slate-400 dark:text-slate-500">{description || 'Votre description'}</p>
               <p className="text-xs text-slate-300 dark:text-slate-600 mt-2 font-mono">
-                {plan === 'free' ? `${subdomain || 'votre-page'}.paymaestro.me` : `${subdomain || 'votre-page'}.paymaestro.me`}
+                {plan === 'free' ? `${subdomain || 'votre-page'}.paymaestro.me` : meDomain}
               </p>
             </div>
           </div>
@@ -235,14 +232,14 @@ export default function PaymentPageSetup() {
           <Button
             onClick={handleCreate}
             fullWidth
-            disabled={loading || !subdomain || (plan === 'premium' && balance < 3)}
+            disabled={loading || (plan === 'free' ? !subdomain : !title || balance < 3)}
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : plan === 'free' ? (
               'Créer ma page (Gratuit)'
             ) : (
-              'Activer Premium (3$/mois)'
+              `Activer Premium — ${meDomain} (3$/mois)`
             )}
           </Button>
         </CardContent>
