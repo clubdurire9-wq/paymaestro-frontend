@@ -35,6 +35,7 @@ import { Select } from '@/components/ui/select';
 import SearchableSelect from '@/components/ui/SearchableSelect';
 import { Modal } from '@/components/ui/modal';
 import { api, Wallet, Stats, WalletSchema, MobileOperator } from '@/lib/api';
+import { MOBILE_MONEY_COUNTRIES, getOperatorsByCountryCode } from '@/data/mobile-money-countries';
 import { useToast } from '@/hooks/useToast';
 import { ALL_WORLD_COUNTRIES } from '@/data/all-countries';
 
@@ -55,7 +56,8 @@ export default function ProfilePage() {
 
   // Wallet form state
   const [newPhone, setNewPhone] = useState('');
-  const [newOperator, setNewOperator] = useState<MobileOperator>('Orange');
+  const [newCountry, setNewCountry] = useState('');
+  const [newOperator, setNewOperator] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -180,18 +182,19 @@ export default function ProfilePage() {
     setErrors({});
     setIsAdding(true);
 
-    // Validate phone structure
-    const validation = WalletSchema.safeParse({
-      phone: newPhone,
-      operator: newOperator
-    });
-
-    if (!validation.success) {
-      const fieldErrors: Record<string, string> = {};
-      validation.error.errors.forEach((err) => {
-        fieldErrors[err.path[0]] = err.message;
-      });
-      setErrors(fieldErrors);
+    // Validate phone & operator
+    if (!newPhone || newPhone.length < 8) {
+      setErrors({ phone: 'Numéro trop court' });
+      setIsAdding(false);
+      return;
+    }
+    if (!newCountry) {
+      setErrors({ country: 'Sélectionnez un pays' });
+      setIsAdding(false);
+      return;
+    }
+    if (!newOperator) {
+      setErrors({ operator: 'Sélectionnez un opérateur' });
       setIsAdding(false);
       return;
     }
@@ -203,6 +206,8 @@ export default function ProfilePage() {
       });
       setWallets([...wallets, added]);
       setNewPhone('');
+      setNewCountry('');
+      setNewOperator('');
       setErrors({});
       success('Numéro Mobile Money ajouté avec succès !');
     } catch (err) {
@@ -663,7 +668,7 @@ export default function ProfilePage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-[9px] text-slate-400 dark:text-slate-300 mt-0.5">{wallet.operator} • Afrique de l&apos;Ouest</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-300 mt-0.5">{wallet.operator}</p>
                       </div>
                     </div>
 
@@ -695,38 +700,80 @@ export default function ProfilePage() {
                 <h4 className="text-xs font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider">
                   {t('wallets.add')}
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                  <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Numéro de téléphone</label>
-                    <input
-                      type="tel"
-                      placeholder="+2250700000000"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      className={`
-                        w-full px-3.5 py-2 text-xs text-slate-800 dark:text-white font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 focus:border-violet-500
-                        ${errors.phone ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
-                      `}
-                    />
-                    {errors.phone && (
-                      <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.phone}</p>
-                    )}
+
+                {/* Country + Operator row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Pays</label>
+                    <div className="relative">
+                      <select
+                        value={newCountry}
+                        onChange={(e) => { setNewCountry(e.target.value); setNewOperator(''); setNewPhone(''); setErrors({}); }}
+                        className={`
+                          w-full px-3.5 py-2 text-xs text-slate-800 dark:text-white font-semibold border rounded-xl appearance-none cursor-pointer
+                          focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
+                          ${errors.country ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
+                          bg-white dark:bg-slate-800
+                        `}
+                      >
+                        <option value="">Sélectionnez un pays</option>
+                        {MOBILE_MONEY_COUNTRIES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.name} ({c.dialCode})
+                          </option>
+                        ))}
+                      </select>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">▼</span>
+                    </div>
+                    {errors.country && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.country}</p>}
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Opérateur</label>
-                    <Select
-                      options={[
-                        { value: 'Orange', label: 'Orange' },
-                        { value: 'MTN', label: 'MTN' },
-                        { value: 'Wave', label: 'Wave' },
-                        { value: 'Moov', label: 'Moov' },
-                        { value: 'Airtel', label: 'Airtel' },
-                        { value: 'Safaricom', label: 'Safaricom' }
-                      ]}
-                      value={newOperator}
-                      onChange={(e) => setNewOperator(e.target.value as MobileOperator)}
-                    />
+                    <div className="relative">
+                      <select
+                        value={newOperator}
+                        onChange={(e) => setNewOperator(e.target.value)}
+                        disabled={!newCountry}
+                        className={`
+                          w-full px-3.5 py-2 text-xs border rounded-xl appearance-none cursor-pointer
+                          focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
+                          ${errors.operator ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
+                          ${!newCountry ? 'text-slate-400 bg-slate-50 dark:bg-slate-900' : 'text-slate-800 dark:text-white bg-white dark:bg-slate-800'}
+                          font-semibold
+                        `}
+                      >
+                        <option value="">{newCountry ? 'Choisissez...' : 'Sélectionnez d\'abord le pays'}</option>
+                        {getOperatorsByCountryCode(newCountry).map((op) => (
+                          <option key={op.value} value={op.value}>{op.label}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">▼</span>
+                    </div>
+                    {errors.operator && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.operator}</p>}
                   </div>
+                </div>
+
+                {/* Phone number */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    placeholder={
+                      newCountry
+                        ? MOBILE_MONEY_COUNTRIES.find(c => c.code === newCountry)?.placeholder || '+225 00 00 00 00'
+                        : '+225 00 00 00 00'
+                    }
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    className={`
+                      w-full px-3.5 py-2 text-xs text-slate-800 dark:text-white font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
+                      ${errors.phone ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
+                      bg-white dark:bg-slate-800
+                    `}
+                  />
+                  {errors.phone && (
+                    <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.phone}</p>
+                  )}
                 </div>
 
                 {errors.general && (
