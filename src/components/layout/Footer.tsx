@@ -1,7 +1,10 @@
 import React from 'react';
-import { Mail, ShieldCheck, Heart } from 'lucide-react';
+import { Mail, ShieldCheck, Heart, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
+import { useLocale } from 'next-intl';
 
 export default function Footer() {
+  const locale = useLocale();
   return (
     <footer className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,6 +19,12 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aide & Support</h4>
             <ul className="mt-4 space-y-2">
+              <li>
+                <Link href={`/${locale}/contact`} className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                  <MessageSquare className="w-4 h-4" />
+                  Contact Support
+                </Link>
+              </li>
               <li>
                 <a href="mailto:support@paymaestro.com" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
                   <Mail className="w-4 h-4" />

@@ -431,6 +431,15 @@ export const api = {
   },
 
   // ==========================================
+  // CONTACT
+  // ==========================================
+
+  contact: {
+    create: (data: { name: string; email: string; subject?: string; message: string }) =>
+      request<any>(`${API_URL}/contact`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
   // SUPPORT
   // ==========================================
 
