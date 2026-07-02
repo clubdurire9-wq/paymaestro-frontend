@@ -373,7 +373,7 @@ export const api = {
 
   stripe: {
     createAccount: () => request<any>(`${API_URL}/stripe/account`, { method: 'POST' }),
-    createIBAN: () => request<any>(`${API_URL}/stripe/iban`, { method: 'POST' }),
+    createIBAN: (country?: string) => request<any>(`${API_URL}/stripe/iban`, { method: 'POST', body: JSON.stringify({ country }) }),
     getIBAN: () => request<any>(`${API_URL}/stripe/iban`),
     receive: (data: { amount: number; currency: string; description?: string }) =>
       request<any>(`${API_URL}/stripe/receive`, { method: 'POST', body: JSON.stringify(data) }),
