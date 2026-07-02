@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Building, Copy, CheckCircle2, Loader2, Globe, ArrowRight, Shield } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ToastContainer, Toast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
 
 export default function IBANPage() {
@@ -14,6 +15,7 @@ export default function IBANPage() {
   const [copied, setCopied] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [stripeDetails, setStripeDetails] = useState<any>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => { loadIBAN(); }, []);
 
@@ -38,7 +40,7 @@ export default function IBANPage() {
       });
       setShowConfirm(true);
     } catch (e: any) {
-      alert(e.message);
+      setToast({ message: e.message || 'Erreur lors de la création du compte', type: 'error' });
     }
     setCreating(false);
   };
@@ -50,7 +52,7 @@ export default function IBANPage() {
       setIban(d.iban);
       setShowConfirm(false);
     } catch (e: any) {
-      alert(e.message);
+      setToast({ message: e.message || 'Erreur lors de la création de l\'IBAN', type: 'error' });
     }
     setCreating(false);
   };
@@ -172,6 +174,12 @@ export default function IBANPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {toast && (
+        <ToastContainer>
+          <Toast message={toast.message} type={toast.type as any} onClose={() => setToast(null)} />
+        </ToastContainer>
       )}
     </div>
   );
