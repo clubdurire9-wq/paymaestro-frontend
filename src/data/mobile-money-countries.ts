@@ -187,6 +187,66 @@ export const MOBILE_MONEY_COUNTRIES: MobileMoneyCountry[] = [
     { value: 'Mauritel', label: 'Mauritel Money' },
     { value: 'Mattel', label: 'Mattel Money' },
   ]},
+  { code: 'EG', name: 'Égypte', flag: '🇪🇬', dialCode: '+20', placeholder: '+20 100 000 0000', operators: [
+    { value: 'Vodafone', label: 'Vodafone Cash' },
+    { value: 'Orange', label: 'Orange Money' },
+    { value: 'Etisalat', label: 'Etisalat Money' },
+  ]},
+  { code: 'LY', name: 'Libye', flag: '🇱🇾', dialCode: '+218', placeholder: '+218 91 000 0000', operators: [
+    { value: 'Libyana', label: 'Libyana Money' },
+    { value: 'Almadar', label: 'Almadar Money' },
+  ]},
+  { code: 'SS', name: 'Soudan du Sud', flag: '🇸🇸', dialCode: '+211', placeholder: '+211 92 000 0000', operators: [
+    { value: 'MTN', label: 'MTN Mobile Money' },
+    { value: 'Zain', label: 'Zain Money' },
+  ]},
+  { code: 'DJ', name: 'Djibouti', flag: '🇩🇯', dialCode: '+253', placeholder: '+253 77 00 00 00', operators: [
+    { value: 'DjiboutiTelecom', label: 'Djibouti Telecom Money' },
+    { value: 'Evatis', label: 'Evatis Money' },
+  ]},
+  { code: 'ER', name: 'Érythrée', flag: '🇪🇷', dialCode: '+291', placeholder: '+291 7 000 000', operators: [
+    { value: 'Eritel', label: 'Eritel Money' },
+  ]},
+  { code: 'CF', name: 'République Centrafricaine', flag: '🇨🇫', dialCode: '+236', placeholder: '+236 75 00 00 00', operators: [
+    { value: 'Orange', label: 'Orange Money' },
+    { value: 'Airtel', label: 'Airtel Money' },
+    { value: 'Telecel', label: 'Telecel Money' },
+  ]},
+  { code: 'GQ', name: 'Guinée Équatoriale', flag: '🇬🇶', dialCode: '+240', placeholder: '+240 222 000 000', operators: [
+    { value: 'Muni', label: 'Muni Money' },
+    { value: 'Getesa', label: 'Getesa Money' },
+  ]},
+  { code: 'CV', name: 'Cap-Vert', flag: '🇨🇻', dialCode: '+238', placeholder: '+238 900 00 00', operators: [
+    { value: 'CVMovel', label: 'CVMóvel Money' },
+    { value: 'UnitelT', label: 'Unitel T+ Money' },
+  ]},
+  { code: 'ST', name: 'Sao Tomé-et-Principe', flag: '🇸🇹', dialCode: '+239', placeholder: '+239 900 0000', operators: [
+    { value: 'CST', label: 'CST Money' },
+    { value: 'Unitel', label: 'Unitel Money' },
+  ]},
+  { code: 'GM', name: 'Gambie', flag: '🇬🇲', dialCode: '+220', placeholder: '+220 700 0000', operators: [
+    { value: 'QCell', label: 'QCell Money' },
+    { value: 'Africell', label: 'Africell Money' },
+  ]},
+  { code: 'GW', name: 'Guinée-Bissau', flag: '🇬🇼', dialCode: '+245', placeholder: '+245 96 000 0000', operators: [
+    { value: 'Orange', label: 'Orange Money' },
+    { value: 'MTN', label: 'MTN Mobile Money' },
+  ]},
+  { code: 'KM', name: 'Comores', flag: '🇰🇲', dialCode: '+269', placeholder: '+269 34 00 000', operators: [
+    { value: 'ComoresTelecom', label: 'Comores Telecom Money' },
+  ]},
+  { code: 'SC', name: 'Seychelles', flag: '🇸🇨', dialCode: '+248', placeholder: '+248 2 000 000', operators: [
+    { value: 'Airtel', label: 'Airtel Money' },
+    { value: 'CableWireless', label: 'Cable & Wireless Money' },
+  ]},
+  { code: 'LS', name: 'Lesotho', flag: '🇱🇸', dialCode: '+266', placeholder: '+266 56 000 000', operators: [
+    { value: 'Vodacom', label: 'Vodacom Money' },
+    { value: 'Econet', label: 'Econet Money' },
+  ]},
+  { code: 'SZ', name: 'Eswatini', flag: '🇸🇿', dialCode: '+268', placeholder: '+268 76 000 000', operators: [
+    { value: 'MTN', label: 'MTN Mobile Money' },
+    { value: 'EswatiniMobile', label: 'Eswatini Mobile Money' },
+  ]},
 ];
 
 export function getCountryByCode(code: string): MobileMoneyCountry | undefined {
