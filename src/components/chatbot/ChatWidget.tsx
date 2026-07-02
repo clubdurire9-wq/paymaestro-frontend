@@ -13,33 +13,55 @@ interface Message {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'bot',
-      content: "Je suis PayMaestro Assistant, le chatbot officiel de PayMaestro. Je suis là pour vous aider à utiliser nos services financiers (portefeuille, transferts, retraits, etc.) et répondre à vos questions. L'IA peut faire des erreurs. Veuillez vérifier les informations importantes.",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('chatbot_messages');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+        } catch {}
+      }
+    }
+    return [
+      {
+        role: 'bot',
+        content: "Je suis PayMaestro Assistant, le chatbot officiel de PayMaestro. Je suis là pour vous aider à utiliser nos services financiers (portefeuille, transferts, retraits, etc.) et répondre à vos questions. L'IA peut faire des erreurs. Veuillez vérifier les informations importantes.",
+        timestamp: new Date(),
+      },
+    ];
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [allFiles, setAllFiles] = useState<File[]>([]);
   const [allPreviews, setAllPreviews] = useState<string[]>([]);
   const [sessionId] = useState(() => {
-    if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
-      return window.crypto.randomUUID();
+    if (typeof window !== 'undefined') {
+      const existing = sessionStorage.getItem('chatbot_session_id');
+      if (existing) return existing;
+      const id = window.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+      sessionStorage.setItem('chatbot_session_id', id);
+      return id;
     }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+    return '';
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Sauvegarder les messages dans sessionStorage à chaque mise à jour
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('chatbot_messages', JSON.stringify(messages));
+    }
   }, [messages]);
 
   // Gérer la sélection d'images (avec accumulation)
@@ -196,7 +218,7 @@ export default function ChatWidget() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+        <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="bg-violet-600 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -214,14 +236,14 @@ export default function ChatWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-900">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
                     msg.role === 'user'
                       ? 'bg-violet-600 text-white rounded-br-md'
-                      : 'bg-white text-gray-800 rounded-bl-md border border-gray-200 shadow-sm'
+                      : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-md border border-gray-200 dark:border-slate-600 shadow-sm'
                   }`}
                 >
                   {msg.content}
@@ -239,7 +261,7 @@ export default function ChatWidget() {
                       ))}
                     </div>
                   )}
-                  <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-violet-200' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-violet-200' : 'text-gray-400 dark:text-slate-400'}`}>
                     {msg.timestamp.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -247,7 +269,7 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200">
+                <div className="bg-white dark:bg-slate-700 rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200 dark:border-slate-600">
                   <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
                 </div>
               </div>
@@ -257,9 +279,9 @@ export default function ChatWidget() {
 
           {/* Zone d'upload d'images (prévisualisation avec accumulation) */}
           {allPreviews.length > 0 && (
-            <div className="px-4 py-2 border-t bg-gray-50">
+            <div className="px-4 py-2 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-gray-500">{allPreviews.length}/10 image(s)</span>
+                <span className="text-xs text-gray-500 dark:text-slate-400">{allPreviews.length}/10 image(s)</span>
                 <button
                   onClick={() => { setAllFiles([]); setAllPreviews([]); }}
                   className="text-xs text-red-500 hover:underline"
@@ -277,7 +299,7 @@ export default function ChatWidget() {
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {allPreviews.map((img, i) => (
                   <div key={i} className="relative flex-shrink-0">
-                    <img src={img} className="w-14 h-14 object-cover rounded-lg border" />
+                    <img src={img} className="w-14 h-14 object-cover rounded-lg border dark:border-slate-600" />
                     <button
                       onClick={() => removeImage(i)}
                       className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
@@ -291,7 +313,7 @@ export default function ChatWidget() {
           )}
 
           {/* Input + bouton image */}
-          <div className="p-3 bg-white border-t border-gray-200">
+          <div className="p-3 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
             <input
               type="file"
               ref={fileInputRef}
@@ -303,7 +325,7 @@ export default function ChatWidget() {
             <div className="flex gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-gray-400 hover:text-violet-500 transition-colors"
+                className="p-2 text-gray-400 dark:text-slate-400 hover:text-violet-500 transition-colors"
                 title="Ajouter des images"
               >
                 <Paperclip className="w-5 h-5" />
@@ -314,7 +336,7 @@ export default function ChatWidget() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Tapez votre message..."
-                className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                className="flex-1 px-4 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                 disabled={loading}
               />
               <Button size="sm" onClick={sendMessage} disabled={loading || !input.trim()} className="rounded-xl">
@@ -323,7 +345,7 @@ export default function ChatWidget() {
             </div>
 
             {/* ⚠️ Message d'avertissement discret */}
-            <p className="text-xs text-gray-400 text-center mt-2">
+            <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-2">
               PayMaestro Assistant est une IA et peut générer des erreurs. Veuillez vérifier les informations importantes.
             </p>
           </div>
