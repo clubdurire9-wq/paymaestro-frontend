@@ -286,6 +286,11 @@ export default function ProfilePage() {
     setProfileSaving(true);
     try {
       await api.auth.updateProfile(profileForm);
+      setUser((prev: any) => ({
+        ...prev,
+        ...profileForm,
+        postName: profileForm.middleName,
+      }));
       success('Informations légales mises à jour avec succès.');
     } catch (e: any) {
       showError(e.message || 'Erreur lors de la mise à jour du profil.');
@@ -697,9 +702,9 @@ export default function ProfilePage() {
       {/* Confirmation Modal */}
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirmer la mise à jour" size="sm">
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-800">
+          <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 dark:text-amber-200">
               <strong>Attention :</strong> La mise à jour de vos informations légales n&apos;est autorisée qu&apos;<strong>une seule fois par mois</strong>. Assurez-vous que toutes les données sont correctes avant de confirmer.
             </p>
           </div>
