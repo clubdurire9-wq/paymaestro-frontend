@@ -200,8 +200,8 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    activateWhiteLabel: () =>
-      request<any>(`${API_URL}/auth/white-label/activate`, { method: 'POST' }),
+    activateWhiteLabel: (data: any) =>
+      request<any>(`${API_URL}/auth/white-label/activate`, { method: 'POST', body: JSON.stringify(data) }),
 
     deactivateWhiteLabel: () =>
       request<any>(`${API_URL}/auth/white-label/deactivate`, { method: 'POST' }),

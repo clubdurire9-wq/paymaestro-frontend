@@ -47,7 +47,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/history`, label: 'Historique', icon: History },
     { href: `/${locale}/cards`, label: 'Cartes', icon: CreditCard },
     { href: `/${locale}/crypto`, label: 'Crypto', icon: Bitcoin },
-    ...(isGatewayAdmin ? [{ href: `/${locale}/payment-page`, label: 'Page Paiement', icon: Globe }] : []),
+    { href: `/${locale}/payment-page`, label: 'Page Paiement', icon: Globe },
     ...(isGatewayAdmin ? [{ href: `/${locale}/bank`, label: 'Banque', icon: Building }] : []),
     { href: `/${locale}/referral`, label: 'Parrainage', icon: Gift },
     { href: `/${locale}/kyc`, label: 'Vérification', icon: UserCheck },
