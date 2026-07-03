@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { 
   Building, ArrowRight, ArrowLeft, Send, Loader2, 
   CheckCircle2, Globe, FileText, Shield, DollarSign,
-  Wallet, Phone
+  Wallet
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,7 +98,6 @@ export default function BankPage() {
 
   const sources = [
     { id: 'WALLET', icon: Wallet, label: 'Portefeuille PayMaestro', fee: '2%' },
-    { id: 'MOBILE_MONEY', icon: Phone, label: 'Mobile Money', fee: '3%' },
     ...(isGatewayAdmin ? [{ id: 'PAYPAL' as const, icon: DollarSign, label: 'PayPal', fee: '5%' }] : []),
   ];
 
@@ -179,7 +178,7 @@ export default function BankPage() {
             <div className="flex items-center gap-2">
               <img src={`https://flagcdn.com/w40/${selectedCountry?.iso2}.png`} alt={selectedCountry?.country} className="w-6 h-5 rounded shadow-sm" />
               <h3 className="font-bold text-lg">
-                {direction === 'IN' ? 'Dépôt bancaire' : `Retrait ${sourceType === 'WALLET' ? 'Wallet' : sourceType === 'MOBILE_MONEY' ? 'Mobile Money' : 'PayPal'} → Banque`}
+                {direction === 'IN' ? 'Dépôt bancaire' : `Retrait ${sourceType === 'WALLET' ? 'Wallet' : 'PayPal'} → Banque`}
                 <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">({selectedCountry?.country})</span>
               </h3>
             </div>
@@ -202,7 +201,7 @@ export default function BankPage() {
             <div>
               <label className="text-xs font-semibold">Nom du titulaire du compte</label>
               <input type="text" value={form.accountHolder} onChange={(e) => setForm({...form, accountHolder: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="MONGAI Patriache" />
+                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="John Mohamed" />
             </div>
             <div>
               <label className="text-xs font-semibold">IBAN</label>
