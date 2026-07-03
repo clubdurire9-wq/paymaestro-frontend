@@ -43,6 +43,8 @@ export default function IBANPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('FR');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedIban, setSelectedIban] = useState<IbanRecord | null>(null);
 
   useEffect(() => { loadIBANs(); }, []);
 
@@ -120,6 +122,11 @@ export default function IBANPage() {
 
   const formatIban = (iban: string) => iban.replace(/(.{4})/g, '$1 ').trim();
 
+  const handleViewDetails = (record: IbanRecord) => {
+    setSelectedIban(record);
+    setShowDetailsModal(true);
+  };
+
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-violet-600" /></div>;
 
   return (
@@ -156,44 +163,10 @@ export default function IBANPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {/* Instructions de dépôt */}
-          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800/50">
-            <CardContent className="p-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Building className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-bold text-slate-900 dark:text-white">Recevoir un virement</h3>
-              </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-blue-200 dark:border-blue-800/50">
-                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-2">Votre IBAN pour les dépôts</p>
-                <p className="text-xl font-mono font-bold text-slate-800 dark:text-white break-all">
-                  {ibans[0]?.iban?.replace(/(.{4})/g, '$1 ').trim()}
-                </p>
-                <button
-                  onClick={() => handleCopy(ibans[0].id, ibans[0].iban)}
-                  className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {copiedId === ibans[0].id ? '✓ Copié !' : '📋 Copier l\'IBAN'}
-                </button>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                <p className="font-semibold">📋 Instructions :</p>
-                <p>1. Copiez votre IBAN ci-dessus</p>
-                <p>2. Faites un virement SEPA ou SWIFT depuis votre banque vers cet IBAN</p>
-                <p>3. Le montant sera crédité automatiquement sur votre wallet</p>
-              </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 space-y-1">
-                <p><strong>⚠️ Délais :</strong></p>
-                <p>• Virement SEPA (Europe) : 1-2 jours ouvrés</p>
-                <p>• Virement SWIFT (International) : 3-5 jours ouvrés</p>
-                <p><strong>💰 Frais :</strong> 2% de conversion</p>
-              </div>
-            </CardContent>
-          </Card>
-
           {ibans.map((record) => {
             const isActive = record.status === 'ACTIVE';
             return (
-              <Card key={record.id} className={`border-2 ${isActive ? 'border-green-300 dark:border-green-700' : 'border-slate-200 dark:border-slate-700 opacity-70'}`}>
+              <Card key={record.id} className={`border-2 cursor-pointer transition-all hover:shadow-lg ${isActive ? 'border-green-300 dark:border-green-700' : 'border-slate-200 dark:border-slate-700 opacity-70'}`} onClick={() => handleViewDetails(record)}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
@@ -298,6 +271,78 @@ export default function IBANPage() {
               <Button variant="outline" fullWidth onClick={() => setShowConfirm(false)}>Annuler</Button>
               <Button fullWidth onClick={handleConfirmCreateIBAN} disabled={creating}>
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmer et créer'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE DÉTAILS IBAN */}
+      {showDetailsModal && selectedIban && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <Building className="w-12 h-12 text-blue-500 mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Détails du virement</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">L'argent sera reçu sur ce compte :</p>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2 text-sm mb-4">
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Titulaire :</span>
+                <span className="font-bold text-slate-800 dark:text-white">{user?.name || 'Votre nom'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Email :</span>
+                <span className="font-bold text-slate-800 dark:text-white">{user?.email || 'Votre email'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">IBAN :</span>
+                <span className="font-mono font-bold text-slate-800 dark:text-white text-xs">{formatIban(selectedIban.iban)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Pays :</span>
+                <span className="font-bold text-slate-800 dark:text-white">{selectedIban.country}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Frais :</span>
+                <span className="font-bold text-slate-800 dark:text-white">2% de conversion</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Délai :</span>
+                <span className="text-yellow-600 dark:text-yellow-400 font-semibold">1-5 jours ouvrés</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Devises :</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold">Multi-devises (EUR, USD, GBP...)</span>
+              </div>
+            </div>
+
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-3 text-xs text-green-800 dark:text-green-400 mb-4">
+              ✅ Crédité automatiquement dès réception
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-2 mb-4">
+              <p className="font-semibold">📋 Instructions :</p>
+              <p>1. Copiez votre IBAN ci-dessus</p>
+              <p>2. Faites un virement SEPA ou SWIFT depuis votre banque vers cet IBAN</p>
+              <p>3. Le montant sera crédité automatiquement sur votre wallet</p>
+            </div>
+
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 space-y-1 mb-4">
+              <p><strong>⚠️ Délais :</strong></p>
+              <p>• Virement SEPA (Europe) : 1-2 jours ouvrés</p>
+              <p>• Virement SWIFT (International) : 3-5 jours ouvrés</p>
+              <p><strong>💰 Frais :</strong> 2% de conversion</p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" fullWidth onClick={() => { setShowDetailsModal(false); setSelectedIban(null); }}>
+                Fermer
+              </Button>
+              <Button fullWidth onClick={() => { handleCopy(selectedIban.id, selectedIban.iban); }}>
+                <Copy className="w-4 h-4 mr-2" />
+                {copiedId === selectedIban.id ? 'Copié !' : "Copier l'IBAN"}
               </Button>
             </div>
           </div>
