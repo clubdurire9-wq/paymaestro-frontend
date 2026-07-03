@@ -81,7 +81,13 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       ...options?.headers,
     },
   });
-  const data = await res.json();
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Erreur ${res.status} — Réponse vide du serveur`);
+  }
   if (!res.ok || data.success === false) {
     throw new Error(data.error || data.message || `Erreur ${res.status}`);
   }
