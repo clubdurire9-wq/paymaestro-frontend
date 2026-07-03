@@ -50,15 +50,17 @@ export default function IBANPage() {
   const handleCreateIBAN = async () => {
     setCreating(true);
     try {
-      await api.stripe.createAccount();
       const alreadyHasIBAN = !!iban;
+      if (!alreadyHasIBAN) {
+        await api.stripe.createAccount();
+      }
       setIsFirstIBAN(!alreadyHasIBAN);
       setStripeDetails({
         email: user?.email,
         name: user?.name,
         country: selectedCountry,
         estimatedTime: 'Immédiat',
-        fees: alreadyHasIBAN ? 'Gratuit (réception) / 2% (conversion)' : 'Gratuit (réception) / 2% (conversion)',
+        fees: 'Gratuit (réception) / 2% (conversion)',
         creationFee: alreadyHasIBAN ? 5 : 0,
       });
       setShowConfirm(true);
@@ -136,6 +138,9 @@ export default function IBANPage() {
             <div className="flex gap-3">
               <Button variant="outline" fullWidth onClick={handleCopy} icon={copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}>
                 {copied ? 'Copié !' : 'Copier l\'IBAN'}
+              </Button>
+              <Button variant="outline" fullWidth onClick={handleCreateIBAN} disabled={creating} className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                + Nouvel IBAN (5$)
               </Button>
             </div>
 

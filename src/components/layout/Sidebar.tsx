@@ -46,6 +46,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
     { href: `/${locale}/wallet`, label: 'Wallet', icon: Wallet },
     { href: `/${locale}/paypal`, label: 'PayPal', icon: ArrowUpRight },
+    { href: `/${locale}/iban`, label: 'IBAN', icon: Building },
     { href: `/${locale}/history`, label: 'Historique', icon: History },
     { href: `/${locale}/cards`, label: 'Cartes', icon: CreditCard },
     { href: `/${locale}/crypto`, label: 'Crypto', icon: Bitcoin },
