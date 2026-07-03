@@ -38,10 +38,17 @@ export default function ContactPage() {
   const [agentName, setAgentName] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Auto-scroll seulement si l'utilisateur est déjà en bas
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [chatMessages]);
 
   useEffect(() => {
@@ -153,7 +160,7 @@ export default function ContactPage() {
 
           <Card>
             <CardContent className="p-0">
-              <div className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
+              <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
                 {chatMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
