@@ -22,6 +22,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   LifeBuoy,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/hooks/useAdmin';
@@ -54,6 +55,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/kyc`, label: 'Vérification', icon: UserCheck },
     { href: `/${locale}/profile`, label: 'Profil', icon: User },
     { href: `/${locale}/developer`, label: 'Développeur', icon: Code },
+    { href: `/${locale}/docs`, label: 'Documentation', icon: BookOpen },
     { href: `/${locale}/contact`, label: 'Contact Support', icon: LifeBuoy },
     ...(isAdmin ? [{ href: `/${locale}/admin`, label: 'Admin', icon: ShieldAlert }] : []),
   ];

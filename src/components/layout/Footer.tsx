@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, ShieldCheck, Heart, MessageSquare } from 'lucide-react';
+import { Mail, ShieldCheck, Heart, MessageSquare, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 
@@ -19,6 +19,12 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aide & Support</h4>
             <ul className="mt-4 space-y-2">
+              <li>
+                <Link href={`/${locale}/docs`} className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                  <BookOpen className="w-4 h-4" />
+                  Documentation
+                </Link>
+              </li>
               <li>
                 <Link href={`/${locale}/contact`} className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
                   <MessageSquare className="w-4 h-4" />
