@@ -129,14 +129,21 @@ export default function TransferPage() {
 
   const handlePMTransfer = async () => {
     setLoading(true);
-    const res = await fetch(`${API_URL}/wallet/pm-to-pm`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ recipientEmail: lookupEmail, amount: parseFloat(amount) }),
-    });
-    const d = await res.json();
-    if (d.success) {
-      setResult(d.data);
-      setStep('done');
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/wallet/pm-to-pm`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ recipientEmail: lookupEmail, amount: parseFloat(amount) }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        setResult(d.data);
+        setStep('done');
+      } else {
+        setError(d.error || d.message || 'Erreur lors du transfert. Veuillez réessayer.');
+      }
+    } catch {
+      setError('Erreur de connexion. Veuillez réessayer.');
     }
     setLoading(false);
   };
@@ -300,7 +307,7 @@ export default function TransferPage() {
                   <Button variant="outline" fullWidth onClick={() => { setLookupResult(null); setLookupEmail(''); }}>
                     ❌ Annuler — Ce n'est pas la bonne personne
                   </Button>
-                  <Button fullWidth onClick={() => setStep('pm-amount')} className="bg-green-600 hover:bg-green-700">
+                  <Button fullWidth onClick={() => { setStep('pm-amount'); setError(''); }} className="bg-green-600 hover:bg-green-700">
                     ✅ C'est bien la bonne personne — Continuer
                   </Button>
                 </div>
@@ -352,9 +359,16 @@ export default function TransferPage() {
               </div>
             )}
 
-            <Button onClick={handlePMTransfer} fullWidth disabled={!amount}>
+            {error && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <span className="text-red-500 shrink-0 mt-0.5">⚠️</span>
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            <Button onClick={handlePMTransfer} fullWidth disabled={!amount || loading} loading={loading}>
               <Send className="w-4 h-4 mr-2" />
-              Envoyer ${amount || '0'} à {lookupResult?.user?.fullName || lookupResult?.name}
+              {loading ? 'Envoi en cours...' : `Envoyer ${amount || '0'} à ${lookupResult?.user?.fullName || lookupResult?.name}`}
             </Button>
             
             <Button variant="ghost" onClick={() => setStep('lookup')}>← Retour</Button>
