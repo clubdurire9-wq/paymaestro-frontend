@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { 
   CreditCard, Plus, Eye, EyeOff, Copy, Snowflake, 
-  XCircle, Loader2, Shield, Zap, Globe, Lock
+  XCircle, Loader2, Shield, Zap, Globe, Lock,
+  Wallet, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,10 +25,20 @@ export default function VirtualCardsPage() {
   const [createError, setCreateError] = useState('');
   const [cancelTarget, setCancelTarget] = useState<any>(null);
   const [showNumber, setShowNumber] = useState<number | null>(null);
+  const [revealedDetails, setRevealedDetails] = useState<Record<number, any>>({});
+  const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [copied, setCopied] = useState('');
+  const [rechargeTarget, setRechargeTarget] = useState<any>(null);
+  const [rechargeAmount, setRechargeAmount] = useState('');
+  const [recharging, setRecharging] = useState(false);
 
   useEffect(() => { loadCards(); }, []);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const loadCards = async () => {
     try {
@@ -47,7 +58,6 @@ export default function VirtualCardsPage() {
       loadCards();
     } catch (e: any) {
       setCreateError(e.message || 'Erreur lors de la création de la carte');
-      console.error(e);
     }
     setCreating(false);
   };
@@ -66,9 +76,43 @@ export default function VirtualCardsPage() {
       loadCards();
     } catch (e: any) {
       setCancelTarget(null);
-      setToast({ message: e.message || 'Erreur lors de l\'annulation', type: 'error' });
-      console.error(e);
+      showToast(e.message || "Erreur lors de l'annulation", 'error');
     }
+  };
+
+  const handleRecharge = async () => {
+    if (!rechargeTarget || !rechargeAmount || parseFloat(rechargeAmount) <= 0) return;
+    setRecharging(true);
+    try {
+      await api.cards.recharge(rechargeTarget.id, parseFloat(rechargeAmount));
+      showToast(`Carte rechargée de ${rechargeAmount}$`, 'success');
+      setRechargeTarget(null);
+      setRechargeAmount('');
+      loadCards();
+    } catch (e: any) {
+      showToast(e.message || 'Erreur de recharge', 'error');
+    }
+    setRecharging(false);
+  };
+
+  const handleToggleShow = async (card: any) => {
+    if (showNumber === card.id) {
+      setShowNumber(null);
+      return;
+    }
+    if (revealedDetails[card.id]) {
+      setShowNumber(card.id);
+      return;
+    }
+    setLoadingDetails(prev => ({ ...prev, [card.id]: true }));
+    try {
+      const details = await api.cards.details(card.id);
+      setRevealedDetails(prev => ({ ...prev, [card.id]: details }));
+      setShowNumber(card.id);
+    } catch (e: any) {
+      showToast(e.message || 'Impossible de récupérer les détails', 'error');
+    }
+    setLoadingDetails(prev => ({ ...prev, [card.id]: false }));
   };
 
   const handleCopy = (text: string, type: string) => {
@@ -79,6 +123,14 @@ export default function VirtualCardsPage() {
 
   const formatCardNumber = (number: string) => {
     return number?.replace(/(\d{4})/g, '$1 ').trim() || '•••• •••• •••• ••••';
+  };
+
+  const getCardDetails = (card: any) => {
+    if (showNumber !== card.id) return null;
+    const d = revealedDetails[card.id];
+    if (d) return d;
+    if (card.cardNumber) return card;
+    return null;
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" /></div>;
@@ -92,7 +144,7 @@ export default function VirtualCardsPage() {
             <CreditCard className="w-8 h-8 text-violet-600" />
             Cartes Virtuelles
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Cartes Visa/Mastercard virtuelles liées à votre wallet</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Cartes Visa/Mastercard virtuelles prépayées</p>
         </div>
         <Button onClick={() => setShowCreate(true)} icon={<Plus className="w-4 h-4" />}>
           Nouvelle carte
@@ -119,9 +171,9 @@ export default function VirtualCardsPage() {
               <p className="text-xs text-violet-600">Gel/dégel en 1 clic</p>
             </div>
             <div>
-              <Lock className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Wallet intégré</p>
-              <p className="text-xs text-violet-600">Liée à votre solde</p>
+              <Wallet className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+              <p className="font-bold text-violet-800">Prépayée</p>
+              <p className="text-xs text-violet-600">Rechargez depuis votre wallet</p>
             </div>
           </div>
         </CardContent>
@@ -131,13 +183,16 @@ export default function VirtualCardsPage() {
       <Card className="bg-yellow-50 border-yellow-200">
         <CardContent className="p-4">
           <p className="text-sm text-yellow-800 font-bold">💰 Tarifs</p>
-          <p className="text-xs text-yellow-700">Création : 2$ • Recharge : 1% • Paiement international : 2% (change)</p>
+          <p className="text-xs text-yellow-700">Création : 2$ • Recharge : Gratuit • Paiement international : 2% (change)</p>
         </CardContent>
       </Card>
 
       {/* Liste des cartes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cards.map(card => (
+        {cards.map(card => {
+          const details = getCardDetails(card);
+          const isLoading = loadingDetails[card.id];
+          return (
           <div key={card.id} className="relative">
             {/* Fond de carte */}
             <div className={`rounded-2xl p-6 text-white shadow-xl ${
@@ -153,22 +208,20 @@ export default function VirtualCardsPage() {
 
               {/* Numéro */}
               <p className="text-xl font-mono tracking-wider mb-4">
-                {showNumber !== card.id || !card.cardNumber
-                  ? `•••• •••• •••• ${card.last_four}`
-                  : formatCardNumber(card.cardNumber)}
+                {details
+                  ? formatCardNumber(details.cardNumber)
+                  : `•••• •••• •••• ${card.last_four}`}
               </p>
 
               {/* Infos */}
               <div className="flex justify-between">
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">Expire</p>
-                  <p className="font-mono">{card.exp_month}/{card.exp_year}</p>
+                  <p className="font-mono">{details ? details.expiry : `${card.exp_month}/${card.exp_year}`}</p>
                 </div>
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">CVV</p>
-                  <p className="font-mono">
-                    {showNumber !== card.id || !card.cvv ? '•••' : card.cvv}
-                  </p>
+                  <p className="font-mono">{details ? details.cvv : '•••'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">Statut</p>
@@ -185,7 +238,7 @@ export default function VirtualCardsPage() {
                     <span>Dépensé : ${card.total_spent?.toFixed(2)}</span>
                     <span>Limite : ${card.spending_limit}</span>
                   </div>
-                  <div className="w-full bg-white/30 dark:bg-slate-800 rounded-full h-1.5 mt-1">
+                  <div className="w-full bg-white/30 rounded-full h-1.5 mt-1">
                     <div 
                       className="bg-white rounded-full h-1.5" 
                       style={{ width: `${Math.min((card.total_spent / card.spending_limit) * 100, 100)}%` }}
@@ -193,34 +246,43 @@ export default function VirtualCardsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Solde */}
+              <div className="mt-4 pt-3 border-t border-white/20 flex justify-between items-center">
+                <span className="text-xs opacity-70">Solde disponible</span>
+                <span className="font-bold text-lg">${parseFloat(card.balance || 0).toFixed(2)}</span>
+              </div>
             </div>
 
             {/* Boutons d'action */}
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-3 flex-wrap">
               {card.status === 'active' && (
                 <>
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                     <Snowflake className="w-3 h-3" /> Geler
                   </button>
-                  {card.cardNumber && (
+                  <button onClick={() => handleToggleShow(card)} disabled={isLoading} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {showNumber === card.id ? 'Masquer' : 'Afficher'}
+                  </button>
+                  {details && (
                     <>
-                      <button onClick={() => setShowNumber(showNumber === card.id ? null : card.id)} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                        {showNumber === card.id ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                        {showNumber === card.id ? 'Afficher' : 'Masquer'}
-                      </button>
-                      <button onClick={() => { navigator.clipboard.writeText(card.cardNumber); setCopied('number'); setTimeout(() => setCopied(''), 2000); }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                      <button onClick={() => handleCopy(details.cardNumber, 'number')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                         <Copy className="w-3 h-3" /> {copied === 'number' ? 'Copié !' : 'N°'}
                       </button>
-                      <button onClick={() => { navigator.clipboard.writeText(card.cvv); setCopied('cvv'); setTimeout(() => setCopied(''), 2000); }} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
+                      <button onClick={() => handleCopy(details.cvv, 'cvv')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                         <Copy className="w-3 h-3" /> {copied === 'cvv' ? 'Copié !' : 'CVV'}
                       </button>
                     </>
                   )}
+                  <button onClick={() => setRechargeTarget(card)} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
+                    <RefreshCw className="w-3 h-3" /> Recharger
+                  </button>
                 </>
               )}
               {card.status === 'frozen' && (
                 <button onClick={() => handleToggleCard(card.id, 'unfreeze')} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                  🔓 Dégeler
+                  <Snowflake className="w-3 h-3" /> Dégeler
                 </button>
               )}
               <button onClick={() => setCancelTarget(card)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
@@ -228,7 +290,8 @@ export default function VirtualCardsPage() {
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {/* Carte "Ajouter" */}
         {cards.length === 0 && (
@@ -247,7 +310,7 @@ export default function VirtualCardsPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">💳 Nouvelle carte virtuelle</h2>
+            <h2 className="text-xl font-bold mb-4">Nouvelle carte virtuelle</h2>
 
             <div className="space-y-4">
               <div>
@@ -269,13 +332,14 @@ export default function VirtualCardsPage() {
               </div>
 
               <div className="bg-yellow-50 rounded-xl p-3 text-sm text-yellow-800">
-                <p>💰 Frais de création : <strong>2$</strong></p>
-                <p>💱 Frais de change : <strong>2%</strong></p>
+                <p> Frais de création : <strong>2$</strong></p>
+                <p> Recharge : <strong>Gratuite</strong></p>
+                <p> Paiement international : <strong>2%</strong></p>
               </div>
 
               {createError && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-                  ❌ {createError}
+                  {createError}
                 </div>
               )}
             </div>
@@ -320,6 +384,44 @@ export default function VirtualCardsPage() {
         </div>
       )}
 
+      {/* Modale recharge */}
+      {rechargeTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Recharger la carte</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              {rechargeTarget.brand?.toUpperCase()} •••• {rechargeTarget.last_four}
+            </p>
+
+            <div className="bg-violet-50 dark:bg-violet-950/30 rounded-xl p-4 mb-4">
+              <p className="text-sm text-violet-700 dark:text-violet-300">
+                Solde actuel : <strong>${parseFloat(rechargeTarget.balance || 0).toFixed(2)}</strong>
+              </p>
+              <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">Recharge gratuite depuis votre wallet</p>
+            </div>
+
+            <input
+              type="number"
+              value={rechargeAmount}
+              onChange={(e) => setRechargeAmount(e.target.value)}
+              className="w-full px-4 py-3 border rounded-xl text-lg font-bold text-center dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              placeholder="Montant en USD"
+              min="1"
+              max="10000"
+            />
+
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" fullWidth onClick={() => { setRechargeTarget(null); setRechargeAmount(''); }}>
+                Annuler
+              </Button>
+              <Button fullWidth onClick={handleRecharge} disabled={recharging || !rechargeAmount || parseFloat(rechargeAmount) <= 0}>
+                {recharging ? <Loader2 className="w-4 h-4 animate-spin" /> : `Recharger ${rechargeAmount ? `${parseFloat(rechargeAmount).toFixed(2)}$` : ''}`}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast notifications */}
       {toast && (
         <ToastContainer>
@@ -333,25 +435,30 @@ export default function VirtualCardsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CreditCard className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <h3 className="font-bold text-lg">Carte créée !</h3>
-            <p className="text-sm text-amber-600 font-bold mt-2">💡 Vous pourrez revoir ces informations à tout moment</p>
+            <p className="text-sm text-amber-600 font-bold mt-2"> Rechargez-la depuis votre wallet pour l'utiliser</p>
 
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mt-4 space-y-2 text-left">
               <p><strong>N° :</strong> <span className="font-mono">{formatCardNumber(newCard.cardNumber)}</span></p>
               <p><strong>CVV :</strong> <span className="font-mono">{newCard.cvv}</span></p>
               <p><strong>Expire :</strong> {newCard.expiry}</p>
               <p><strong>Titulaire :</strong> {newCard.cardholderName}</p>
+              <p><strong>Solde :</strong> $0.00</p>
             </div>
+
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
+              Vos informations sont stockées de manière sécurisée. Vous pourrez les révéler à tout moment.
+            </p>
 
             <div className="flex gap-2 mt-4">
               <Button variant="outline" fullWidth onClick={() => handleCopy(newCard.cardNumber, 'new-number')}>
-                {copied === 'new-number' ? '✅ Copié' : '📋 Copier N°'}
+                {copied === 'new-number' ? ' Copié' : ' Copier N°'}
               </Button>
               <Button variant="outline" fullWidth onClick={() => handleCopy(newCard.cvv, 'new-cvv')}>
-                {copied === 'new-cvv' ? '✅ Copié' : '📋 Copier CVV'}
+                {copied === 'new-cvv' ? ' Copié' : ' Copier CVV'}
               </Button>
             </div>
 
-            <Button fullWidth className="mt-3" onClick={() => setNewCard(null)}>J'ai bien noté — Fermer</Button>
+            <Button fullWidth className="mt-3" onClick={() => setNewCard(null)}>Fermer</Button>
           </div>
         </div>
       )}

@@ -345,6 +345,10 @@ export const api = {
       request<any>(`${API_URL}/cards/${id}/toggle`, { method: 'PUT', body: JSON.stringify({ action }) }),
     cancel: (id: number | string) =>
       request<any>(`${API_URL}/cards/${id}`, { method: 'DELETE' }),
+    recharge: (id: number | string, amount: number) =>
+      request<any>(`${API_URL}/cards/${id}/recharge`, { method: 'POST', body: JSON.stringify({ amount }) }),
+    balance: (id: number | string) =>
+      request<any>(`${API_URL}/cards/${id}/balance`),
   },
 
   // ==========================================
