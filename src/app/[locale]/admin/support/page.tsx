@@ -204,29 +204,21 @@ export default function AdminSupportPage() {
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-sm select-none flex items-center justify-center" onClick={() => setLightbox(null)}>
+        <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-sm select-none flex flex-col items-center justify-center" onClick={() => setLightbox(null)}>
           <button
-            className="absolute top-6 right-6 z-[100000] text-white/70 hover:text-white text-3xl font-bold p-2"
+            className="absolute top-6 right-6 z-10 text-white/70 hover:text-white text-3xl font-bold p-2"
             onClick={() => setLightbox(null)}
           >
             ✕
           </button>
-          <img
-            src={lightbox}
-            alt="Visualisation"
-            className="absolute max-w-[90vw] max-h-[85vh] block"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 'auto',
-              height: 'auto',
-              objectFit: 'contain'
-            }}
-            onClick={e => e.stopPropagation()}
-            onLoad={(e) => console.log("Dimensions réelles de l'image chargée :", e.currentTarget.naturalWidth, "x", e.currentTarget.naturalHeight)}
-            onError={() => console.error("Erreur de chargement de la source de l'image :", lightbox?.substring(0, 100))}
-          />
+          <div className="flex items-center justify-center w-full h-full p-10">
+            <img
+              src={lightbox}
+              alt="Visualisation"
+              className="max-w-full max-h-full object-contain block"
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
     </div>
