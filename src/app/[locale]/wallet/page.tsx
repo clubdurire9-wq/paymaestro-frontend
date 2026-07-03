@@ -94,7 +94,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [transactions, setTransactions] = useState<WalletTx[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'balance' | 'deposit' | 'withdraw' | 'convert' | 'wallet2paypal'>('balance');
+  const [activeTab, setActiveTab] = useState<'balance' | 'deposit' | 'withdraw' | 'wallet2paypal'>('balance');
   const [amount, setAmount] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('XOF');
   const [targetCurrency, setTargetCurrency] = useState('XAF');
@@ -692,7 +692,6 @@ export default function WalletPage() {
           { id: 'balance' as const, label: '💳 Historique' },
           { id: 'deposit' as const, label: '⬇️ Déposer' },
           { id: 'withdraw' as const, label: '⬆️ Retirer' },
-          { id: 'convert' as const, label: '🔄 Convertir' },
           ...(isGatewayAdmin ? [{ id: 'wallet2paypal' as const, label: '💳 Wallet→PayPal' }] : []),
         ]).map(tab => (
           <button
@@ -1156,74 +1155,6 @@ export default function WalletPage() {
           )}
 
         </div>
-      )}
-
-      {/* CONVERTIR ENTRE DEVISES */}
-      {activeTab === 'convert' && (
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
-              {t('wallet.convertCurrency') || 'Convertir entre devises'}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('wallet.from') || 'De'}
-                </label>
-                <select
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-white"
-                >
-                  {currencies.map(c => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code} - {c.symbol}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('wallet.to') || 'Vers'}
-                </label>
-                <select
-                  value={targetCurrency}
-                  onChange={(e) => setTargetCurrency(e.target.value)}
-                  className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-white"
-                >
-                  {currencies.filter(c => c.code !== selectedCurrency).map(c => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code} - {c.symbol}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-slate-600 dark:text-slate-400">
-                {t('wallet.amount') || 'Montant'}
-              </label>
-              <div className="flex gap-4">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  min="1"
-                  step="0.01"
-                  className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
-                />
-                <Button className="bg-violet-600 hover:bg-violet-700">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  {t('wallet.convert') || 'Convertir'}
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              {t('wallet.conversionFee') || 'Frais de conversion : 2%.'}
-            </p>
-          </CardContent>
-        </Card>
       )}
 
       {/* WALLET → PAYPAL — ADMIN uniquement */}
