@@ -8,7 +8,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { Loader2 } from 'lucide-react';
 
 // Routes accessibles sans authentification
-const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/', '/terms', '/privacy', '/auth/google/callback', '/contact'];
+const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/', '/terms', '/privacy', '/auth/google/callback', '/contact', '/docs'];
 const LOCALE_PREFIX = /^\/(fr|en)/;
 
 // Routes sensibles nécessitant un KYC valide
@@ -29,7 +29,7 @@ function getRemainingKYCAttempts(): number {
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const route = pathname.replace(LOCALE_PREFIX, '') || '/';
-  const isPublicRoute = PUBLIC_ROUTES.includes(route);
+  const isPublicRoute = PUBLIC_ROUTES.includes(route) || route.startsWith('/docs/');
 
   if (isPublicRoute) {
     return <PublicRouteGuard route={route}>{children}</PublicRouteGuard>;
