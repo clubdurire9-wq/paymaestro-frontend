@@ -227,7 +227,7 @@ export default function ContactPage() {
                                   src={imgSrc}
                                   alt={img.filename || `Image ${i+1}`}
                                   onClick={() => setLightbox(imgSrc)}
-                                  className="w-20 h-20 object-cover rounded-xl border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40 block"
+                                  className="w-20 h-20 min-w-[80px] min-h-[80px] object-cover object-center block rounded-xl border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40"
                                 />
                               );
                             })}
@@ -321,7 +321,7 @@ export default function ContactPage() {
         {lightbox && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90" onClick={() => setLightbox(null)}>
             <button className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10 bg-transparent border-0 cursor-pointer" onClick={() => setLightbox(null)}>✕</button>
-            <img src={lightbox} alt="Zoom" className="max-w-[90vw] max-h-[90vh] object-contain" onClick={e => e.stopPropagation()} />
+            <img src={lightbox} alt="Zoom" className="max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain select-none align-middle" onClick={e => e.stopPropagation()} />
           </div>
         )}
       </div>
