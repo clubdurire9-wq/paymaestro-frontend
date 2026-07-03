@@ -221,7 +221,7 @@ export default function WalletPage() {
   const loadIban = async () => {
     try {
       const data = await api.stripe.getIBAN();
-      setIban(data?.iban || null);
+      setIban(data?.activeIban || data?.iban || null);
     } catch (error) {
       console.error('Erreur lors du chargement de l\'IBAN:', error);
     }

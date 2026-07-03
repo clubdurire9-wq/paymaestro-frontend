@@ -380,7 +380,10 @@ export const api = {
   stripe: {
     createAccount: () => request<any>(`${API_URL}/stripe/account`, { method: 'POST' }),
     createIBAN: (country?: string) => request<any>(`${API_URL}/stripe/iban`, { method: 'POST', body: JSON.stringify({ country }) }),
-    getIBAN: () => request<any>(`${API_URL}/stripe/iban`),
+    getIBAN: () => request<any>(`${API_URL}/stripe/ibans`),
+    deactivateIBAN: (ibanId: number) => request<any>(`${API_URL}/stripe/iban/${ibanId}/deactivate`, { method: 'PUT' }),
+    activateIBAN: (ibanId: number) => request<any>(`${API_URL}/stripe/iban/${ibanId}/activate`, { method: 'PUT' }),
+    deleteIBAN: (ibanId: number) => request<any>(`${API_URL}/stripe/iban/${ibanId}`, { method: 'DELETE' }),
     receive: (data: { amount: number; currency: string; description?: string }) =>
       request<any>(`${API_URL}/stripe/receive`, { method: 'POST', body: JSON.stringify(data) }),
     send: (data: { amount: number; iban: string; swift?: string; accountHolder?: string }) =>
