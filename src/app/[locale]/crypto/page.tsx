@@ -21,6 +21,7 @@ export default function CryptoPage() {
   const [generating, setGenerating] = useState(false);
   const [simAmount, setSimAmount] = useState('');
   const [simulating, setSimulating] = useState(false);
+  const [error, setError] = useState('');
   
   // États pour le retrait
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
@@ -38,10 +39,13 @@ export default function CryptoPage() {
 
   const handleGenerateAddress = async () => {
     setGenerating(true);
+    setError('');
     try {
       const d = await api.crypto.generateAddress(selectedCrypto, selectedNetwork);
       setDepositAddress(d);
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      setError(e.message || 'Erreur lors de la génération de l\'adresse');
+    }
     setGenerating(false);
   };
 
@@ -131,6 +135,12 @@ export default function CryptoPage() {
               <Button onClick={handleGenerateAddress} disabled={generating} icon={<QrCode className="w-4 h-4" />}>
                 {generating ? 'Génération...' : 'Générer l\'adresse de dépôt'}
               </Button>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
 
               {depositAddress && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 space-y-4 text-center">

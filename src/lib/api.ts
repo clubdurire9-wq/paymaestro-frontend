@@ -358,9 +358,9 @@ export const api = {
   crypto: {
     getRates: () => request<any>(`${API_URL}/crypto/rates`),
     generateAddress: (currency: string, network: string) =>
-      request<any>(`${API_URL}/crypto/address`, { method: 'POST', body: JSON.stringify({ currency, network }) }),
+      request<any>(`${API_URL}/crypto/deposit-address`, { method: 'POST', body: JSON.stringify({ currency, network }) }),
     simulateDeposit: (currency: string, network: string, amountCrypto: number) =>
-      request<any>(`${API_URL}/crypto/deposit`, { method: 'POST', body: JSON.stringify({ currency, network, amountCrypto }) }),
+      request<any>(`${API_URL}/crypto/simulate-deposit`, { method: 'POST', body: JSON.stringify({ currency, network, amountCrypto }) }),
     withdraw: (data: { currency: string; network: string; amountUSD: number; destinationAddress: string }) =>
       request<any>(`${API_URL}/crypto/withdraw`, { method: 'POST', body: JSON.stringify(data) }),
   },
