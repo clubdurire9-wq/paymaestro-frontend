@@ -425,9 +425,9 @@ export const api = {
     reset: (sessionId: string) =>
       request<any>(`${API_URL}/chatbot/reset`, { method: 'POST', body: JSON.stringify({ sessionId }) }),
     health: () => request<any>(`${API_URL}/chatbot/health`),
-    getTicketMessages: (ticketId: string) => request<any[]>(`${API_URL}/chatbot/ticket/${ticketId}/messages`),
-    sendTicketMessage: (ticketId: string, message: string) =>
-      request<any>(`${API_URL}/chatbot/ticket/${ticketId}/message`, { method: 'POST', body: JSON.stringify({ message }) }),
+    getTicketMessages: (ticketId: number | string) => request<any>(`${API_URL}/chatbot/ticket/${ticketId}/messages`),
+    sendTicketMessage: (ticketId: number | string, message: string, userEmail?: string) =>
+      request<any>(`${API_URL}/chatbot/ticket/${ticketId}/message`, { method: 'POST', body: JSON.stringify({ message, userEmail }) }),
   },
 
   // ==========================================
