@@ -330,14 +330,14 @@ export default function WalletPage() {
       const cleanPhone = withdrawPhone.replace(/^0+/, '');
       const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
       const result = await api.wallet.withdrawMobile({
-        amountLocal: parseFloat(withdrawAmount),
+        amountUSD: parseFloat(withdrawAmount),
         currencyCode: withdrawCountry.code,
         phoneNumber: `${withdrawCountry.countryCode}${cleanPhone}`,
         exchangeRate: rate,
       });
       setWithdrawMessage({
         type: 'success',
-        text: `✅ Retrait de ${withdrawAmount} ${withdrawCountry.code} envoyé vers ${withdrawCountry.countryCode}${cleanPhone}.`,
+        text: `✅ Retrait de ${withdrawAmount} USD envoyé vers ${withdrawCountry.countryCode}${cleanPhone}.`,
       });
       setWithdrawAmount('');
       setWithdrawPhone('');
@@ -996,13 +996,13 @@ export default function WalletPage() {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                    Montant en {withdrawCountry?.code || 'XOF'}
+                    Montant (USD)
                   </label>
                   <input
                     type="number"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    placeholder="0"
+                    placeholder="0.00"
                     className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
                   />
                 </div>
@@ -1035,11 +1035,21 @@ export default function WalletPage() {
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-400 space-y-1">
                 <p><strong>💰 Frais :</strong> 3% du montant</p>
                 <p><strong>⏱️ Délai :</strong> Quelques minutes</p>
-                {withdrawAmount && withdrawCountry && (
-                  <p className="font-bold mt-1">
-                    Vous recevrez {parseFloat(withdrawAmount).toFixed(2)} {withdrawCountry.code} sur votre Mobile Money
-                  </p>
-                )}
+                {withdrawAmount && withdrawCountry && (() => {
+                  const usdAmount = parseFloat(withdrawAmount) || 0;
+                  const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
+                  const fee = usdAmount * 0.03;
+                  const netUSD = usdAmount - fee;
+                  const localAmount = netUSD * rate;
+                  return (
+                    <>
+                      <p>Frais : {fee.toFixed(2)} USD</p>
+                      <p className="font-bold mt-1">
+                        Vous recevrez {localAmount.toFixed(2)} {withdrawCountry.code} sur votre Mobile Money
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>

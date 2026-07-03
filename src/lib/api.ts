@@ -284,7 +284,7 @@ export const api = {
       request<any>(`${API_URL}/wallet/deposit-mobile`, { method: 'POST', body: JSON.stringify(data) }),
     withdrawToWallet: (data: { amountUSD: number; targetCurrency: string; exchangeRate: number }) =>
       request<any>(`${API_URL}/wallet/withdraw-to-wallet`, { method: 'POST', body: JSON.stringify(data) }),
-    withdrawMobile: (data: { amountLocal: number; currencyCode: string; phoneNumber: string; exchangeRate: number }) =>
+    withdrawMobile: (data: { amountUSD: number; currencyCode: string; phoneNumber: string; exchangeRate: number }) =>
       request<any>(`${API_URL}/wallet/withdraw-to-mobile`, { method: 'POST', body: JSON.stringify(data) }),
     withdrawPayPal: (paypalEmail: string, amount: number) =>
       request<any>(`${API_URL}/wallet/withdraw-paypal`, { method: 'POST', body: JSON.stringify({ paypalEmail, amount }) }),
