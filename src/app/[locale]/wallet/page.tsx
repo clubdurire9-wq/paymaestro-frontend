@@ -932,60 +932,6 @@ export default function WalletPage() {
       {/* RETIRER VERS PORTEFEUILLE */}
       {activeTab === 'withdraw' && (
         <div className="space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
-                {t('wallet.withdrawToWallet') || 'Retirer vers le portefeuille local'}
-              </h3>
-              <div>
-                <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">
-                  {t('wallet.selectCurrency') || 'Sélectionner la devise'}
-                </label>
-                <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-                  {currencies.filter(c => c.code !== 'USD' && c.code !== 'EUR' && c.code !== 'GBP').map(c => (
-                    <button
-                      key={c.code}
-                      onClick={() => setSelectedCurrency(c.code)}
-                      className={`p-3 rounded-xl border-2 text-center transition-all ${
-                        selectedCurrency === c.code 
-                          ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/20' 
-                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                      }`}
-                    >
-                      <img src={`https://flagcdn.com/w40/${c.code === 'XOF' ? 'ci' : c.code === 'XAF' ? 'cm' : c.code === 'CDF' ? 'cd' : c.code === 'KES' ? 'ke' : c.code === 'NGN' ? 'ng' : c.code === 'GHS' ? 'gh' : c.code === 'UGX' ? 'ug' : c.code === 'RWF' ? 'rw' : c.code === 'TZS' ? 'tz' : c.code === 'ZAR' ? 'za' : c.code === 'EGP' ? 'eg' : c.code === 'MAD' ? 'ma' : c.code === 'DZD' ? 'dz' : c.code === 'TND' ? 'tn' : c.code === 'AOA' ? 'ao' : c.code === 'ZMW' ? 'zm' : c.code === 'MWK' ? 'mw' : c.code === 'MZN' ? 'mz' : c.code === 'MGA' ? 'mg' : c.code === 'ETB' ? 'et' : c.code === 'SOS' ? 'so' : c.code === 'GMD' ? 'gm' : c.code === 'CVE' ? 'cv' : c.code === 'MUR' ? 'mu' : c.code === 'BWP' ? 'bw' : c.code === 'XAF' ? 'cm' : 'ci'}.png`} alt={c.code} className="w-6 h-4 rounded shadow-sm mx-auto object-cover" />
-                      <span className="block text-[10px] font-medium mt-1 text-slate-800 dark:text-slate-200">{c.code}</span>
-                      <span className="block text-[10px] text-slate-400 dark:text-slate-500">
-                        {c.symbol}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('wallet.amountUSD') || 'Montant (USD)'}
-                </label>
-                <div className="flex gap-4">
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
-                    min="1"
-                    step="0.01"
-                    className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
-                  />
-                  <Button onClick={handleWithdrawToWallet} className="bg-violet-600 hover:bg-violet-700">
-                    <Send className="w-4 h-4 mr-2" />
-                    {t('wallet.convertTo') || 'Convertir en'} {selectedCurrency}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                {t('wallet.withdrawFee') || 'Retrait vers Mobile Money = 7% de frais supplémentaires.'}
-              </p>
-            </CardContent>
-          </Card>
 
           {/* Retrait Mobile Money */}
           <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800/50">
