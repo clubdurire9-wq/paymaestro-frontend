@@ -53,10 +53,6 @@ export default function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   // Sauvegarder les messages dans sessionStorage à chaque mise à jour
   useEffect(() => {
     if (typeof window !== 'undefined') {

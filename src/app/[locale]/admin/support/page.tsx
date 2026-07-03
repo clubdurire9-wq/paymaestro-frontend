@@ -24,7 +24,6 @@ export default function AdminSupportPage() {
   useEffect(() => {
     if (selectedTicket) loadMessages(selectedTicket.id);
   }, [selectedTicket]);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   // Rafraîchir les tickets toutes les 5 secondes
   useEffect(() => {
