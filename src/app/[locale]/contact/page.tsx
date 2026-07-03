@@ -217,20 +217,20 @@ export default function ContactPage() {
                         {!isImageOnly && msg.message && (
                           <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                         )}
-                        {allImages.length > 0 && (
+                        {allImages.filter((img: any) => img.imageBase64).length > 0 && (
                           <div className={`flex flex-wrap gap-1.5 ${!isImageOnly && msg.message ? 'mt-2' : ''}`}>
-                            {allImages.map((img, i) => (
-                              <div key={i}
-                                onClick={() => setLightbox(`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`)}
-                                className="w-20 h-20 rounded-xl overflow-hidden border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40"
-                              >
-                                <img
-                                  src={`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`}
+                            {allImages.map((img, i) => {
+                              if (!img.imageBase64) return null;
+                              const imgSrc = `data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`;
+                              return (
+                                <img key={i}
+                                  src={imgSrc}
                                   alt={img.filename || `Image ${i+1}`}
-                                  className="w-full h-full object-cover"
+                                  onClick={() => setLightbox(imgSrc)}
+                                  className="w-20 h-20 object-cover rounded-xl border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40 block"
                                 />
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                         <p className={`text-[10px] mt-1 ${
@@ -319,24 +319,9 @@ export default function ContactPage() {
 
         {/* Lightbox */}
         {lightbox && (
-          <div
-            className="fixed inset-0 z-[999] bg-black flex items-center justify-center"
-            onClick={() => setLightbox(null)}
-          >
-            <button
-              onClick={() => setLightbox(null)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-              aria-label="Fermer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <img
-              src={lightbox}
-              alt=""
-              onClick={e => e.stopPropagation()}
-              className="max-w-[95vw] max-h-[95vh] object-contain select-none"
-              draggable={false}
-            />
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90" onClick={() => setLightbox(null)}>
+            <button className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10 bg-transparent border-0 cursor-pointer" onClick={() => setLightbox(null)}>✕</button>
+            <img src={lightbox} alt="Zoom" className="max-w-[90vw] max-h-[90vh] object-contain" onClick={e => e.stopPropagation()} />
           </div>
         )}
       </div>
