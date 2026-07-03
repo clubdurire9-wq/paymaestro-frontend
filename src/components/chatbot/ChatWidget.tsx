@@ -251,7 +251,7 @@ export default function ChatWidget() {
                           key={j}
                           src={img.data}
                           alt={img.filename}
-                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-90"
+                          className="w-16 h-16 object-contain rounded-lg cursor-pointer hover:opacity-90"
                           onClick={() => window.open(img.data)}
                         />
                       ))}
@@ -295,7 +295,7 @@ export default function ChatWidget() {
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {allPreviews.map((img, i) => (
                   <div key={i} className="relative flex-shrink-0">
-                    <img src={img} className="w-14 h-14 object-cover rounded-lg border dark:border-slate-600" />
+                    <img src={img} className="w-14 h-14 object-contain rounded-lg border dark:border-slate-600" />
                     <button
                       onClick={() => removeImage(i)}
                       className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"

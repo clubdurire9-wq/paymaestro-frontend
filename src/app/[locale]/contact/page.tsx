@@ -230,7 +230,7 @@ export default function ContactPage() {
                                   style={{
                                     width: '80px',
                                     height: '80px',
-                                    objectFit: 'cover',
+                                    objectFit: 'contain',
                                     borderRadius: '12px',
                                     border: '1px solid rgba(255,255,255,0.3)',
                                     flexShrink: 0,
@@ -271,7 +271,7 @@ export default function ContactPage() {
                         <div className="flex flex-wrap gap-2">
                           {pendingPreviews.map((preview, i) => (
                             <div key={i} className="relative group">
-                              <img src={preview} className="w-16 h-16 object-cover rounded-xl border border-slate-200 dark:border-slate-600" />
+                              <img src={preview} className="w-16 h-16 object-contain rounded-xl border border-slate-200 dark:border-slate-600" />
                               <button
                                 onClick={() => removePending(i)}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"

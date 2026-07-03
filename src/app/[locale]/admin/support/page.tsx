@@ -161,7 +161,7 @@ export default function AdminSupportPage() {
                                   style={{
                                     width: '80px',
                                     height: '80px',
-                                    objectFit: 'cover',
+                                    objectFit: 'contain',
                                     borderRadius: '12px',
                                     border: '1px solid rgba(203,213,225,1)',
                                     flexShrink: 0,
