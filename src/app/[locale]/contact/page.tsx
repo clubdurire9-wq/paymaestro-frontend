@@ -218,7 +218,7 @@ export default function ContactPage() {
                           <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                         )}
                         {allImages.filter((img: any) => img.imageBase64).length > 0 && (
-                          <div className={`flex flex-wrap gap-1.5 ${!isImageOnly && msg.message ? 'mt-2' : ''}`}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: !isImageOnly && msg.message ? '8px' : 0 }}>
                             {allImages.map((img, i) => {
                               if (!img.imageBase64) return null;
                               const imgSrc = `data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`;
@@ -227,7 +227,17 @@ export default function ContactPage() {
                                   src={imgSrc}
                                   alt={img.filename || `Image ${i+1}`}
                                   onClick={() => setLightbox(imgSrc)}
-                                  className="w-20 h-20 min-w-[80px] min-h-[80px] object-cover object-center block rounded-xl border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40"
+                                  style={{
+                                    width: '80px',
+                                    height: '80px',
+                                    objectFit: 'cover',
+                                    borderRadius: '12px',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    flexShrink: 0,
+                                    cursor: 'pointer',
+                                    backgroundColor: 'rgba(30, 41, 59, 0.4)',
+                                    display: 'block'
+                                  }}
                                 />
                               );
                             })}
@@ -319,21 +329,22 @@ export default function ContactPage() {
 
         {/* Lightbox */}
         {lightbox && (
-          <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-sm select-none flex flex-col items-center justify-center" onClick={() => setLightbox(null)}>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 99999, backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setLightbox(null)}
+          >
             <button
-              className="absolute top-6 right-6 z-10 text-white/70 hover:text-white text-3xl font-bold p-2"
+              style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 10, color: 'rgba(255,255,255,0.7)', fontSize: '32px', fontWeight: 'bold', padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer' }}
               onClick={() => setLightbox(null)}
             >
               ✕
             </button>
-            <div className="flex items-center justify-center w-full h-full p-10">
-              <img
-                src={lightbox}
-                alt="Visualisation"
-                className="max-w-full max-h-full object-contain block"
-                onClick={e => e.stopPropagation()}
-              />
-            </div>
+            <img
+              src={lightbox}
+              alt=""
+              style={{ maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', display: 'block' }}
+              onClick={e => e.stopPropagation()}
+            />
           </div>
         )}
       </div>
