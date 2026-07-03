@@ -102,7 +102,7 @@ function CountrySelect({ value, onChange, className }: { value: CountryData; onC
       </button>
       {open && (
         <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border dark:border-slate-600 rounded-xl shadow-lg">
-          {ALL_COUNTRIES.filter(c => c.available).map(c => (
+          {ALL_COUNTRIES.map(c => (
             <button key={c.country} type="button" onClick={() => { onChange(c); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white text-left">
               <img src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
               <span>{c.country}</span>
