@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   Wallet, ArrowDown, ArrowUp, Send, RefreshCw, 
   DollarSign, Loader2, TrendingUp, TrendingDown, Building,
-  Users, Phone, CreditCard
+  Users, Phone, CreditCard, CheckCircle2, AlertTriangle, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -137,6 +137,22 @@ export default function WalletPage() {
   const [mobileAmount, setMobileAmount] = useState('');
   const [mobileDepositLoading, setMobileDepositLoading] = useState(false);
   const [mobileDepositMessage, setMobileDepositMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositModalData, setDepositModalData] = useState<{ type: 'success' | 'error'; title: string; message: string; amount?: string } | null>(null);
+
+  function parseDepositError(raw: string): string {
+    const lower = raw.toLowerCase();
+    if (lower.includes('invalid_payer_format') || lower.includes('msisdn') || lower.includes('phone number') || lower.includes('too long')) {
+      return 'Le numéro de téléphone saisi semble incorrect ou mal formaté. Vérifiez que votre numéro est correct et réessayez.';
+    }
+    if (lower.includes('insufficient') || lower.includes('solde insuffisant')) {
+      return 'Votre solde est insuffisant pour effectuer cette opération.';
+    }
+    if (lower.includes('timeout') || lower.includes('indisponible') || lower.includes('500') || lower.includes('service')) {
+      return 'Une interruption technique temporaire est survenue. Veuillez réessayer dans quelques instants.';
+    }
+    return 'Une erreur est survenue lors du dépôt. Vérifiez vos informations et réessayez. Si le problème persiste, contactez notre support.';
+  }
   const [paypalEmail, setPaypalEmail] = useState('');
   const [paypalAmount, setPaypalAmount] = useState('');
   const [showPaypalConfirm, setShowPaypalConfirm] = useState(false);
@@ -227,18 +243,23 @@ export default function WalletPage() {
           if (tx.status === 'COMPLETED') {
             setMobilePendingTxId(null);
             setMobileDepositLoading(false);
-            setMobileDepositMessage({
+            setDepositModalData({
               type: 'success',
-              text: `✅ Dépôt confirmé ! ${tx.amount_currency} ${tx.currency_code} crédité sur votre wallet.`,
+              title: 'Dépôt réussi !',
+              message: `${tx.amount_currency} ${tx.currency_code} ont été crédités sur votre wallet.`,
+              amount: `${tx.amount_currency} ${tx.currency_code}`,
             });
+            setShowDepositModal(true);
             loadData();
           } else if (tx.status === 'FAILED') {
             setMobilePendingTxId(null);
             setMobileDepositLoading(false);
-            setMobileDepositMessage({
+            setDepositModalData({
               type: 'error',
-              text: '❌ Le dépôt a échoué. Veuillez réessayer.',
+              title: 'Dépôt échoué',
+              message: 'Le dépôt n\'a pas abouti. Veuillez réessayer.',
             });
+            setShowDepositModal(true);
             loadData();
           }
         }
@@ -305,10 +326,13 @@ export default function WalletPage() {
       }
     } catch (error: any) {
       setMobileDepositLoading(false);
-      setMobileDepositMessage({
+      const msg = error?.message || 'Erreur lors du dépôt. Veuillez réessayer.';
+      setDepositModalData({
         type: 'error',
-        text: error?.message || 'Erreur lors du dépôt. Veuillez réessayer.'
+        title: 'Dépôt échoué',
+        message: parseDepositError(msg),
       });
+      setShowDepositModal(true);
     }
   };
 
@@ -818,16 +842,6 @@ export default function WalletPage() {
                   >
                     Annuler et réessayer
                   </button>
-                </div>
-              ) : mobileDepositMessage ? (
-                <div className={`rounded-xl p-3 text-xs ${
-                  mobileDepositMessage.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50'
-                    : mobileDepositMessage.type === 'error'
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800/50'
-                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'
-                }`}>
-                  {mobileDepositMessage.text}
                 </div>
               ) : (
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-400 space-y-1">
@@ -1349,6 +1363,42 @@ export default function WalletPage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* MODALE RÉSULTAT DÉPÔT */}
+      {showDepositModal && depositModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center space-y-5 animate-in fade-in zoom-in duration-200">
+            {depositModalData.type === 'success' ? (
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+              </div>
+            )}
+            <div>
+              <h3 className={`text-xl font-bold ${depositModalData.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                {depositModalData.title}
+              </h3>
+              {depositModalData.amount && (
+                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{depositModalData.amount}</p>
+              )}
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{depositModalData.message}</p>
+            </div>
+            <button
+              onClick={() => { setShowDepositModal(false); setDepositModalData(null); }}
+              className={`w-full py-3 rounded-xl font-medium text-sm text-white transition-colors ${
+                depositModalData.type === 'success'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500'
+              }`}
+            >
+              {depositModalData.type === 'success' ? 'Accéder au portefeuille' : 'Réessayer'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
