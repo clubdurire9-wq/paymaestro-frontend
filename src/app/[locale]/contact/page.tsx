@@ -41,15 +41,6 @@ export default function ContactPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-scroll seulement si l'utilisateur est déjà en bas
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
-    if (isNearBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatMessages]);
 
   useEffect(() => {
     if (!ticketId) return;
