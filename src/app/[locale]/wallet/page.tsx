@@ -127,7 +127,6 @@ export default function WalletPage() {
   const [amount, setAmount] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('XOF');
   const [targetCurrency, setTargetCurrency] = useState('XAF');
-  const [iban, setIban] = useState<string | null>(null);
   const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const [depositDetails, setDepositDetails] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
@@ -199,7 +198,6 @@ export default function WalletPage() {
 
   useEffect(() => {
     loadData();
-    loadIban();
     loadUser();
   }, []);
 
@@ -248,15 +246,6 @@ export default function WalletPage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [mobilePendingTxId]);
-
-  const loadIban = async () => {
-    try {
-      const data = await api.stripe.getIBAN();
-      setIban(data?.activeIban || data?.iban || null);
-    } catch (error) {
-      console.error('Erreur lors du chargement de l\'IBAN:', error);
-    }
-  };
 
   const loadUser = async () => {
     try {
@@ -420,19 +409,6 @@ export default function WalletPage() {
     }
   };
 
-  const handleBankDeposit = () => {
-    setDepositDetails({
-      accountHolder: user?.name || 'Votre nom',
-      email: user?.email || 'Votre email',
-      iban: iban,
-      fees: '2% de conversion',
-      delay: '1-5 jours ouvrés',
-      currency: 'Multi-devises (EUR, USD, GBP...)',
-      automatic: 'Crédité automatiquement dès réception',
-    });
-    setShowDepositConfirm(true);
-  };
-
   const getBalanceForCurrency = (currencyCode: string): number => {
     if (!balance) return 0;
     const key = currencyCode as keyof Balance;
@@ -494,10 +470,6 @@ export default function WalletPage() {
                 <span className="font-bold text-slate-800 dark:text-slate-200">{depositDetails.email}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">IBAN :</span>
-                <span className="font-mono font-bold text-slate-800 dark:text-slate-200 text-xs">{depositDetails.iban}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Frais :</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">{depositDetails.fees}</span>
               </div>
@@ -520,7 +492,7 @@ export default function WalletPage() {
                 Annuler
               </Button>
               <Button fullWidth onClick={() => setShowDepositConfirm(false)}>
-                J'ai compris — Voir mon IBAN
+                J'ai compris
               </Button>
             </div>
           </div>
@@ -647,25 +619,6 @@ export default function WalletPage() {
         </Card>
       </div>
 
-      {/* IBAN Stripe */}
-      <Card 
-        className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white cursor-pointer hover:shadow-lg transition-all" 
-        onClick={() => router.push(`/${locale}/iban`)}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-80">IBAN Européen</p>
-              <p className="text-xl font-bold mt-1">{iban || 'Pas encore d\'IBAN'}</p>
-            </div>
-            <Building className="w-8 h-8 opacity-50" />
-          </div>
-          <p className="text-xs opacity-70 mt-2">
-            {iban ? 'Recevez des virements SEPA' : 'Cliquez pour créer votre IBAN'}
-          </p>
-        </CardContent>
-      </Card>
-
       {/* BOUTON RAPIDE - Transfert PayMaestro → PayMaestro */}
       <button
         onClick={() => router.push(`/${locale}/wallet/transfer?source=pm`)}
@@ -768,59 +721,6 @@ export default function WalletPage() {
       {/* DÉPOSER */}
       {activeTab === 'deposit' && (
         <div className="space-y-6">
-          {/* Dépôt Bancaire */}
-          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800/50">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <Building className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Dépôt Bancaire</h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-400">Virement SEPA ou SWIFT vers votre IBAN</p>
-                </div>
-              </div>
-
-              {iban ? (
-                <div className="space-y-3">
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-blue-200 dark:border-blue-800/50">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-2">Votre IBAN pour les dépôts</p>
-                    <p className="text-xl font-mono font-bold text-slate-800 dark:text-slate-200 break-all">{iban?.replace(/(.{4})/g, '$1 ').trim()}</p>
-                    <button onClick={() => navigator.clipboard.writeText(iban)} className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                      📋 Copier l'IBAN
-                    </button>
-                  </div>
-                  
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                    <p className="font-semibold">📋 Instructions :</p>
-                    <p>1. Copiez votre IBAN ci-dessus</p>
-                    <p>2. Faites un virement depuis votre banque vers cet IBAN</p>
-                    <p>3. Le montant sera crédité automatiquement sur votre wallet</p>
-                  </div>
-
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 space-y-1">
-                    <p><strong>⚠️ Délais :</strong></p>
-                    <p>• Virement SEPA (Europe) : 1-2 jours ouvrés</p>
-                    <p>• Virement SWIFT (International) : 3-5 jours ouvrés</p>
-                    <p><strong>💰 Frais :</strong> 2% de conversion</p>
-                  </div>
-
-                  <Button 
-                    onClick={handleBankDeposit}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Building className="w-4 h-4 mr-2" />
-                    Voir les détails du dépôt
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-sm text-slate-500 mb-3">Vous devez d'abord générer votre IBAN</p>
-                  <Button onClick={() => router.push(`/${locale}/iban`)} className="bg-blue-600 hover:bg-blue-700">
-                    Générer mon IBAN
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Dépôt Mobile Money */}
           <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800/50">
