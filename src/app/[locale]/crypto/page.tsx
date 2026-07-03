@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Bitcoin, ArrowDown, ArrowUp, Copy, Loader2, QrCode, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Bitcoin, ArrowUp, Copy, Loader2, QrCode, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
@@ -19,8 +19,6 @@ export default function CryptoPage() {
   const [selectedNetwork, setSelectedNetwork] = useState('TRC20');
   const [depositAddress, setDepositAddress] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
-  const [simAmount, setSimAmount] = useState('');
-  const [simulating, setSimulating] = useState(false);
   const [error, setError] = useState('');
   
   // États pour le retrait
@@ -47,18 +45,6 @@ export default function CryptoPage() {
       setError(e.message || 'Erreur lors de la génération de l\'adresse');
     }
     setGenerating(false);
-  };
-
-  const handleSimulateDeposit = async () => {
-    if (!simAmount) return;
-    setSimulating(true);
-    try {
-      const d = await api.crypto.simulateDeposit(selectedCrypto, selectedNetwork, parseFloat(simAmount));
-      alert(`${d.amountCrypto} ${selectedCrypto} → ${d.netUSD.toFixed(2)}$ crédités !`);
-      setSimAmount('');
-      setDepositAddress(null);
-    } catch (e) { alert(e); }
-    setSimulating(false);
   };
 
   const handleWithdraw = async () => {
@@ -156,17 +142,6 @@ export default function CryptoPage() {
             </CardContent>
           </Card>
 
-          {/* Simulation dépôt (DEV) */}
-          <Card className="border-2 border-dashed border-yellow-300 bg-yellow-50">
-            <CardHeader><CardTitle>🧪 Simuler un dépôt (Test)</CardTitle></CardHeader>
-            <CardContent className="flex gap-4">
-              <input type="number" value={simAmount} onChange={(e) => setSimAmount(e.target.value)}
-                placeholder={`Montant en ${selectedCrypto}`} className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-white" />
-              <Button onClick={handleSimulateDeposit} disabled={simulating} className="bg-yellow-600 hover:bg-yellow-700">
-                {simulating ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDown className="w-4 h-4" />}
-              </Button>
-            </CardContent>
-          </Card>
         </>
       )}
 
@@ -211,7 +186,6 @@ export default function CryptoPage() {
 
       {/* Frais */}
       <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-sm text-slate-600 dark:text-slate-300">
-        <p><strong>💰 Frais :</strong> 2% sur les dépôts crypto</p>
         <p><strong>💱 Taux :</strong> En direct via CoinGecko/Binance</p>
         <p><strong>⏱️ Délai :</strong> 10-60 min (BTC) | 3-5 min (ETH) | Instantané (USDT)</p>
         <p><strong>🔄 Après dépôt :</strong> Les fonds sont en USD dans votre wallet → vous pouvez les utiliser pour tous les services PayMaestro</p>
