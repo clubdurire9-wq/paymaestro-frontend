@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon } from 'lucide-react';
+import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ interface ChatMessage {
   sender_email: string | null;
   message: string;
   created_at: string;
+  metadata?: { imageBase64?: string; mimeType?: string; filename?: string } | null;
 }
 
 export default function ContactPage() {
@@ -36,10 +37,14 @@ export default function ContactPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [polling, setPolling] = useState(false);
   const [agentName, setAgentName] = useState<string | null>(null);
+  const [allFiles, setAllFiles] = useState<File[]>([]);
+  const [allPreviews, setAllPreviews] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   useEffect(() => {
@@ -59,6 +64,44 @@ export default function ContactPage() {
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [ticketId]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (let i = 0; i < Math.min(files.length, 10 - allFiles.length); i++) {
+      const file = files[i];
+      allFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setAllPreviews(prev => [...prev, ev.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    }
+    setAllFiles([...allFiles]);
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setAllFiles(prev => prev.filter((_, i) => i !== index));
+    setAllPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSendImages = async () => {
+    if (allFiles.length === 0 || !ticketId) return;
+    setUploading(true);
+    try {
+      await api.chatbot.uploadTicketImages(ticketId, allFiles, userEmail);
+      const msgsRes = await api.chatbot.getTicketMessages(ticketId);
+      setChatMessages(msgsRes.messages || []);
+      if (msgsRes.ticket) {
+        setTicketStatus(msgsRes.ticket.status);
+        if (msgsRes.ticket.assigned_to) setAgentName(msgsRes.ticket.assigned_to.split('@')[0]);
+      }
+    } catch {}
+    setAllFiles([]);
+    setAllPreviews([]);
+    setUploading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,7 +204,19 @@ export default function ContactPage() {
                           ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 rounded-bl-md'
                           : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-bl-md'
                     }`}>
-                      <p className="whitespace-pre-wrap">{msg.message}</p>
+                      {msg.message === '[IMAGE]' && msg.metadata?.imageBase64 ? (
+                        <div>
+                          <img
+                            src={`data:${msg.metadata.mimeType || 'image/png'};base64,${msg.metadata.imageBase64}`}
+                            alt={msg.metadata.filename || 'Image'}
+                            className="max-w-full rounded-lg cursor-pointer hover:opacity-90"
+                            onClick={() => window.open(`data:${msg.metadata.mimeType || 'image/png'};base64,${msg.metadata.imageBase64}`)}
+                          />
+                          <p className="text-[10px] mt-1 opacity-70">{msg.metadata.filename || 'Image'}</p>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.message}</p>
+                      )}
                       <p className={`text-[10px] mt-1 ${
                         msg.sender_type === 'USER' ? 'text-violet-200' : 'text-slate-400 dark:text-slate-500'
                       }`}>
@@ -180,8 +235,32 @@ export default function ContactPage() {
               </div>
 
               {!isResolved ? (
-                <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl">
-                  <div className="flex gap-2">
+                <div className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl">
+                  {/* Image previews */}
+                  {allPreviews.length > 0 && (
+                    <div className="px-3 pt-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{allPreviews.length}/10</span>
+                        <button onClick={() => { setAllFiles([]); setAllPreviews([]); }} className="text-xs text-red-500 hover:underline">Tout supprimer</button>
+                        <button onClick={handleSendImages} disabled={uploading} className="text-xs bg-violet-600 text-white px-3 py-1 rounded-lg ml-auto">
+                          {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : `Envoyer (${allPreviews.length})`}
+                        </button>
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {allPreviews.map((img, i) => (
+                          <div key={i} className="relative shrink-0">
+                            <img src={img} className="w-14 h-14 object-cover rounded-lg border dark:border-slate-600" />
+                            <button onClick={() => removeImage(i)} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-3 flex gap-2">
+                    <input type="file" ref={fileInputRef} accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
+                    <button onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-400 dark:text-slate-400 hover:text-violet-500 transition-colors shrink-0" title="Ajouter des images">
+                      <Paperclip className="w-5 h-5" />
+                    </button>
                     <Input
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
@@ -189,7 +268,7 @@ export default function ContactPage() {
                       placeholder="Tapez votre message..."
                       disabled={chatLoading}
                     />
-                    <Button size="sm" onClick={handleSendMessage} disabled={chatLoading || !chatInput.trim()}>
+                    <Button size="sm" onClick={handleSendMessage} disabled={chatLoading || !chatInput.trim()} className="rounded-xl shrink-0">
                       {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </Button>
                   </div>
