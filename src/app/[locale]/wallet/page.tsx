@@ -153,6 +153,8 @@ export default function WalletPage() {
   const [withdrawOperator, setWithdrawOperator] = useState('Orange');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [withdrawRecipientName, setWithdrawRecipientName] = useState<string | null>(null);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -351,7 +353,31 @@ export default function WalletPage() {
     }
   };
 
-  const handleMobileWithdraw = async () => {
+  const handleMobileWithdrawLookup = async () => {
+    if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
+    setWithdrawLoading(true);
+    setWithdrawMessage(null);
+    setWithdrawRecipientName(null);
+    try {
+      const cleanPhone = withdrawPhone.replace(/^0+/, '');
+      const fullPhone = `${withdrawCountry.countryCode}${cleanPhone}`;
+      const result = await api.wallet.lookupRecipient({
+        phoneNumber: fullPhone,
+        currencyCode: withdrawCountry.code,
+        operator: withdrawOperator,
+      });
+      setWithdrawRecipientName(result.name);
+      setShowWithdrawConfirm(true);
+    } catch (error: any) {
+      setWithdrawMessage({
+        type: 'error',
+        text: error?.message || 'Erreur lors de la vérification du numéro.',
+      });
+    }
+    setWithdrawLoading(false);
+  };
+
+  const handleMobileWithdrawConfirm = async () => {
     if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
     setWithdrawLoading(true);
     setWithdrawMessage(null);
@@ -370,6 +396,8 @@ export default function WalletPage() {
       });
       setWithdrawAmount('');
       setWithdrawPhone('');
+      setWithdrawRecipientName(null);
+      setShowWithdrawConfirm(false);
       loadData();
     } catch (error: any) {
       setWithdrawMessage({
@@ -1014,7 +1042,7 @@ export default function WalletPage() {
                 </div>
                 <div className="flex items-end">
                   <Button
-                    onClick={handleMobileWithdraw}
+                    onClick={handleMobileWithdrawLookup}
                     disabled={withdrawLoading || !withdrawAmount || !withdrawPhone}
                     className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -1023,7 +1051,7 @@ export default function WalletPage() {
                     ) : (
                       <ArrowUp className="w-4 h-4 mr-2" />
                     )}
-                    {withdrawLoading ? 'Traitement...' : 'Retirer'}
+                    {withdrawLoading ? 'Vérification...' : 'Retirer'}
                   </Button>
                 </div>
               </div>
@@ -1057,6 +1085,71 @@ export default function WalletPage() {
                   );
                 })()}
               </div>
+
+              {/* CONFIRMATION RETRAIT */}
+              {showWithdrawConfirm && withdrawRecipientName && withdrawCountry && (() => {
+                const usdAmount = parseFloat(withdrawAmount) || 0;
+                const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
+                const fee = usdAmount * 0.03;
+                const netUSD = usdAmount - fee;
+                const localAmount = netUSD * rate;
+                return (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
+                      <div className="text-center">
+                        <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Phone className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirmer le retrait</h3>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Bénéficiaire</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">{withdrawRecipientName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Téléphone</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">{withdrawCountry.countryCode}{withdrawPhone.replace(/^0+/, '')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Opérateur</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">{withdrawOperator}</span>
+                        </div>
+                        <hr className="border-slate-200 dark:border-slate-700" />
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Montant</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">{usdAmount.toFixed(2)} USD</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Frais (3%)</span>
+                          <span className="font-semibold text-red-600 dark:text-red-400">-{fee.toFixed(2)} USD</span>
+                        </div>
+                        <div className="flex justify-between text-emerald-700 dark:text-emerald-400 font-bold">
+                          <span>Vous recevez</span>
+                          <span>{localAmount.toFixed(2)} {withdrawCountry.code}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => { setShowWithdrawConfirm(false); setWithdrawRecipientName(null); }}
+                          className="flex-1 py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          onClick={handleMobileWithdrawConfirm}
+                          disabled={withdrawLoading}
+                          className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {withdrawLoading ? 'Traitement...' : 'Confirmer le retrait'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
 
