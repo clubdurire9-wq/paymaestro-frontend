@@ -156,6 +156,40 @@ export default function IBANPage() {
         </Card>
       ) : (
         <div className="space-y-4">
+          {/* Instructions de dépôt */}
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800/50">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <Building className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-bold text-slate-900 dark:text-white">Recevoir un virement</h3>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-blue-200 dark:border-blue-800/50">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-2">Votre IBAN pour les dépôts</p>
+                <p className="text-xl font-mono font-bold text-slate-800 dark:text-white break-all">
+                  {ibans[0]?.iban?.replace(/(.{4})/g, '$1 ').trim()}
+                </p>
+                <button
+                  onClick={() => handleCopy(ibans[0].id, ibans[0].iban)}
+                  className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {copiedId === ibans[0].id ? '✓ Copié !' : '📋 Copier l\'IBAN'}
+                </button>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-2">
+                <p className="font-semibold">📋 Instructions :</p>
+                <p>1. Copiez votre IBAN ci-dessus</p>
+                <p>2. Faites un virement SEPA ou SWIFT depuis votre banque vers cet IBAN</p>
+                <p>3. Le montant sera crédité automatiquement sur votre wallet</p>
+              </div>
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 space-y-1">
+                <p><strong>⚠️ Délais :</strong></p>
+                <p>• Virement SEPA (Europe) : 1-2 jours ouvrés</p>
+                <p>• Virement SWIFT (International) : 3-5 jours ouvrés</p>
+                <p><strong>💰 Frais :</strong> 2% de conversion</p>
+              </div>
+            </CardContent>
+          </Card>
+
           {ibans.map((record) => {
             const isActive = record.status === 'ACTIVE';
             return (
