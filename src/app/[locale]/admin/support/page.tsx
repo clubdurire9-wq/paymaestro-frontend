@@ -204,9 +204,22 @@ export default function AdminSupportPage() {
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90" onClick={() => setLightbox(null)}>
-          <button className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10 bg-transparent border-0 cursor-pointer" onClick={() => setLightbox(null)}>✕</button>
-          <img src={lightbox} alt="Zoom" className="max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain select-none align-middle" onClick={e => e.stopPropagation()} />
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-sm select-none" onClick={() => setLightbox(null)}>
+          <button
+            className="absolute top-6 right-6 z-[100000] text-white/70 hover:text-white text-3xl font-bold p-2 transition-colors"
+            onClick={() => setLightbox(null)}
+          >
+            ✕
+          </button>
+          <div className="w-full h-full max-w-[90vw] max-h-[85vh] flex items-center justify-center pointer-events-none">
+            <img
+              src={lightbox}
+              alt="Visualisation"
+              className="max-w-full max-h-full object-contain pointer-events-auto block"
+              style={{ height: 'auto', width: 'auto', minHeight: 'unset', maxHeight: '85vh' }}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
     </div>
