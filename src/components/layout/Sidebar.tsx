@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeft,
+  LifeBuoy,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/hooks/useAdmin';
@@ -53,6 +54,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/kyc`, label: 'Vérification', icon: UserCheck },
     { href: `/${locale}/profile`, label: 'Profil', icon: User },
     { href: `/${locale}/developer`, label: 'Développeur', icon: Code },
+    { href: `/${locale}/contact`, label: 'Contact Support', icon: LifeBuoy },
     ...(isAdmin ? [{ href: `/${locale}/admin`, label: 'Admin', icon: ShieldAlert }] : []),
   ];
 
