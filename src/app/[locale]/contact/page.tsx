@@ -199,8 +199,9 @@ export default function ContactPage() {
               <div className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
                 {chatMessages.map((msg) => {
                   const newImages = msg.metadata?.images || [];
-                  const legacyImage = msg.metadata?.imageBase64
-                    ? [{ imageBase64: msg.metadata.imageBase64, mimeType: msg.metadata.mimeType || 'image/png', filename: msg.metadata.filename || 'image' }]
+                  const metaAny = msg.metadata as any;
+                  const legacyImage = metaAny?.imageBase64
+                    ? [{ imageBase64: metaAny.imageBase64, mimeType: metaAny.mimeType || 'image/png', filename: metaAny.filename || 'image' }]
                     : [];
                   const allImages = [...newImages, ...legacyImage];
                   const isImageOnly = msg.message === '[IMAGE]';

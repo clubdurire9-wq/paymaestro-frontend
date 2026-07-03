@@ -132,8 +132,9 @@ export default function AdminSupportPage() {
               <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
                 {messages.map(msg => {
                   const newImages = msg.metadata?.images || [];
-                  const legacyImage = msg.metadata?.imageBase64
-                    ? [{ imageBase64: msg.metadata.imageBase64, mimeType: msg.metadata.mimeType || 'image/png', filename: msg.metadata.filename || 'image' }]
+                  const metaAny = msg.metadata as any;
+                  const legacyImage = metaAny?.imageBase64
+                    ? [{ imageBase64: metaAny.imageBase64, mimeType: metaAny.mimeType || 'image/png', filename: metaAny.filename || 'image' }]
                     : [];
                   const allImages = [...newImages, ...legacyImage];
                   const isImageOnly = msg.message === '[IMAGE]';
