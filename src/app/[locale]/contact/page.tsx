@@ -198,7 +198,12 @@ export default function ContactPage() {
               {/* Messages */}
               <div className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
                 {chatMessages.map((msg) => {
-                  const images = msg.metadata?.images;
+                  const newImages = msg.metadata?.images || [];
+                  const legacyImage = msg.metadata?.imageBase64
+                    ? [{ imageBase64: msg.metadata.imageBase64, mimeType: msg.metadata.mimeType || 'image/png', filename: msg.metadata.filename || 'image' }]
+                    : [];
+                  const allImages = [...newImages, ...legacyImage];
+                  const isImageOnly = msg.message === '[IMAGE]';
                   return (
                     <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
@@ -208,17 +213,17 @@ export default function ContactPage() {
                             ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 rounded-bl-md'
                             : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-bl-md'
                       }`}>
-                        {msg.message && msg.message !== '[IMAGE]' && (
-                          <p className="whitespace-pre-wrap">{msg.message}</p>
+                        {!isImageOnly && msg.message && (
+                          <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                         )}
-                        {images && images.length > 0 && (
-                          <div className={`flex flex-wrap gap-1.5 ${msg.message && msg.message !== '[IMAGE]' ? 'mt-2' : ''}`}>
-                            {images.map((img, i) => (
-                              <button key={i} onClick={() => setLightbox(`data:${img.mimeType};base64,${img.imageBase64}`)} className="p-0 border-0 bg-transparent cursor-pointer">
+                        {allImages.length > 0 && (
+                          <div className={`flex flex-wrap gap-1.5 ${!isImageOnly && msg.message ? 'mt-2' : ''}`}>
+                            {allImages.map((img, i) => (
+                              <button key={i} onClick={() => setLightbox(`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`)} className="p-0 border-0 bg-transparent cursor-pointer">
                                 <img
-                                  src={`data:${img.mimeType};base64,${img.imageBase64}`}
-                                  alt={img.filename}
-                                  className="w-20 h-20 object-cover rounded-xl border border-white/20 hover:opacity-80 transition-opacity"
+                                  src={`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`}
+                                  alt={img.filename || `Image ${i+1}`}
+                                  className="w-20 h-20 object-cover rounded-xl border border-white/20 hover:opacity-80 transition-opacity block"
                                 />
                               </button>
                             ))}
@@ -311,21 +316,25 @@ export default function ContactPage() {
         {/* Lightbox */}
         {lightbox && (
           <div
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center"
             onClick={() => setLightbox(null)}
           >
             <button
               onClick={() => setLightbox(null)}
-              className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/30 rounded-full p-2 transition-colors"
+              className="absolute top-4 right-4 z-10 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
-            <img
-              src={lightbox}
-              alt="Image zoom"
-              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            <div
+              className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center"
               onClick={e => e.stopPropagation()}
-            />
+            >
+              <img
+                src={lightbox}
+                alt="Image zoom"
+                className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-2xl shadow-2xl"
+              />
+            </div>
           </div>
         )}
       </div>

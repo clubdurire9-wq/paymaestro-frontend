@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { MessageCircle, Send, User, Clock, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { MessageCircle, Send, User, Clock, CheckCircle2, Loader2, AlertCircle, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ export default function AdminSupportPage() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -129,49 +130,51 @@ export default function AdminSupportPage() {
                 </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
-                {messages.map(msg => (
-                  <div key={msg.id} className={`flex ${msg.sender_type === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                      msg.sender_type === 'ADMIN' ? 'bg-violet-600 text-white' :
-                      msg.sender_type === 'BOT' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300' :
-                      'bg-slate-100 text-slate-800'
-                    }`}>
-                      {msg.sender_type === 'ADMIN' && <p className="text-[10px] opacity-70">Admin</p>}
-                      {msg.sender_type === 'BOT' && <p className="text-[10px] opacity-70">🤖 Escalade automatique</p>}
-                      
-                      {/* Affichage de l'image si le message est de type [IMAGE] */}
-                      {msg.message === '[IMAGE]' && msg.metadata?.imageBase64 && (
-                        <img 
-                          src={`data:${msg.metadata.mimeType};base64,${msg.metadata.imageBase64}`}
-                          alt="Capture utilisateur"
-                          className="max-w-full rounded-lg cursor-pointer hover:opacity-90 mb-2"
-                          onClick={() => window.open(`data:${msg.metadata.mimeType};base64,${msg.metadata.imageBase64}`)}
-                        />
-                      )}
-                      
-                      {/* Affichage des images multiples (nouveau format metadata.images) */}
-                      {msg.metadata?.images && msg.metadata.images.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {msg.metadata.images.map((img: any, i: number) => (
-                            <img key={i}
-                              src={`data:${img.mimeType};base64,${img.imageBase64}`}
-                              alt={img.filename || `Image ${i+1}`}
-                              className="w-20 h-20 object-cover rounded-xl cursor-pointer hover:opacity-80 border border-slate-200"
-                              onClick={() => window.open(`data:${img.mimeType};base64,${img.imageBase64}`)}
-                            />
-                          ))}
-                        </div>
-                      )}
-                      
-                      {/* Afficher le texte du message s'il n'est pas [IMAGE] (legacy) */}
-                      {msg.message !== '[IMAGE]' && <p className="text-sm">{msg.message}</p>}
-                      
-                      <p className="text-[10px] opacity-50 text-right mt-1">
-                        {new Date(msg.created_at).toLocaleTimeString('fr-FR')}
-                      </p>
+                {messages.map(msg => {
+                  const newImages = msg.metadata?.images || [];
+                  const legacyImage = msg.metadata?.imageBase64
+                    ? [{ imageBase64: msg.metadata.imageBase64, mimeType: msg.metadata.mimeType || 'image/png', filename: msg.metadata.filename || 'image' }]
+                    : [];
+                  const allImages = [...newImages, ...legacyImage];
+                  const isImageOnly = msg.message === '[IMAGE]';
+                  return (
+                    <div key={msg.id} className={`flex ${msg.sender_type === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                        msg.sender_type === 'ADMIN' ? 'bg-violet-600 text-white' :
+                        msg.sender_type === 'BOT' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300' :
+                        'bg-slate-100 text-slate-800'
+                      }`}>
+                        {msg.sender_type === 'ADMIN' && <p className="text-[10px] opacity-70">Admin</p>}
+                        {msg.sender_type === 'BOT' && <p className="text-[10px] opacity-70">🤖 Escalade automatique</p>}
+                        
+                        {allImages.length > 0 && (
+                          <div className={`flex flex-wrap gap-2 ${!isImageOnly && msg.message ? 'mb-2' : ''}`}>
+                            {allImages.map((img: any, i: number) => (
+                              <button key={i}
+                                onClick={() => setLightbox(`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`)}
+                                className="p-0 border-0 bg-transparent cursor-pointer"
+                              >
+                                <img
+                                  src={`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`}
+                                  alt={img.filename || `Image ${i+1}`}
+                                  className="w-20 h-20 object-cover rounded-xl cursor-pointer hover:opacity-80 border border-slate-200 block"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {!isImageOnly && msg.message && (
+                          <p className="text-sm break-words">{msg.message}</p>
+                        )}
+                        
+                        <p className="text-[10px] opacity-50 text-right mt-1">
+                          {new Date(msg.created_at).toLocaleTimeString('fr-FR')}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </CardContent>
               <div className="p-4 border-t flex gap-2">
@@ -198,6 +201,30 @@ export default function AdminSupportPage() {
           )}
         </Card>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 z-10 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div
+            className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={lightbox}
+              alt="Image zoom"
+              className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
