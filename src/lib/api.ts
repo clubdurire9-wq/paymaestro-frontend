@@ -428,11 +428,12 @@ export const api = {
     getTicketMessages: (ticketId: number | string) => request<any>(`${API_URL}/chatbot/ticket/${ticketId}/messages`),
     sendTicketMessage: (ticketId: number | string, message: string, userEmail?: string) =>
       request<any>(`${API_URL}/chatbot/ticket/${ticketId}/message`, { method: 'POST', body: JSON.stringify({ message, userEmail }) }),
-    uploadTicketImages: (ticketId: number | string, files: File[], userEmail?: string) => {
+    sendWithImages: (ticketId: number | string, message: string, files: File[], userEmail?: string) => {
       const formData = new FormData();
+      formData.append('message', message);
       files.forEach(f => formData.append('images', f));
       if (userEmail) formData.append('userEmail', userEmail);
-      return requestFormData<any>(`${API_URL}/chatbot/ticket/${ticketId}/upload-images`, formData);
+      return requestFormData<any>(`${API_URL}/chatbot/ticket/${ticketId}/send`, formData);
     },
   },
 

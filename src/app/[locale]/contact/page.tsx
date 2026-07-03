@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X } from 'lucide-react';
+import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X, Expand, Minimize2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ interface ChatMessage {
   sender_email: string | null;
   message: string;
   created_at: string;
-  metadata?: { imageBase64?: string; mimeType?: string; filename?: string } | null;
+  metadata?: { images?: { imageBase64: string; mimeType: string; filename: string }[] } | null;
 }
 
 export default function ContactPage() {
@@ -35,21 +35,21 @@ export default function ContactPage() {
   const [ticketStatus, setTicketStatus] = useState<string>('OPEN');
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
-  const [polling, setPolling] = useState(false);
   const [agentName, setAgentName] = useState<string | null>(null);
-  const [allFiles, setAllFiles] = useState<File[]>([]);
-  const [allPreviews, setAllPreviews] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
+
+  // Image preview (attached inside input area)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingPreviews, setPendingPreviews] = useState<string[]>([]);
+
+  // Lightbox
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
   useEffect(() => {
     if (!ticketId) return;
-    setPolling(true);
     pollRef.current = setInterval(async () => {
       try {
         const msgsRes = await api.chatbot.getTicketMessages(ticketId);
@@ -64,44 +64,6 @@ export default function ContactPage() {
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [ticketId]);
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    for (let i = 0; i < Math.min(files.length, 10 - allFiles.length); i++) {
-      const file = files[i];
-      allFiles.push(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setAllPreviews(prev => [...prev, ev.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    }
-    setAllFiles([...allFiles]);
-    e.target.value = '';
-  };
-
-  const removeImage = (index: number) => {
-    setAllFiles(prev => prev.filter((_, i) => i !== index));
-    setAllPreviews(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSendImages = async () => {
-    if (allFiles.length === 0 || !ticketId) return;
-    setUploading(true);
-    try {
-      await api.chatbot.uploadTicketImages(ticketId, allFiles, userEmail);
-      const msgsRes = await api.chatbot.getTicketMessages(ticketId);
-      setChatMessages(msgsRes.messages || []);
-      if (msgsRes.ticket) {
-        setTicketStatus(msgsRes.ticket.status);
-        if (msgsRes.ticket.assigned_to) setAgentName(msgsRes.ticket.assigned_to.split('@')[0]);
-      }
-    } catch {}
-    setAllFiles([]);
-    setAllPreviews([]);
-    setUploading(false);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +85,7 @@ export default function ContactPage() {
         ticket_id: res.ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: `Patientez quelques minutes, un agent va prendre en charge votre demande.`,
+        message: 'Patientez quelques minutes, un agent va prendre en charge votre demande.',
         created_at: new Date().toISOString(),
       }]);
     } catch (err: any) {
@@ -133,13 +95,49 @@ export default function ContactPage() {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!chatInput.trim() || !ticketId || chatLoading) return;
+  // File selection
+  const handleAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newFiles: File[] = [];
+    const newPreviews: string[] = [];
+    const remaining = 10 - pendingFiles.length;
+    for (let i = 0; i < Math.min(files.length, remaining); i++) {
+      const file = files[i];
+      newFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        newPreviews.push(ev.target?.result as string);
+        if (newPreviews.length === newFiles.length) {
+          setPendingFiles(prev => [...prev, ...newFiles].slice(0, 10));
+          setPendingPreviews(prev => [...prev, ...newPreviews].slice(0, 10));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
+  };
+
+  const removePending = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+    setPendingPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Unified send: text + images together
+  const handleSend = async () => {
+    const hasText = chatInput.trim().length > 0;
+    const hasImages = pendingFiles.length > 0;
+    if ((!hasText && !hasImages) || !ticketId || chatLoading) return;
+
     const text = chatInput.trim();
+    const files = [...pendingFiles];
     setChatInput('');
+    setPendingFiles([]);
+    setPendingPreviews([]);
     setChatLoading(true);
+
     try {
-      await api.chatbot.sendTicketMessage(ticketId, text, userEmail);
+      await api.chatbot.sendWithImages(ticketId, text, files, userEmail);
       const msgsRes = await api.chatbot.getTicketMessages(ticketId);
       setChatMessages(msgsRes.messages || []);
       if (msgsRes.ticket) {
@@ -152,7 +150,7 @@ export default function ContactPage() {
         ticket_id: ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: 'Erreur lors de l\'envoi du message. Réessayez.',
+        message: 'Erreur lors de l\'envoi. Réessayez.',
         created_at: new Date().toISOString(),
       }]);
     } finally {
@@ -160,13 +158,16 @@ export default function ContactPage() {
     }
   };
 
-  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSend();
     }
   };
 
+  const canSend = (chatInput.trim().length > 0 || pendingFiles.length > 0) && !chatLoading;
+
+  // Render chat interface
   if (ticketId) {
     const isResolved = ticketStatus === 'RESOLVED' || ticketStatus === 'CLOSED';
     return (
@@ -194,37 +195,44 @@ export default function ContactPage() {
 
           <Card>
             <CardContent className="p-0">
-              <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
-                {chatMessages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
-                      msg.sender_type === 'USER'
-                        ? 'bg-violet-600 text-white rounded-br-md'
-                        : msg.sender_type === 'ADMIN'
-                          ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 rounded-bl-md'
-                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-bl-md'
-                    }`}>
-                      {msg.message === '[IMAGE]' && msg.metadata?.imageBase64 ? (
-                        <div>
-                          <img
-                            src={`data:${msg.metadata.mimeType || 'image/png'};base64,${msg.metadata.imageBase64}`}
-                            alt={msg.metadata.filename || 'Image'}
-                            className="max-w-full rounded-lg cursor-pointer hover:opacity-90"
-                            onClick={() => window.open(`data:${msg.metadata.mimeType || 'image/png'};base64,${msg.metadata.imageBase64}`)}
-                          />
-                          <p className="text-[10px] mt-1 opacity-70">{msg.metadata.filename || 'Image'}</p>
-                        </div>
-                      ) : (
-                        <p className="whitespace-pre-wrap">{msg.message}</p>
-                      )}
-                      <p className={`text-[10px] mt-1 ${
-                        msg.sender_type === 'USER' ? 'text-violet-200' : 'text-slate-400 dark:text-slate-500'
+              {/* Messages */}
+              <div className="h-96 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-900 rounded-t-2xl">
+                {chatMessages.map((msg) => {
+                  const images = msg.metadata?.images;
+                  return (
+                    <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+                        msg.sender_type === 'USER'
+                          ? 'bg-violet-600 text-white rounded-br-md'
+                          : msg.sender_type === 'ADMIN'
+                            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 rounded-bl-md'
+                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-bl-md'
                       }`}>
-                        {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                        {msg.message && msg.message !== '[IMAGE]' && (
+                          <p className="whitespace-pre-wrap">{msg.message}</p>
+                        )}
+                        {images && images.length > 0 && (
+                          <div className={`flex flex-wrap gap-1.5 ${msg.message && msg.message !== '[IMAGE]' ? 'mt-2' : ''}`}>
+                            {images.map((img, i) => (
+                              <button key={i} onClick={() => setLightbox(`data:${img.mimeType};base64,${img.imageBase64}`)} className="p-0 border-0 bg-transparent cursor-pointer">
+                                <img
+                                  src={`data:${img.mimeType};base64,${img.imageBase64}`}
+                                  alt={img.filename}
+                                  className="w-20 h-20 object-cover rounded-xl border border-white/20 hover:opacity-80 transition-opacity"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <p className={`text-[10px] mt-1 ${
+                          msg.sender_type === 'USER' ? 'text-violet-200' : 'text-slate-400 dark:text-slate-500'
+                        }`}>
+                          {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {!isResolved && !agentName && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-300">
                     <Clock className="w-4 h-4 shrink-0" />
@@ -234,43 +242,55 @@ export default function ContactPage() {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Input area (Gemini-style) */}
               {!isResolved ? (
                 <div className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl">
-                  {/* Image previews */}
-                  {allPreviews.length > 0 && (
-                    <div className="px-3 pt-3 pb-2 border-b border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs text-slate-500 dark:text-slate-400">{allPreviews.length}/10</span>
-                        <button onClick={() => { setAllFiles([]); setAllPreviews([]); }} className="text-xs text-red-500 hover:underline">Tout supprimer</button>
-                        <button onClick={handleSendImages} disabled={uploading} className="text-xs bg-violet-600 text-white px-3 py-1 rounded-lg ml-auto">
-                          {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : `Envoyer (${allPreviews.length})`}
-                        </button>
-                      </div>
-                      <div className="flex gap-2 overflow-x-auto pb-1">
-                        {allPreviews.map((img, i) => (
-                          <div key={i} className="relative shrink-0">
-                            <img src={img} className="w-14 h-14 object-cover rounded-lg border dark:border-slate-600" />
-                            <button onClick={() => removeImage(i)} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✕</button>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="flex items-end gap-2 p-3">
+                    <div className="flex-1 flex flex-col gap-2 px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 transition-colors">
+                      {/* Inline image thumbnails */}
+                      {pendingPreviews.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {pendingPreviews.map((preview, i) => (
+                            <div key={i} className="relative group">
+                              <img src={preview} className="w-16 h-16 object-cover rounded-xl border border-slate-200 dark:border-slate-600" />
+                              <button
+                                onClick={() => removePending(i)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={e => setChatInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={pendingPreviews.length > 0 ? 'Ajouter un message...' : 'Tapez votre message...'}
+                        disabled={chatLoading}
+                        className="w-full bg-transparent border-0 outline-none text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 p-0"
+                      />
                     </div>
-                  )}
-                  <div className="p-3 flex gap-2">
-                    <input type="file" ref={fileInputRef} accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
-                    <button onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-400 dark:text-slate-400 hover:text-violet-500 transition-colors shrink-0" title="Ajouter des images">
-                      <Paperclip className="w-5 h-5" />
-                    </button>
-                    <Input
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      onKeyDown={handleChatKeyDown}
-                      placeholder="Tapez votre message..."
-                      disabled={chatLoading}
-                    />
-                    <Button size="sm" onClick={handleSendMessage} disabled={chatLoading || !chatInput.trim()} className="rounded-xl shrink-0">
-                      {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <input type="file" ref={fileInputRef} accept="image/*" multiple className="hidden" onChange={handleAttach} />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={pendingFiles.length >= 10}
+                        className="p-2 text-slate-400 dark:text-slate-400 hover:text-violet-500 disabled:opacity-30 transition-colors"
+                        title="Ajouter des images"
+                      >
+                        <Paperclip className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={handleSend}
+                        disabled={!canSend}
+                        className="p-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -287,10 +307,32 @@ export default function ContactPage() {
             Ticket #{ticketId} · {ticketStatus === 'OPEN' ? 'En attente' : ticketStatus === 'IN_PROGRESS' ? 'En cours' : 'Résolu'}
           </p>
         </div>
+
+        {/* Lightbox */}
+        {lightbox && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/30 rounded-full p-2 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={lightbox}
+              alt="Image zoom"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     );
   }
 
+  // Form
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
@@ -308,65 +350,46 @@ export default function ContactPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Nom <span className="text-slate-400 dark:text-slate-500">(optionnel)</span>
-                </label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nom <span className="text-slate-400 dark:text-slate-500">(optionnel)</span></label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom" className="pl-10" />
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Email <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" required className="pl-10" />
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Sujet <span className="text-slate-400 dark:text-slate-500">(optionnel)</span>
-                </label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Sujet <span className="text-slate-400 dark:text-slate-500">(optionnel)</span></label>
                 <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ex: Problème de retrait" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Message <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Message <span className="text-red-500">*</span></label>
                 <textarea
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   placeholder="Décrivez votre demande en quelques lignes..."
-                  required
-                  rows={4}
+                  required rows={4}
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-colors resize-none"
                 />
               </div>
-
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
                   <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               )}
-
               <Button type="submit" disabled={sending || !email.trim() || !message.trim()} className="w-full">
-                {sending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Envoi en cours...</>
-                ) : 'Envoyer'}
+                {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Envoi en cours...</> : 'Envoyer'}
               </Button>
             </form>
           </CardContent>
         </Card>
-
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
-          Notre équipe est disponible 24h/24 et 7j/7.
-        </p>
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">Notre équipe est disponible 24h/24 et 7j/7.</p>
       </div>
     </div>
   );

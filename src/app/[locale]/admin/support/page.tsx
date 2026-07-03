@@ -149,7 +149,21 @@ export default function AdminSupportPage() {
                         />
                       )}
                       
-                      {/* Afficher le texte du message s'il n'est pas [IMAGE] */}
+                      {/* Affichage des images multiples (nouveau format metadata.images) */}
+                      {msg.metadata?.images && msg.metadata.images.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {msg.metadata.images.map((img: any, i: number) => (
+                            <img key={i}
+                              src={`data:${img.mimeType};base64,${img.imageBase64}`}
+                              alt={img.filename || `Image ${i+1}`}
+                              className="w-20 h-20 object-cover rounded-xl cursor-pointer hover:opacity-80 border border-slate-200"
+                              onClick={() => window.open(`data:${img.mimeType};base64,${img.imageBase64}`)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Afficher le texte du message s'il n'est pas [IMAGE] (legacy) */}
                       {msg.message !== '[IMAGE]' && <p className="text-sm">{msg.message}</p>}
                       
                       <p className="text-[10px] opacity-50 text-right mt-1">
