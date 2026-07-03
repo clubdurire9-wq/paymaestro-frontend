@@ -50,7 +50,7 @@ export default function ContactPage() {
     pollRef.current = setInterval(async () => {
       try {
         const msgsRes = await api.chatbot.getTicketMessages(ticketId);
-        setChatMessages(msgsRes.data || []);
+        setChatMessages(msgsRes.messages || []);
         if (msgsRes.ticket) {
           setTicketStatus(msgsRes.ticket.status);
           if (msgsRes.ticket.assigned_to) {
@@ -74,12 +74,12 @@ export default function ContactPage() {
         subject: subject.trim(),
         message: message.trim(),
       });
-      setTicketId(res.data.ticketId);
+      setTicketId(res.ticketId);
       setUserEmail(email.trim());
-      setSessionId(res.data.sessionId);
+      setSessionId(res.sessionId);
       setChatMessages([{
         id: -1,
-        ticket_id: res.data.ticketId,
+        ticket_id: res.ticketId,
         sender_type: 'BOT',
         sender_email: null,
         message: `Patientez quelques minutes, un agent va prendre en charge votre demande.`,
@@ -99,11 +99,11 @@ export default function ContactPage() {
     setChatLoading(true);
     try {
       await api.chatbot.sendTicketMessage(ticketId, text, userEmail);
-      const res = await api.chatbot.getTicketMessages(ticketId);
-      setChatMessages(res.data || []);
-      if (res.ticket) {
-        setTicketStatus(res.ticket.status);
-        if (res.ticket.assigned_to) setAgentName(res.ticket.assigned_to.split('@')[0]);
+      const msgsRes = await api.chatbot.getTicketMessages(ticketId);
+      setChatMessages(msgsRes.messages || []);
+      if (msgsRes.ticket) {
+        setTicketStatus(msgsRes.ticket.status);
+        if (msgsRes.ticket.assigned_to) setAgentName(msgsRes.ticket.assigned_to.split('@')[0]);
       }
     } catch {
       setChatMessages(prev => [...prev, {
