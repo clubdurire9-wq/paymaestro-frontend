@@ -23,6 +23,7 @@ import {
   PanelLeft,
   LifeBuoy,
   BookOpen,
+  Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/hooks/useAdmin';
@@ -51,7 +52,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/cards`, label: 'Cartes', icon: CreditCard },
     { href: `/${locale}/crypto`, label: 'Crypto', icon: Bitcoin },
     { href: `/${locale}/payment-page`, label: 'Page Paiement', icon: Globe },
-    ...(isGatewayAdmin ? [{ href: `/${locale}/bank`, label: 'Banque', icon: Building }] : []),
+    { href: `/${locale}/bank`, label: 'Banque', icon: Landmark },
     { href: `/${locale}/referral`, label: 'Parrainage', icon: Gift },
     { href: `/${locale}/kyc`, label: 'Vérification', icon: UserCheck },
     { href: `/${locale}/profile`, label: 'Profil', icon: User },
