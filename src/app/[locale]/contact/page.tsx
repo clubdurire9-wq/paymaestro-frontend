@@ -319,22 +319,29 @@ export default function ContactPage() {
 
         {/* Lightbox */}
         {lightbox && (
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-sm select-none" onClick={() => setLightbox(null)}>
+          <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-sm select-none flex items-center justify-center" onClick={() => setLightbox(null)}>
             <button
-              className="absolute top-6 right-6 z-[100000] text-white/70 hover:text-white text-3xl font-bold p-2 transition-colors"
+              className="absolute top-6 right-6 z-[100000] text-white/70 hover:text-white text-3xl font-bold p-2"
               onClick={() => setLightbox(null)}
             >
               ✕
             </button>
-            <div className="w-full h-full max-w-[90vw] max-h-[85vh] flex items-center justify-center pointer-events-none">
-              <img
-                src={lightbox}
-                alt="Visualisation"
-                className="max-w-full max-h-full object-contain pointer-events-auto block"
-                style={{ height: 'auto', width: 'auto', minHeight: 'unset', maxHeight: '85vh' }}
-                onClick={e => e.stopPropagation()}
-              />
-            </div>
+            <img
+              src={lightbox}
+              alt="Visualisation"
+              className="absolute max-w-[90vw] max-h-[85vh] block"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'contain'
+              }}
+              onClick={e => e.stopPropagation()}
+              onLoad={(e) => console.log("Dimensions réelles de l'image chargée :", e.currentTarget.naturalWidth, "x", e.currentTarget.naturalHeight)}
+              onError={() => console.error("Erreur de chargement de la source de l'image :", lightbox?.substring(0, 100))}
+            />
           </div>
         )}
       </div>
