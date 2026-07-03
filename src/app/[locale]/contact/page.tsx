@@ -220,13 +220,16 @@ export default function ContactPage() {
                         {allImages.length > 0 && (
                           <div className={`flex flex-wrap gap-1.5 ${!isImageOnly && msg.message ? 'mt-2' : ''}`}>
                             {allImages.map((img, i) => (
-                              <button key={i} onClick={() => setLightbox(`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`)} className="p-0 border-0 bg-transparent cursor-pointer">
+                              <div key={i}
+                                onClick={() => setLightbox(`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`)}
+                                className="w-20 h-20 rounded-xl overflow-hidden border border-white/30 shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-slate-800/40"
+                              >
                                 <img
                                   src={`data:${img.mimeType || 'image/png'};base64,${img.imageBase64}`}
                                   alt={img.filename || `Image ${i+1}`}
-                                  className="w-20 h-20 object-cover rounded-xl border border-white/20 hover:opacity-80 transition-opacity block"
+                                  className="w-full h-full object-cover"
                                 />
-                              </button>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -317,25 +320,23 @@ export default function ContactPage() {
         {/* Lightbox */}
         {lightbox && (
           <div
-            className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center"
+            className="fixed inset-0 z-[999] bg-black flex items-center justify-center"
             onClick={() => setLightbox(null)}
           >
             <button
               onClick={() => setLightbox(null)}
-              className="absolute top-4 right-4 z-10 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
+              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+              aria-label="Fermer"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
-            <div
-              className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+            <img
+              src={lightbox}
+              alt=""
               onClick={e => e.stopPropagation()}
-            >
-              <img
-                src={lightbox}
-                alt="Image zoom"
-                className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-2xl shadow-2xl"
-              />
-            </div>
+              className="max-w-[95vw] max-h-[95vh] object-contain select-none"
+              draggable={false}
+            />
           </div>
         )}
       </div>
