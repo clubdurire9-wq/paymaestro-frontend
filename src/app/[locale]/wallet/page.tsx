@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import { ALL_COUNTRIES, CountryData } from '@/data/countries';
 import { api } from '@/lib/api';
+import { PasswordModal } from '@/components/wallet/PasswordModal';
 
 interface Balance {
   USD: number;
@@ -172,6 +173,7 @@ export default function WalletPage() {
   const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [withdrawRecipientName, setWithdrawRecipientName] = useState<string | null>(null);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [showWithdrawPassword, setShowWithdrawPassword] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -412,9 +414,19 @@ export default function WalletPage() {
 
   const handleMobileWithdrawConfirm = async () => {
     if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
+    // Fermer la modale de confirmation et ouvrir la modale mot de passe
+    setShowWithdrawConfirm(false);
+    setShowWithdrawPassword(true);
+  };
+
+  const handleMobileWithdrawWithPassword = async (password: string) => {
+    if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
     setWithdrawLoading(true);
     setWithdrawMessage(null);
     try {
+      // 1. Obtenir le token step-up
+      const stepUp = await api.auth.generateStepUpToken({ password });
+      // 2. Effectuer le retrait avec le token
       const cleanPhone = withdrawPhone.replace(/^0+/, '');
       const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
       const result = await api.wallet.withdrawMobile({
@@ -422,6 +434,7 @@ export default function WalletPage() {
         currencyCode: withdrawCountry.code,
         phoneNumber: `${withdrawCountry.countryCode}${cleanPhone}`,
         exchangeRate: rate,
+        stepUpToken: stepUp.stepUpToken,
       });
       setWithdrawMessage({
         type: 'success',
@@ -1084,6 +1097,14 @@ export default function WalletPage() {
                   </div>
                 );
               })()}
+
+              {/* Modale mot de passe pour confirmer le retrait */}
+              {showWithdrawPassword && (
+                <PasswordModal
+                  onVerify={handleMobileWithdrawWithPassword}
+                  onClose={() => { setShowWithdrawPassword(false); setShowWithdrawConfirm(true); }}
+                />
+              )}
             </CardContent>
           </Card>
 
