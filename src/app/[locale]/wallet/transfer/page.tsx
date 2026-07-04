@@ -150,8 +150,10 @@ export default function TransferPage() {
       const d = await res.json();
       if (d.success) {
         setResult(d.data);
+        setShowPassword(false);
         setStep('done');
       } else {
+        setShowPassword(false);
         setError(d.error || d.message || 'Erreur lors du transfert. Veuillez réessayer.');
       }
     } catch {
