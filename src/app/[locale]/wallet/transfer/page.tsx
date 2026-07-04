@@ -24,7 +24,6 @@ export default function TransferPage() {
 
   const [step, setStep] = useState<'source' | 'lookup' | 'pm-amount' | 'done'>('source');
   const [source, setSource] = useState<'pm'>('pm');
-  const [balance, setBalance] = useState<any>(null);
   const [amount, setAmount] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,14 +42,6 @@ export default function TransferPage() {
       setStep('lookup');
     }
   }, [sourceParam]);
-
-  useEffect(() => {
-    if (source === 'wallet') {
-      fetch(`${API_URL}/wallet/balance`, { headers })
-        .then(r => r.json())
-        .then(d => setBalance(d.data));
-    }
-  }, [source]);
 
   const handleLookupRecipient = async () => {
     setLoading(true);
