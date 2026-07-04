@@ -281,6 +281,7 @@ export default function TransferPage() {
       )}
 
       {/* ÉTAPE PM-AMOUNT (Montant PayMaestro → PayMaestro) */}
+      {step === 'pm-amount' && (
         <Card>
           <CardContent className="p-6 space-y-4">
             <h3 className="font-semibold text-lg">💸 Montant à envoyer</h3>
