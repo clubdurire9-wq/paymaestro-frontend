@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   Wallet, ArrowDown, ArrowUp, Send, RefreshCw, 
   DollarSign, Loader2, TrendingUp, TrendingDown, Building,
-  Users, Phone, CreditCard, CheckCircle2, AlertTriangle, X
+  Users, Phone, CreditCard, CheckCircle2, AlertTriangle, X, Lock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -160,6 +160,8 @@ export default function WalletPage() {
   const [wallet2PaypalEmail, setWallet2PaypalEmail] = useState('');
   const [showWallet2PaypalConfirm, setShowWallet2PaypalConfirm] = useState(false);
   const [mobilePendingTxId, setMobilePendingTxId] = useState<number | null>(null);
+  const [flutterwaveCheckoutUrl, setFlutterwaveCheckoutUrl] = useState<string | null>(null);
+  const [showFlutterwaveModal, setShowFlutterwaveModal] = useState(false);
 
   // Retrait Mobile Money
   const [withdrawCountry, setWithdrawCountry] = useState<CountryData | null>(null);
@@ -304,27 +306,12 @@ export default function WalletPage() {
       });
       if (result?.needsRedirect && result?.checkoutUrl) {
         setMobilePendingTxId(result.transactionId);
-        const popup = window.open(result.checkoutUrl, 'flutterwave_payment', 'width=500,height=700,menubar=no,toolbar=no,location=no');
-        if (!popup) {
-          setDepositModalData({
-            type: 'error',
-            title: 'Fenêtre bloquée',
-            message: 'Autorisez les popups pour finaliser le paiement sécurisé.',
-          });
-          setShowDepositModal(true);
-          setMobilePendingTxId(null);
-          setMobileDepositLoading(false);
-        } else {
-          setMobileDepositMessage({
-            type: 'info',
-            text: `🔒 Paiement sécurisé Flutterwave ouvert dans une nouvelle fenêtre. Finalisez la transaction, votre wallet sera crédité automatiquement.`
-          });
-          const checkPopup = setInterval(() => {
-            if (popup.closed) {
-              clearInterval(checkPopup);
-            }
-          }, 1000);
-        }
+        setFlutterwaveCheckoutUrl(result.checkoutUrl);
+        setShowFlutterwaveModal(true);
+        setMobileDepositMessage({
+          type: 'info',
+          text: `🔒 Paiement sécurisé en cours dans l'espace dédié. Finalisez la transaction, votre wallet sera crédité automatiquement.`
+        });
         return;
       }
       if (result?.pending) {
@@ -1430,6 +1417,45 @@ export default function WalletPage() {
             >
               {depositModalData.type === 'success' ? 'Accéder au portefeuille' : 'Réessayer'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE PAIEMENT FLUTTERWAVE (IFRAME) */}
+      {showFlutterwaveModal && flutterwaveCheckoutUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in duration-200 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">Paiement sécurisé</span>
+              </div>
+              <button
+                onClick={() => { setShowFlutterwaveModal(false); setFlutterwaveCheckoutUrl(null); }}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/50">
+              <iframe
+                src={flutterwaveCheckoutUrl}
+                className="w-full border-0"
+                style={{ height: '520px' }}
+                title="Paiement sécurisé Flutterwave"
+                sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+              />
+            </div>
+            <div className="px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                🔒 Connexion sécurisée via Flutterwave
+              </span>
+              <span className="text-xs text-slate-400">
+                Votre wallet sera crédité automatiquement
+              </span>
+            </div>
           </div>
         </div>
       )}
