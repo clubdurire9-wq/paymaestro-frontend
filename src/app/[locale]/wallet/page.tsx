@@ -174,6 +174,8 @@ export default function WalletPage() {
   const [withdrawRecipientName, setWithdrawRecipientName] = useState<string | null>(null);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
   const [showWithdrawPassword, setShowWithdrawPassword] = useState(false);
+  const [showWithdrawResult, setShowWithdrawResult] = useState(false);
+  const [withdrawResultData, setWithdrawResultData] = useState<{ type: 'success' | 'error'; title: string; message: string; amount?: string } | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -424,9 +426,7 @@ export default function WalletPage() {
     setWithdrawLoading(true);
     setWithdrawMessage(null);
     try {
-      // 1. Obtenir le token step-up
       const stepUp = await api.auth.generateStepUpToken({ password });
-      // 2. Effectuer le retrait avec le token
       const cleanPhone = withdrawPhone.replace(/^0+/, '');
       const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
       const result = await api.wallet.withdrawMobile({
@@ -436,20 +436,27 @@ export default function WalletPage() {
         exchangeRate: rate,
         stepUpToken: stepUp.stepUpToken,
       });
-      setWithdrawMessage({
+      setShowWithdrawPassword(false);
+      setWithdrawResultData({
         type: 'success',
-        text: `✅ Retrait de ${withdrawAmount} USD envoyé vers ${withdrawCountry.countryCode}${cleanPhone}.`,
+        title: 'Retrait réussi !',
+        message: `Transfert de ${parseFloat(withdrawAmount).toFixed(2)} USD vers ${withdrawCountry.countryCode}${cleanPhone}.`,
+        amount: `${(parseFloat(withdrawAmount) * 0.97 * rate).toFixed(2)} ${withdrawCountry.code}`,
       });
+      setShowWithdrawResult(true);
       setWithdrawAmount('');
       setWithdrawPhone('');
       setWithdrawRecipientName(null);
       setShowWithdrawConfirm(false);
       loadData();
     } catch (error: any) {
-      setWithdrawMessage({
+      setShowWithdrawPassword(false);
+      setWithdrawResultData({
         type: 'error',
-        text: error?.message || 'Erreur lors du retrait. Veuillez réessayer.',
+        title: 'Retrait échoué',
+        message: error?.message || 'Erreur lors du retrait. Veuillez réessayer.',
       });
+      setShowWithdrawResult(true);
     }
     setWithdrawLoading(false);
   };
@@ -1104,6 +1111,42 @@ export default function WalletPage() {
                   onVerify={handleMobileWithdrawWithPassword}
                   onClose={() => { setShowWithdrawPassword(false); setShowWithdrawConfirm(true); }}
                 />
+              )}
+
+              {/* MODALE RÉSULTAT RETRAIT */}
+              {showWithdrawResult && withdrawResultData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center space-y-5 animate-in fade-in zoom-in duration-200">
+                    {withdrawResultData.type === 'success' ? (
+                      <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center mx-auto">
+                        <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className={`text-xl font-bold ${withdrawResultData.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                        {withdrawResultData.title}
+                      </h3>
+                      {withdrawResultData.amount && (
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{withdrawResultData.amount}</p>
+                      )}
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{withdrawResultData.message}</p>
+                    </div>
+                    <button
+                      onClick={() => { setShowWithdrawResult(false); setWithdrawResultData(null); }}
+                      className={`w-full py-3 rounded-xl font-medium text-sm text-white transition-colors ${
+                        withdrawResultData.type === 'success'
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500'
+                      }`}
+                    >
+                      {withdrawResultData.type === 'success' ? 'Accéder au portefeuille' : 'Réessayer'}
+                    </button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
