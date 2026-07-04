@@ -295,6 +295,8 @@ export const api = {
     hasPassword: () => request<{ hasPassword: boolean }>(`${API_URL}/wallet/password/exists`),
     lookupRecipient: (data: { phoneNumber: string; currencyCode: string; operator?: string }) =>
       request<any>(`${API_URL}/wallet/lookup-recipient`, { method: 'POST', body: JSON.stringify(data) }),
+    resolveMomo: (data: { phoneNumber: string; currencyCode: string; operator?: string }) =>
+      request<any>(`${API_URL}/wallet/resolve-momo`, { method: 'POST', body: JSON.stringify(data) }),
     lookupUser: (email: string) =>
       request<any>(`${API_URL}/wallet/lookup-user`, { method: 'POST', body: JSON.stringify({ email }) }),
     transferToMobile: (data: any) =>

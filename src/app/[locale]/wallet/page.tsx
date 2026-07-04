@@ -170,6 +170,7 @@ export default function WalletPage() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawOperator, setWithdrawOperator] = useState('Orange');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawVerifying, setWithdrawVerifying] = useState(false);
   const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [withdrawRecipientName, setWithdrawRecipientName] = useState<string | null>(null);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
@@ -392,13 +393,13 @@ export default function WalletPage() {
 
   const handleMobileWithdrawLookup = async () => {
     if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
-    setWithdrawLoading(true);
+    setWithdrawVerifying(true);
     setWithdrawMessage(null);
     setWithdrawRecipientName(null);
     try {
       const cleanPhone = withdrawPhone.replace(/^0+/, '');
       const fullPhone = `${withdrawCountry.countryCode}${cleanPhone}`;
-      const result = await api.wallet.lookupRecipient({
+      const result = await api.wallet.resolveMomo({
         phoneNumber: fullPhone,
         currencyCode: withdrawCountry.code,
         operator: withdrawOperator,
@@ -408,10 +409,10 @@ export default function WalletPage() {
     } catch (error: any) {
       setWithdrawMessage({
         type: 'error',
-        text: error?.message || 'Erreur lors de la vérification du numéro.',
+        text: error?.message || 'Numéro introuvable ou invalide. Vérifiez le numéro et l\'opérateur.',
       });
     }
-    setWithdrawLoading(false);
+    setWithdrawVerifying(false);
   };
 
   const handleMobileWithdrawConfirm = async () => {
@@ -1011,15 +1012,15 @@ export default function WalletPage() {
                 <div className="flex items-end">
                   <Button
                     onClick={handleMobileWithdrawLookup}
-                    disabled={withdrawLoading || !withdrawAmount || !withdrawPhone}
+                    disabled={withdrawVerifying || !withdrawAmount || !withdrawPhone}
                     className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {withdrawLoading ? (
+                    {withdrawVerifying ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <ArrowUp className="w-4 h-4 mr-2" />
                     )}
-                    {withdrawLoading ? 'Vérification...' : 'Retirer'}
+                    {withdrawVerifying ? 'Vérification...' : 'Retirer'}
                   </Button>
                 </div>
               </div>
