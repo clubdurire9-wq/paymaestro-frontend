@@ -303,7 +303,28 @@ export default function WalletPage() {
         operator: mobileOperator,
       });
       if (result?.needsRedirect && result?.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+        setMobilePendingTxId(result.transactionId);
+        const popup = window.open(result.checkoutUrl, 'flutterwave_payment', 'width=500,height=700,menubar=no,toolbar=no,location=no');
+        if (!popup) {
+          setDepositModalData({
+            type: 'error',
+            title: 'Fenêtre bloquée',
+            message: 'Autorisez les popups pour finaliser le paiement sécurisé.',
+          });
+          setShowDepositModal(true);
+          setMobilePendingTxId(null);
+          setMobileDepositLoading(false);
+        } else {
+          setMobileDepositMessage({
+            type: 'info',
+            text: `🔒 Paiement sécurisé Flutterwave ouvert dans une nouvelle fenêtre. Finalisez la transaction, votre wallet sera crédité automatiquement.`
+          });
+          const checkPopup = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(checkPopup);
+            }
+          }, 1000);
+        }
         return;
       }
       if (result?.pending) {
