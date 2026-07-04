@@ -137,7 +137,6 @@ export default function WalletPage() {
   const [mobilePhone, setMobilePhone] = useState('');
   const [mobileAmount, setMobileAmount] = useState('');
   const [mobileDepositLoading, setMobileDepositLoading] = useState(false);
-  const [paystackRedirecting, setPaystackRedirecting] = useState(false);
   const [mobileDepositMessage, setMobileDepositMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [depositModalData, setDepositModalData] = useState<{ type: 'success' | 'error'; title: string; message: string; amount?: string } | null>(null);
@@ -222,26 +221,6 @@ export default function WalletPage() {
   useEffect(() => {
     loadData();
     loadUser();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('paystack_callback') === '1') {
-      const trx = params.get('trx');
-      loadData();
-      setDepositModalData({
-        type: 'success',
-        title: 'Paiement reçu !',
-        message: trx
-          ? `Votre transaction a été traitée par Paystack. Le crédit apparaît dans votre wallet sous peu.`
-          : `Votre wallet va être crédité. Vérifiez votre solde ci-dessous.`,
-      });
-      setShowDepositModal(true);
-      const url = new URL(window.location.href);
-      url.searchParams.delete('paystack_callback');
-      url.searchParams.delete('trx');
-      window.history.replaceState({}, '', url.toString());
-    }
   }, []);
 
   const loadData = async () => {
@@ -330,17 +309,6 @@ export default function WalletPage() {
         operator: mobileOperator,
       });
       if (result?.needsRedirect && result?.checkoutUrl) {
-        if (result.provider === 'PAYSTACK') {
-          setPaystackRedirecting(true);
-          setMobileDepositMessage({
-            type: 'info',
-            text: `🔒 Redirection sécurisée vers Paystack...`
-          });
-          setTimeout(() => {
-            window.location.href = result.checkoutUrl;
-          }, 1500);
-          return;
-        }
         setMobilePendingTxId(result.transactionId);
         setFlutterwaveCheckoutUrl(result.checkoutUrl);
         setShowFlutterwaveModal(true);
@@ -917,20 +885,6 @@ export default function WalletPage() {
                 </div>
               ) : null}
 
-              {/* Écran redirection Paystack */}
-              {paystackRedirecting ? (
-                <div className="rounded-xl p-6 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 text-center space-y-4">
-                  <Loader2 className="w-10 h-10 animate-spin text-indigo-600 dark:text-indigo-400 mx-auto" />
-                  <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-400">
-                    Redirection sécurisée vers Paystack...
-                  </p>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-300">
-                    Vous allez être redirigé vers la page de paiement sécurisée Paystack.<br />
-                    Finalisez votre paiement, votre wallet sera crédité automatiquement.
-                  </p>
-                </div>
-              ) : null}
-
               {/* Message info / succès / erreur */}
               {mobileDepositMessage ? (
                 <div className={`rounded-xl p-3 text-sm ${
@@ -941,6 +895,12 @@ export default function WalletPage() {
                     : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800/50'
                 }`}>
                   {mobileDepositMessage.text}
+                </div>
+              ) : !mobilePendingTxId ? (
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-400 space-y-1">
+                  <p><strong>💰 Frais :</strong> 3% du montant</p>
+                  <p><strong>⏱️ Traitement :</strong> Vous recevrez un push OTP sur votre téléphone</p>
+                  <p className="mt-1">Le montant sera crédité en USD sur votre wallet après validation du code PIN.</p>
                 </div>
               ) : null}
             </CardContent>
