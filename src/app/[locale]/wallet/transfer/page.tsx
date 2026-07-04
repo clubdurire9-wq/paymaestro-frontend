@@ -43,26 +43,6 @@ export default function TransferPage() {
     }
   }, [sourceParam]);
 
-  const handleLookupRecipient = async () => {
-    setLoading(true);
-    const res = await fetch(`${API_URL}/wallet/lookup-recipient`, {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        phoneNumber: `${selectedCountry?.countryCode}${targetPhone}`,
-        currencyCode: selectedCountry?.code,
-        operator: selectedOperator,
-      }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (data.success) {
-      setRecipientName(data.name);
-      setStep('confirm');
-    } else {
-      setError('Numéro introuvable');
-    }
-  };
-
   const handleLookupUser = async () => {
     setLookingUp(true);
     const res = await fetch(`${API_URL}/wallet/lookup-user`, {
