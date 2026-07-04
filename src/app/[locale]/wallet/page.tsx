@@ -314,6 +314,18 @@ export default function WalletPage() {
         });
         setMobileAmount('');
         setMobilePhone('');
+      } else if (result?.completed) {
+        setMobileDepositLoading(false);
+        setDepositModalData({
+          type: 'success',
+          title: 'Dépôt réussi !',
+          message: `${result.amountLocal} ${result.currencyCode || mobileCountry.code} ont été crédités sur votre wallet.`,
+          amount: `${result.amountLocal} ${result.currencyCode || mobileCountry.code}`,
+        });
+        setShowDepositModal(true);
+        setMobileAmount('');
+        setMobilePhone('');
+        loadData();
       } else {
         setMobileDepositLoading(false);
         setMobileDepositMessage({
