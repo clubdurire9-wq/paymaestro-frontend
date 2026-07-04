@@ -171,7 +171,7 @@ export default function WalletPage() {
   const [withdrawOperator, setWithdrawOperator] = useState('Orange');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawVerifying, setWithdrawVerifying] = useState(false);
-  const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [withdrawRecipientName, setWithdrawRecipientName] = useState<string | null>(null);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
   const [showWithdrawPassword, setShowWithdrawPassword] = useState(false);
@@ -415,10 +415,12 @@ export default function WalletPage() {
       }
       setShowWithdrawConfirm(true);
     } catch (error: any) {
+      setWithdrawRecipientName(null);
       setWithdrawMessage({
-        type: 'error',
-        text: 'Erreur de vérification. Vérifiez le numéro et réessayez.',
+        type: 'info',
+        text: `⚠️ Vérification indisponible. Vérifiez bien le numéro avant de confirmer.`
       });
+      setShowWithdrawConfirm(true);
     }
     setWithdrawVerifying(false);
   };
@@ -1037,6 +1039,8 @@ export default function WalletPage() {
                 <div className={`rounded-xl p-3 text-xs ${
                   withdrawMessage.type === 'success'
                     ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                    : withdrawMessage.type === 'info'
+                    ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50'
                     : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800/50'
                 }`}>
                   {withdrawMessage.text}
