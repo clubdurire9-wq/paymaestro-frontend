@@ -404,12 +404,20 @@ export default function WalletPage() {
         currencyCode: withdrawCountry.code,
         operator: withdrawOperator,
       });
-      setWithdrawRecipientName(result.name);
+      if (result.verified && result.name) {
+        setWithdrawRecipientName(result.name);
+      } else {
+        setWithdrawRecipientName(null);
+        setWithdrawMessage({
+          type: 'info',
+          text: `⚠️ Nom non vérifié par l'opérateur. Vérifiez bien le numéro avant de confirmer.`
+        });
+      }
       setShowWithdrawConfirm(true);
     } catch (error: any) {
       setWithdrawMessage({
         type: 'error',
-        text: error?.message || 'Numéro introuvable ou invalide. Vérifiez le numéro et l\'opérateur.',
+        text: 'Erreur de vérification. Vérifiez le numéro et réessayez.',
       });
     }
     setWithdrawVerifying(false);
@@ -1056,7 +1064,7 @@ export default function WalletPage() {
               </div>
 
               {/* CONFIRMATION RETRAIT */}
-              {showWithdrawConfirm && withdrawRecipientName && withdrawCountry && (() => {
+              {showWithdrawConfirm && withdrawCountry && (() => {
                 const usdAmount = parseFloat(withdrawAmount) || 0;
                 const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
                 const fee = usdAmount * 0.03;
@@ -1075,7 +1083,11 @@ export default function WalletPage() {
                       <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-slate-500">Bénéficiaire</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">{withdrawRecipientName}</span>
+                          {withdrawRecipientName ? (
+                            <span className="font-semibold text-slate-900 dark:text-white">{withdrawRecipientName}</span>
+                          ) : (
+                            <span className="font-semibold text-amber-600 dark:text-amber-400">Non vérifié ⚠️</span>
+                          )}
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-500">Téléphone</span>
