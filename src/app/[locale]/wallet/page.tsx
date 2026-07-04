@@ -435,6 +435,7 @@ export default function WalletPage() {
         phoneNumber: `${withdrawCountry.countryCode}${cleanPhone}`,
         exchangeRate: rate,
         stepUpToken: stepUp.stepUpToken,
+        operator: withdrawOperator,
       });
       setShowWithdrawPassword(false);
       setWithdrawResultData({
