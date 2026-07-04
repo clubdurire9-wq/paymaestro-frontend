@@ -4,16 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { 
-  Send, Search, CheckCircle2, 
-  Loader2, Wallet, Building, Users
+  Send, CheckCircle2, 
+  Loader2, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PasswordModal } from '@/components/wallet/PasswordModal';
-import { ALL_COUNTRIES } from '@/data/countries';
-
-const DOUBLE_ACCOUNT_COUNTRIES = ['CD', 'ZW', 'SS', 'LR', 'SL', 'GN', 'SO', 'BI'];
 
 export default function TransferPage() {
   const locale = useLocale();
@@ -25,15 +22,10 @@ export default function TransferPage() {
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const [step, setStep] = useState<'source' | 'country' | 'operator' | 'amount' | 'confirm' | 'done' | 'lookup' | 'pm-amount'>('source');
-  const [source, setSource] = useState<'wallet' | 'mobile' | 'stripe' | 'pm'>('wallet');
+  const [step, setStep] = useState<'source' | 'lookup' | 'pm-amount' | 'done'>('source');
+  const [source, setSource] = useState<'pm'>('pm');
   const [balance, setBalance] = useState<any>(null);
-  const [selectedCountry, setSelectedCountry] = useState<any>(null);
-  const [selectedOperator, setSelectedOperator] = useState('');
-  const [accountType, setAccountType] = useState<'USD' | 'LOCAL'>('LOCAL');
   const [amount, setAmount] = useState('');
-  const [targetPhone, setTargetPhone] = useState('');
-  const [recipientName, setRecipientName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,8 +35,6 @@ export default function TransferPage() {
   const [lookupEmail, setLookupEmail] = useState('');
   const [lookupResult, setLookupResult] = useState<any>(null);
   const [lookingUp, setLookingUp] = useState(false);
-
-  const hasDoubleAccount = selectedCountry && DOUBLE_ACCOUNT_COUNTRIES.includes(selectedCountry.countryCode);
 
   // Pré-sélection de la source si le paramètre est présent
   useEffect(() => {
@@ -93,40 +83,6 @@ export default function TransferPage() {
     setLookingUp(false);
   };
 
-  const handleTransfer = async (password: string) => {
-    const endpoint = source === 'wallet'
-      ? `${API_URL}/wallet/transfer-to-mobile`
-      : `${API_URL}/wallet/stripe-to-mobile`;
-
-    const body = {
-      amount: parseFloat(amount),
-      currencyCode: selectedCountry?.code,
-      targetPhone: `${selectedCountry?.countryCode}${targetPhone}`,
-      targetOperator: selectedOperator,
-      targetCountry: selectedCountry?.country,
-      accountType,
-      exchangeRate: selectedCountry?.rate || 600,
-      ...(source === 'wallet' ? { password } : {}),
-    };
-
-    const res = await fetch(endpoint, { 
-      method: 'POST', 
-      headers, 
-      body: JSON.stringify(body) 
-    });
-    const data = await res.json();
-    
-    if (data.success) {
-      setResult(data.data);
-      setStep('done');
-      setShowPassword(false);
-      return true;
-    } else {
-      setError(data.message || 'Erreur lors du transfert');
-      return false;
-    }
-  };
-
   const handlePMTransfer = async () => {
     if (!lookupResult || !amount) return;
     setShowPassword(true);
@@ -162,8 +118,6 @@ export default function TransferPage() {
     setLoading(false);
   };
 
-  const operators = selectedCountry?.operators || [];
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
@@ -171,32 +125,19 @@ export default function TransferPage() {
         <h1 className="text-3xl font-bold text-slate-900">Transfert depuis le Wallet</h1>
       </div>
 
-      {/* ÉTAPE 1 : Source */}
+      {/* ÉTAPE 1 : Source — PM to PM uniquement */}
       {step === 'source' && (
         <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold">D'où vient l'argent ?</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <button onClick={() => { setSource('wallet'); setStep('country'); }}
-                className="p-6 rounded-2xl border-2 border-violet-600 bg-violet-50 text-center hover:shadow-lg transition-all">
-                <Wallet className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-                <p className="font-semibold">Mon Portefeuille</p>
-                <p className="text-xs text-slate-500">Solde : ${balance?.USD?.toFixed(2) || '0'}</p>
-              </button>
-
-              <button onClick={() => { setSource('stripe'); setStep('country'); }}
-                className="p-6 rounded-2xl border-2 border-blue-200 hover:border-blue-400 text-center hover:shadow-lg transition-all">
-                <Building className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="font-semibold">IBAN Stripe</p>
-                <p className="text-xs text-slate-500">Virement SEPA reçu</p>
-              </button>
-              <button onClick={() => { setSource('pm'); setStep('lookup'); }}
-                className="p-6 rounded-2xl border-2 border-green-200 hover:border-green-400 text-center hover:shadow-lg transition-all">
-                <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="font-semibold">PayMaestro → PayMaestro</p>
-                <p className="text-xs text-green-600 font-bold mt-1">GRATUIT - 0% frais !</p>
-              </button>
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto">
+              <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Transfert PayMaestro → PayMaestro</h3>
+            <p className="text-sm text-green-600 dark:text-green-400 font-semibold">0% de frais — Gratuit !</p>
+            <Button onClick={() => { setSource('pm'); setStep('lookup'); }} className="w-full">
+              Commencer un transfert
+            </Button>
+            <Button variant="ghost" onClick={() => router.push(`/${locale}/wallet`)}>← Retour au portefeuille</Button>
           </CardContent>
         </Card>
       )}
@@ -334,13 +275,12 @@ export default function TransferPage() {
               </div>
             )}
             
-            <Button variant="ghost" onClick={() => setStep('source')}>← Retour</Button>
+            <Button variant="ghost" onClick={() => router.push(`/${locale}/wallet`)}>← Retour</Button>
           </CardContent>
         </Card>
       )}
 
       {/* ÉTAPE PM-AMOUNT (Montant PayMaestro → PayMaestro) */}
-      {step === 'pm-amount' && (
         <Card>
           <CardContent className="p-6 space-y-4">
             <h3 className="font-semibold text-lg">💸 Montant à envoyer</h3>
@@ -385,131 +325,7 @@ export default function TransferPage() {
               {loading ? 'Envoi en cours...' : `Envoyer ${amount || '0'} à ${lookupResult?.user?.fullName || lookupResult?.name}`}
             </Button>
             
-            <Button variant="ghost" onClick={() => setStep('lookup')}>← Retour</Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ÉTAPE 2 : Pays destinataire */}
-      {step === 'country' && (
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold">Pays du destinataire</h3>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2 max-h-[400px] overflow-y-auto">
-              {ALL_COUNTRIES.map(c => (
-                <button key={c.code + c.country} onClick={() => { setSelectedCountry(c); setStep('operator'); setSelectedOperator(''); }}
-                  className="p-3 rounded-xl border-2 text-center hover:border-violet-300 transition-all">
-                  <span className="text-2xl">{c.flag}</span>
-                  <p className="text-[9px] font-semibold mt-1">{c.country}</p>
-                </button>
-              ))}
-            </div>
-            <Button variant="ghost" onClick={() => setStep('source')}>← Retour</Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ÉTAPE 3 : Opérateur */}
-      {step === 'operator' && (
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold">Opérateur - {selectedCountry?.country}</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {operators.map((op: string) => (
-                <button key={op} onClick={() => { setSelectedOperator(op); setStep('amount'); }}
-                  className={`p-4 rounded-xl border-2 text-center font-semibold transition-all ${
-                    selectedOperator === op ? 'border-violet-600 bg-violet-50' : 'border-slate-200 hover:border-violet-300'
-                  }`}>
-                  {op}
-                </button>
-              ))}
-            </div>
-            <Button variant="ghost" onClick={() => setStep('country')}>← Retour</Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ÉTAPE 4 : Montant + Type compte + Numéro */}
-      {step === 'amount' && (
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold">Détails du transfert - {selectedOperator}</h3>
-            
-            {/* Double compte */}
-            {hasDoubleAccount && (
-              <div>
-                <label className="text-sm font-semibold">Type de compte destinataire</label>
-                <div className="flex gap-3 mt-2">
-                  <button onClick={() => setAccountType('LOCAL')}
-                    className={`flex-1 p-3 rounded-xl border-2 text-sm font-semibold ${accountType === 'LOCAL' ? 'border-violet-600 bg-violet-50' : 'border-slate-200'}`}>
-                    Compte {selectedCountry?.code} (Local)
-                  </button>
-                  <button onClick={() => setAccountType('USD')}
-                    className={`flex-1 p-3 rounded-xl border-2 text-sm font-semibold ${accountType === 'USD' ? 'border-violet-600 bg-violet-50' : 'border-slate-200'}`}>
-                    Compte USD ($)
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Montant */}
-            <div>
-              <label className="text-sm font-semibold">Montant ({accountType === 'USD' ? 'USD' : selectedCountry?.code})</label>
-              <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-3 border rounded-xl text-lg font-bold mt-1" placeholder="100" />
-            </div>
-
-            {/* Numéro destinataire */}
-            <div>
-              <label className="text-sm font-semibold">Numéro du destinataire</label>
-              <div className="flex gap-2 mt-1">
-                <span className="px-3 py-3 bg-slate-100 rounded-xl font-semibold text-sm">{selectedCountry?.countryCode}</span>
-                <input type="tel" value={targetPhone} onChange={(e) => setTargetPhone(e.target.value)}
-                  className="flex-1 px-4 py-3 border rounded-xl text-sm" placeholder="0123456789" />
-              </div>
-            </div>
-
-            {/* Résumé */}
-            {amount && (
-              <div className="bg-slate-50 p-4 rounded-xl text-sm space-y-1">
-                <p>De : {source === 'wallet' ? 'Portefeuille' : 'IBAN Stripe (SEPA)'}</p>
-                <p>Vers : {selectedCountry?.flag} {selectedCountry?.country} - {selectedOperator}</p>
-                <p>Compte : {accountType === 'USD' ? 'USD ($)' : `${selectedCountry?.code} (Local)`}</p>
-              </div>
-            )}
-
-            <Button onClick={handleLookupRecipient} fullWidth disabled={!amount || !targetPhone} icon={<Search />}>
-              Vérifier le destinataire
-            </Button>
-            <Button variant="ghost" onClick={() => setStep('operator')}>← Retour</Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ÉTAPE 5 : Confirmation */}
-      {step === 'confirm' && (
-        <Card>
-          <CardContent className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold">Confirmer le transfert</h3>
-            <div className="bg-slate-50 p-4 rounded-xl text-left space-y-2">
-              <p><strong>Destinataire :</strong> {recipientName}</p>
-              <p><strong>Téléphone :</strong> {selectedCountry?.countryCode} {targetPhone}</p>
-              <p><strong>Opérateur :</strong> {selectedOperator}</p>
-              <p><strong>Montant :</strong> {amount} {accountType === 'USD' ? 'USD' : selectedCountry?.code}</p>
-              <p><strong>Frais :</strong> 3%</p>
-              {source === 'stripe' && (
-                <p><strong>Source :</strong> IBAN Stripe (Virement SEPA)</p>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setStep('amount')}>Annuler</Button>
-              <Button fullWidth onClick={() => setShowPassword(true)} icon={<Send />}>
-                Confirmer et envoyer
-              </Button>
-            </div>
+            <Button variant="ghost" onClick={() => router.push(`/${locale}/wallet`)}>← Retour</Button>
           </CardContent>
         </Card>
       )}
@@ -522,8 +338,8 @@ export default function TransferPage() {
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-bold">Transfert effectué !</h3>
-            <p className="text-slate-600">{result.amountLocal?.toLocaleString('fr-FR')} {selectedCountry?.code} envoyés à {recipientName}</p>
-            <p className="text-xs text-slate-400">Réf : {result.reference}</p>
+            <p className="text-slate-600">${parseFloat(amount || '0').toFixed(2)} envoyés à {lookupResult?.user?.fullName || lookupResult?.name}</p>
+            <p className="text-xs text-slate-400">Email : {lookupEmail}</p>
             <Button onClick={() => router.push(`/${locale}/wallet`)}>Retour au portefeuille</Button>
           </CardContent>
         </Card>
@@ -532,7 +348,7 @@ export default function TransferPage() {
       {/* Modal mot de passe */}
       {showPassword && (
         <PasswordModal
-          onVerify={source === 'pm' ? handlePMTransferWithPassword : handleTransfer}
+          onVerify={handlePMTransferWithPassword}
           onClose={() => setShowPassword(false)}
         />
       )}
