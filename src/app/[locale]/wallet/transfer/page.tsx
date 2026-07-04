@@ -128,12 +128,24 @@ export default function TransferPage() {
   };
 
   const handlePMTransfer = async () => {
+    if (!lookupResult || !amount) return;
+    setShowPassword(true);
+  };
+
+  const handlePMTransferWithPassword = async (password: string) => {
     setLoading(true);
     setError('');
     try {
+      const stepUpRes = await fetch(`${API_URL}/auth/step-up`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ password }),
+      });
+      const stepUpData = await stepUpRes.json();
+      if (!stepUpData.success) throw new Error(stepUpData.error || 'Mot de passe incorrect');
+
       const res = await fetch(`${API_URL}/wallet/pm-to-pm`, {
         method: 'POST', headers,
-        body: JSON.stringify({ recipientEmail: lookupEmail, amount: parseFloat(amount) }),
+        body: JSON.stringify({ recipientEmail: lookupEmail, amount: parseFloat(amount), stepUpToken: stepUpData.stepUpToken }),
       });
       const d = await res.json();
       if (d.success) {
@@ -518,7 +530,7 @@ export default function TransferPage() {
       {/* Modal mot de passe */}
       {showPassword && (
         <PasswordModal
-          onVerify={handleTransfer}
+          onVerify={source === 'pm' ? handlePMTransferWithPassword : handleTransfer}
           onClose={() => setShowPassword(false)}
         />
       )}
