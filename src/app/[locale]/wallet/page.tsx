@@ -686,7 +686,7 @@ export default function WalletPage() {
       {/* BOUTON RAPIDE - Transfert PayMaestro → PayMaestro */}
       <button
         onClick={() => router.push(`/${locale}/wallet/transfer?source=pm`)}
-        className="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-300 dark:border-green-800/50 rounded-xl text-center hover:shadow-lg transition-all"
+        className="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-300 dark:border-green-800/50 rounded-xl text-center hover:shadow-lg transition-all cursor-pointer"
       >
         <Users className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
         <p className="font-bold text-green-800 dark:text-green-300">Transfert PayMaestro → PayMaestro</p>
