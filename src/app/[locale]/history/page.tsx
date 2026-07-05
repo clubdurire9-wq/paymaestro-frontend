@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { 
   Search, 
-  Download, 
+  FileText,
   Calendar, 
   Eye, 
   Clock, 
@@ -117,40 +119,184 @@ export default function HistoryPage() {
     }).format(amount);
   };
 
-  // CSV Export
-  const exportToCSV = () => {
+  // Génération d'une empreinte de sécurité unique
+  const generateSecurityHash = (data: Transaction[]) => {
+    const timestamp = new Date().toISOString();
+    const payload = `${timestamp}-${data.length}-${data[0]?.id || '0'}`;
+    let hash = 0;
+    for (let i = 0; i < payload.length; i++) {
+      const char = payload.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash |= 0;
+    }
+    const sha = Math.abs(hash).toString(16).padStart(8, '0');
+    return `PM-${sha.toUpperCase()}-${timestamp.split('T')[0].replace(/-/g, '')}`;
+  };
+
+  // Export PDF sécurisé
+  const exportToPDF = () => {
     if (filteredTransactions.length === 0) return;
 
-    // Headers
-    const headers = ['ID Transaction', 'Date', 'Montant Brut (USD)', 'Montant Net (USD)', 'Montant Recu', 'Devise', 'Taux de Change', 'Telephone', 'Reference Mobile Money', 'Statut'];
-    
-    // Rows
-    const rows = filteredTransactions.map(t => [
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    // Couleurs de la marque
+    const VIOLET = '#667eea';
+    const DEEP_CHARCOAL = '#1a1a2e';
+    const ELECTRIC_BLUE = '#764ba2';
+
+    // === FILIGRANE DE SÉCURITÉ (overlay diagonal) ===
+    const watermark = () => {
+      doc.saveGraphicsState();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(36);
+      doc.setTextColor(180, 180, 180);
+      doc.setGState(new (doc as any).GState({ opacity: 0.12 }));
+      for (let i = -20; i < 60; i += 18) {
+        for (let j = -10; j < 40; j += 12) {
+          doc.text('PAYMAESTRO ORIGINAL DOCUMENT - SECURED', i * 15, j * 15, {
+            angle: 45,
+          } as any);
+        }
+      }
+      doc.restoreGraphicsState();
+    };
+
+    // === EN-TÊTE ===
+    const header = () => {
+      // Bande violette en haut
+      doc.setFillColor(102, 126, 234);
+      doc.rect(0, 0, pageW, 28, 'F');
+
+      // Dégradé visuel (second bandeau plus foncé)
+      doc.setFillColor(118, 75, 162);
+      doc.rect(0, 28, pageW, 3, 'F');
+
+      // Titre
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text('PayMaestro', 20, 18);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text('Relevé de Transaction Officiel', 20, 24);
+
+      // Date d'édition
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      doc.setFontSize(8);
+      doc.setTextColor(200, 200, 200);
+      doc.text(`Édité le ${dateStr} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, pageW - 20, 18, { align: 'right' } as any);
+
+      // Séparateur
+      doc.setDrawColor(200, 200, 200);
+      doc.line(15, 34, pageW - 15, 34);
+    };
+
+    // === PIED DE PAGE AVEC EMPREINTE DE SÉCURITÉ ===
+    const footer = (pageNum: number) => {
+      const securityHash = generateSecurityHash(filteredTransactions);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(150, 150, 150);
+
+      // Empreinte de validation
+      doc.text(`Empreinte de sécurité : ${securityHash}`, 15, pageH - 12);
+      doc.text('Document original signé numériquement — Toute modification invalide ce reçu.', 15, pageH - 8);
+
+      // Page X / Y
+      doc.text(`Page ${pageNum}`, pageW - 15, pageH - 8, { align: 'right' } as any);
+
+      // Ligne de séparation
+      doc.setDrawColor(200, 200, 200);
+      doc.line(15, pageH - 16, pageW - 15, pageH - 16);
+    };
+
+    // === CONTENU ===
+    // Première page: en-tête + filigrane
+    header();
+    watermark();
+
+    // Titre du tableau
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(DEEP_CHARCOAL);
+    doc.text('Historique des transactions', 15, 42);
+
+    // Sous-titre avec résumé
+    const totalUSD = filteredTransactions.reduce((sum, t) => sum + t.amountUSD, 0);
+    const successCount = filteredTransactions.filter(t => t.status === 'MOBILE_MONEY_SENT').length;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${filteredTransactions.length} transaction(s) — ${successCount} réussie(s) — Total: $${totalUSD.toFixed(2)} USD`, 15, 47);
+
+    // Données du tableau
+    const tableData = filteredTransactions.map(t => [
+      new Date(t.date).toLocaleDateString('fr-FR'),
       t.id,
-      new Date(t.date).toLocaleString(),
-      t.amountUSD.toFixed(2),
-      (t.amountUSD * 0.93).toFixed(2),
-      t.receivedAmount,
-      t.currency,
-      t.exchangeRate,
-      t.phone,
-      t.reference || '',
-      t.status
+      `${t.amountUSD.toFixed(2)} $`,
+      `${t.receivedAmount?.toFixed(2) || '0.00'} ${t.currency}`,
+      t.status === 'MOBILE_MONEY_SENT' ? 'Succès' :
+      t.status === 'FAILED' ? 'Échec' :
+      t.status === 'PENDING' ? 'En attente' : t.status,
     ]);
 
-    // Build CSV Content
-    const csvContent = 
-      'data:text/csv;charset=utf-8,\uFEFF' + 
-      [headers.join(','), ...rows.map(e => e.map(val => `"${val}"`).join(','))].join('\n');
+    (doc as any).autoTable({
+      startY: 50,
+      head: [['Date', 'ID Retrait', 'Montant USD', 'Reçu', 'Statut']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [102, 126, 234],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9,
+        halign: 'center',
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [50, 50, 50],
+      },
+      columnStyles: {
+        0: { cellWidth: 35, halign: 'center' },
+        1: { cellWidth: 55, halign: 'center' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 45, halign: 'right' },
+        4: { cellWidth: 35, halign: 'center' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 255],
+      },
+      didParseCell: (data: any) => {
+        if (data.column.index === 4) {
+          if (data.cell.raw === 'Succès') {
+            data.cell.styles.textColor = [16, 185, 129];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (data.cell.raw === 'Échec') {
+            data.cell.styles.textColor = [239, 68, 68];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (data.cell.raw === 'En attente') {
+            data.cell.styles.textColor = [245, 158, 11];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+      margin: { top: 50, bottom: 22 },
+      tableWidth: 'auto',
+      showHead: 'everyPage',
+      didDrawPage: (data: any) => {
+        watermark();
+        footer(data.pageCount);
+      },
+    });
 
-    // Trigger download
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `PayMaestro_Retraits_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Sauvegarde
+    const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
   };
 
   return (
@@ -164,11 +310,11 @@ export default function HistoryPage() {
         </div>
         <Button 
           variant="outline" 
-          icon={<Download className="w-4 h-4" />}
-          onClick={exportToCSV}
+          icon={<FileText className="w-4 h-4" />}
+          onClick={exportToPDF}
           disabled={filteredTransactions.length === 0}
         >
-          {t('export')} CSV
+          Exporter en PDF
         </Button>
       </div>
 
