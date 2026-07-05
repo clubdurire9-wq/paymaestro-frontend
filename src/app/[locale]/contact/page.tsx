@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X, Expand, Minimize2 } from 'lucide-react';
+import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X, Expand, Minimize2, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,15 +95,17 @@ export default function ContactPage() {
     }
   };
 
-  // File selection
+  // File selection (images + PDF, max 5 Mo)
   const handleAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     const newFiles: File[] = [];
     const newPreviews: string[] = [];
     const remaining = 10 - pendingFiles.length;
+    const MAX_SIZE = 5 * 1024 * 1024;
     for (let i = 0; i < Math.min(files.length, remaining); i++) {
       const file = files[i];
+      if (file.size > MAX_SIZE) continue;
       newFiles.push(file);
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -269,17 +271,27 @@ export default function ContactPage() {
                       {/* Inline image thumbnails */}
                       {pendingPreviews.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {pendingPreviews.map((preview, i) => (
-                            <div key={i} className="relative group">
-                              <img src={preview} className="w-16 h-16 object-contain rounded-xl border border-slate-200 dark:border-slate-600" />
-                              <button
-                                onClick={() => removePending(i)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
+                          {pendingPreviews.map((preview, i) => {
+                            const file = pendingFiles[i];
+                            const isPDF = file?.type === 'application/pdf';
+                            return (
+                              <div key={i} className="relative group">
+                                {isPDF ? (
+                                  <div className="w-16 h-16 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-600 bg-red-50 dark:bg-red-900/20">
+                                    <FileText className="w-8 h-8 text-red-500" />
+                                  </div>
+                                ) : (
+                                  <img src={preview} className="w-16 h-16 object-contain rounded-xl border border-slate-200 dark:border-slate-600" />
+                                )}
+                                <button
+                                  onClick={() => removePending(i)}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       <input
@@ -293,12 +305,12 @@ export default function ContactPage() {
                       />
                     </div>
                     <div className="flex items-center gap-1">
-                      <input type="file" ref={fileInputRef} accept="image/*" multiple className="hidden" onChange={handleAttach} />
+                      <input type="file" ref={fileInputRef} accept="image/*,application/pdf" multiple className="hidden" onChange={handleAttach} />
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={pendingFiles.length >= 10}
                         className="p-2 text-slate-400 dark:text-slate-400 hover:text-violet-500 disabled:opacity-30 transition-colors"
-                        title="Ajouter des images"
+                        title="Ajouter des fichiers (images, PDF)"
                       >
                         <Paperclip className="w-5 h-5" />
                       </button>

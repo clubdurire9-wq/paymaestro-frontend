@@ -313,7 +313,7 @@ export default function ChatWidget() {
             <input
               type="file"
               ref={fileInputRef}
-              accept="image/*"
+              accept="image/*,application/pdf"
               multiple
               className="hidden"
               onChange={(e) => e.target.files && handleImageSelect(e.target.files)}

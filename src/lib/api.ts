@@ -497,6 +497,7 @@ export const api = {
     getLiveStats: () => request<any>(`${API_URL}/admin/stats/live`),
     getLiveActivity: () => request<any[]>(`${API_URL}/admin/activity/live`),
     getUserActivity: (userId: string) => request<any>(`${API_URL}/admin/activity/user/${userId}`),
+    getUserProfile: (userId: string) => request<any>(`${API_URL}/admin/users/${userId}/profile`),
 
     // KYC
     listPendingKYC: () => request<any[]>(`${API_URL}/admin/kyc/pending`),

@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { jsPDF, GState } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { Toast, ToastContainer } from '@/components/ui/toast';
 import { 
   Search, 
@@ -25,6 +23,7 @@ import { Select } from '@/components/ui/select';
 import { Skeleton, SkeletonTable } from '@/components/ui/skeleton';
 import { api, Transaction, LIVE_RATES } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { generateTransactionPDF } from '@/lib/pdf-export';
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -123,213 +122,18 @@ export default function HistoryPage() {
     }).format(amount);
   };
 
-  // Génération d'une empreinte de sécurité unique
-  const generateSecurityHash = (data: Transaction[]) => {
-    const timestamp = new Date().toISOString();
-    const payload = `${timestamp}-${data.length}-${data[0]?.id || '0'}`;
-    let hash = 0;
-    for (let i = 0; i < payload.length; i++) {
-      const char = payload.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash |= 0;
-    }
-    const sha = Math.abs(hash).toString(16).padStart(8, '0');
-    return `PM-${sha.toUpperCase()}-${timestamp.split('T')[0].replace(/-/g, '')}`;
-  };
-
-  // Export PDF sécurisé
+  // Export PDF sécurisé (utilitaire partagé)
   const exportToPDF = () => {
     if (filteredTransactions.length === 0) return;
     try {
-    const doc = new jsPDF('landscape', 'mm', 'a4');
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-
-    // Couleurs de la marque
-    const VIOLET = '#667eea';
-    const DEEP_CHARCOAL = '#1a1a2e';
-    const ELECTRIC_BLUE = '#764ba2';
-
-    // === FILIGRANE DE SÉCURITÉ (overlay diagonal) ===
-    const watermark = () => {
-      doc.saveGraphicsState();
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.setTextColor(200, 200, 200);
-      const gState = new GState({ opacity: 0.15 });
-      doc.setGState(gState);
-      for (let i = -8; i < 40; i += 12) {
-        for (let j = -4; j < 25; j += 8) {
-          doc.text('PAYMAESTRO ORIGINAL', i * 15, j * 15 + 10, { angle: 45 } as any);
-        }
-      }
-      doc.restoreGraphicsState();
-    };
-
-    // === EN-TÊTE ===
-    const header = () => {
-      // Bande violette en haut
-      doc.setFillColor(102, 126, 234);
-      doc.rect(0, 0, pageW, 28, 'F');
-
-      // Dégradé visuel (second bandeau plus foncé)
-      doc.setFillColor(118, 75, 162);
-      doc.rect(0, 28, pageW, 3, 'F');
-
-      // Titre
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.setTextColor(255, 255, 255);
-      doc.text('PayMaestro', 20, 18);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text('Relevé de Transaction Officiel', 20, 24);
-
-      // === BLOC IDENTITÉ LÉGALE (coin supérieur droit) ===
-      const legalX = pageW - 80;
-      const legalY = 6;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(230, 230, 255);
-      doc.text('Titulaire :', legalX, legalY + 4);
-      doc.setFont('helvetica', 'normal');
-      doc.text(user?.name || 'N/A', legalX + 18, legalY + 4);
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Email :', legalX, legalY + 10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(user?.email || 'N/A', legalX + 18, legalY + 10);
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('ID Client :', legalX, legalY + 16);
-      doc.setFont('helvetica', 'normal');
-      doc.text(user?.id ? user.id.slice(0, 13) + '...' : 'N/A', legalX + 18, legalY + 16);
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Statut :', legalX, legalY + 22);
-      const isVerified = user?.kycStatus === 'APPROVED';
-      doc.setTextColor(isVerified ? 100 : 255, isVerified ? 230 : 200, isVerified ? 100 : 200);
-      doc.setFont('helvetica', 'bold');
-      doc.text(isVerified ? 'COMPTE VÉRIFIÉ \u2714' : 'Non vérifié', legalX + 18, legalY + 22);
-
-      // Date d'édition (sous le bloc identité)
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-      doc.setFontSize(7);
-      doc.setTextColor(200, 200, 220);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Émis le ${dateStr} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, legalX, legalY + 28);
-
-      // Séparateur
-      doc.setDrawColor(200, 200, 200);
-      doc.line(15, 34, pageW - 15, 34);
-    };
-
-    // === PIED DE PAGE AVEC EMPREINTE DE SÉCURITÉ ===
-    let currentPage = 0;
-    const footer = () => {
-      currentPage++;
-      const securityHash = generateSecurityHash(filteredTransactions);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(150, 150, 150);
-
-      // Empreinte de validation
-      doc.text(`Empreinte de sécurité : ${securityHash}`, 15, pageH - 12);
-      doc.text('Document original signé numériquement — Toute modification invalide ce reçu.', 15, pageH - 8);
-
-      // Page X
-      doc.text(`Page ${currentPage}`, pageW - 15, pageH - 8, { align: 'right' } as any);
-
-      // Ligne de séparation
-      doc.setDrawColor(200, 200, 200);
-      doc.line(15, pageH - 16, pageW - 15, pageH - 16);
-    };
-
-    // === CONTENU ===
-    // Première page: en-tête + filigrane
-    header();
-    watermark();
-
-    // Titre du tableau
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(DEEP_CHARCOAL);
-    doc.text('Historique des transactions', 15, 42);
-
-    // Sous-titre avec résumé
-    const totalUSD = filteredTransactions.reduce((sum, t) => sum + t.amountUSD, 0);
-    const successCount = filteredTransactions.filter(t => t.status === 'MOBILE_MONEY_SENT').length;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${filteredTransactions.length} transaction(s) — ${successCount} réussie(s) — Total: $${totalUSD.toFixed(2)} USD`, 15, 47);
-
-    // Données du tableau
-    const tableData = filteredTransactions.map(t => [
-      new Date(t.date).toLocaleDateString('fr-FR'),
-      t.id,
-      `${t.amountUSD.toFixed(2)} $`,
-      `${t.receivedAmount?.toFixed(2) || '0.00'} ${t.currency}`,
-      t.status === 'MOBILE_MONEY_SENT' ? 'Succès' :
-      t.status === 'FAILED' ? 'Échec' :
-      t.status === 'PENDING' ? 'En attente' : t.status,
-    ]);
-
-    autoTable(doc, {
-      startY: 50,
-      head: [['Date', 'ID Retrait', 'Montant USD', 'Reçu', 'Statut']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [102, 126, 234],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 9,
-        halign: 'center',
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [50, 50, 50],
-      },
-      columnStyles: {
-        0: { cellWidth: 35, halign: 'center' },
-        1: { cellWidth: 55, halign: 'center' },
-        2: { cellWidth: 35, halign: 'right' },
-        3: { cellWidth: 45, halign: 'right' },
-        4: { cellWidth: 35, halign: 'center' },
-      },
-      alternateRowStyles: {
-        fillColor: [245, 247, 255],
-      },
-      didParseCell: (data: any) => {
-        if (data.column.index === 4) {
-          if (data.cell.raw === 'Succès') {
-            data.cell.styles.textColor = [16, 185, 129];
-            data.cell.styles.fontStyle = 'bold';
-          } else if (data.cell.raw === 'Échec') {
-            data.cell.styles.textColor = [239, 68, 68];
-            data.cell.styles.fontStyle = 'bold';
-          } else if (data.cell.raw === 'En attente') {
-            data.cell.styles.textColor = [245, 158, 11];
-            data.cell.styles.fontStyle = 'bold';
-          }
-        }
-      },
-      margin: { top: 50, bottom: 22 },
-      tableWidth: 'auto',
-      showHead: 'everyPage',
-      didDrawPage: () => {
-        watermark();
-        footer();
-      },
-    });
-
-    // Sauvegarde
-    const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+      const doc = generateTransactionPDF(filteredTransactions, {
+        name: user?.name || 'N/A',
+        email: user?.email || 'N/A',
+        id: user?.id || 'N/A',
+        kycStatus: user?.kycStatus,
+      });
+      const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
     } catch (e: any) {
       console.error('❌ Erreur génération PDF:', e);
       setToast({ type: 'error', message: 'Impossible de générer le PDF. Veuillez réessayer.' });

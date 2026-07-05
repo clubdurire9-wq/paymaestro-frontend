@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { 
   Activity, Eye, RefreshCw, DollarSign, Users, 
-  TrendingUp, Undo2, Loader2, Search, ArrowLeft, MapPin
+  TrendingUp, Undo2, Loader2, Search, ArrowLeft, MapPin,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { api } from '@/lib/api';
+import { api, Transaction } from '@/lib/api';
+import { generateTransactionPDF } from '@/lib/pdf-export';
 import MapEmbed from '@/components/ui/MapEmbed';
 
 export default function AdminLivePage() {
@@ -76,12 +78,61 @@ export default function AdminLivePage() {
     return () => clearInterval(interval);
   }, [autoRefresh, loadData]);
 
+  const [userProfile, setUserProfile] = useState<any>(null);
+
   const handleViewUser = async (userId: string) => {
     try {
-      const d = await api.admin.getUserActivity(userId);
+      const [d, profile] = await Promise.all([
+        api.admin.getUserActivity(userId),
+        api.admin.getUserProfile(userId).catch(() => null),
+      ]);
       setUserActivity(d);
+      setUserProfile(profile);
       setSelectedUser(userId);
     } catch {}
+  };
+
+  const handleExportUserPDF = () => {
+    if (!userActivity || !userProfile) return;
+    try {
+      const walletTxs: Transaction[] = (userActivity.wallet || []).map((tx: any) => ({
+        id: String(tx.id),
+        date: tx.created_at,
+        amountUSD: parseFloat(tx.amount_usd || 0),
+        receivedAmount: parseFloat(tx.amount_currency || 0),
+        currency: tx.currency_code || 'USD',
+        status: tx.status === 'COMPLETED' ? 'MOBILE_MONEY_SENT' : tx.status === 'PENDING' ? 'PENDING' : 'FAILED',
+        reference: tx.paystack_reference || tx.flutterwave_reference || '',
+        phone: tx.metadata?.targetPhone || '',
+        exchangeRate: parseFloat(tx.exchange_rate || 1),
+        timeline: [],
+      }));
+      const paypalTxs: Transaction[] = (userActivity.paypal || []).map((tx: any) => ({
+        id: String(tx.id),
+        date: tx.created_at,
+        amountUSD: parseFloat(tx.amount_usd || 0),
+        receivedAmount: parseFloat(tx.amount_local_currency || 0),
+        currency: tx.currency_code || 'USD',
+        status: tx.status === 'MOBILE_MONEY_SENT' ? 'MOBILE_MONEY_SENT' : tx.status === 'FAILED' ? 'FAILED' : 'PENDING',
+        reference: tx.paypal_order_id || '',
+        phone: tx.phone_number || '',
+        exchangeRate: parseFloat(tx.exchange_rate || 1),
+        timeline: [],
+      }));
+      const allTxs = [...walletTxs, ...paypalTxs].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      const doc = generateTransactionPDF(allTxs, {
+        name: userProfile?.name || userProfile?.email || 'N/A',
+        email: userProfile?.email || 'N/A',
+        id: userProfile?.id || 'N/A',
+        kycStatus: userProfile?.kyc_status,
+      });
+      const filename = `PayMaestro_Releve_${userProfile?.name || userProfile?.email}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+    } catch (e) {
+      console.error('❌ Erreur export PDF admin:', e);
+    }
   };
 
   const handleShowGeo = async (email: string) => {
@@ -319,9 +370,16 @@ export default function AdminLivePage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Activité de l'utilisateur</CardTitle>
-              <button onClick={() => { setSelectedUser(null); setUserActivity(null); }}>
-                <ArrowLeft className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {userProfile && (
+                  <button onClick={handleExportUserPDF} className="p-1.5 hover:bg-violet-100 rounded-lg text-violet-600 transition-colors" title="Exporter le relevé PDF officiel">
+                    <FileText className="w-4 h-4" />
+                  </button>
+                )}
+                <button onClick={() => { setSelectedUser(null); setUserActivity(null); setUserProfile(null); }}>
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
