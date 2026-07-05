@@ -433,7 +433,7 @@ export default function AdminPage() {
                             <Badge variant="default">{u.role || 'USER'}</Badge>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => router.push(`/admin/users/${u.id}`)}>
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/admin/users/${u.id}?name=${encodeURIComponent(u.name || u.email || '')}&email=${encodeURIComponent(u.email || '')}&kycStatus=${u.kycStatus || ''}&phone=${encodeURIComponent(u.phone || '')}&country=${encodeURIComponent(u.country || '')}&role=${u.role || ''}`)}>
                           <Eye className="w-4 h-4 mr-1" />Voir
                         </Button>
                       </CardContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, FileText, MapPin, Loader2, Mail, Phone, Globe,
   CheckCircle, XCircle, Clock, DollarSign, Wallet,
@@ -64,9 +64,22 @@ const SERVICE_LABEL: Record<string, string> = {
 export default function AdminUserDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const userId = params?.userId as string;
 
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(() => {
+    const name = searchParams?.get('name');
+    if (!name) return null;
+    return {
+      id: userId,
+      name,
+      email: searchParams?.get('email') || '',
+      kyc_status: searchParams?.get('kycStatus') || '',
+      phone: searchParams?.get('phone') || '',
+      country: searchParams?.get('country') || '',
+      role: searchParams?.get('role') || '',
+    };
+  });
   const [userActivity, setUserActivity] = useState<any>(null);
   const [userGeo, setUserGeo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +96,7 @@ export default function AdminUserDetailPage() {
           api.admin.getUserProfile(userId).catch(() => null),
         ]);
         setUserActivity(activity);
-        setUserProfile(profile);
+        if (profile) setUserProfile(profile);
       } catch (e) {
         console.error('Erreur chargement utilisateur:', e);
       } finally {
