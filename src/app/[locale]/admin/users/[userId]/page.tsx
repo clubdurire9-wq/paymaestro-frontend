@@ -112,8 +112,11 @@ export default function AdminUserDetailPage() {
   }, [userId]);
 
   const handleShowGeo = async () => {
-    const email = userProfile?.email;
-    if (!email) return;
+    const email = userProfile?.email?.trim();
+    if (!email) {
+      alert('Email non disponible pour la géolocalisation.');
+      return;
+    }
     setLoadingGeo(true);
     setShowGeoModal(true);
     try {

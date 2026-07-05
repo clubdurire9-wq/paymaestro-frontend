@@ -434,21 +434,20 @@ export default function AdminPage() {
                           </div>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => {
-                          const p = new URLSearchParams({
-                            name: u.name || u.email || '',
-                            email: u.email || '',
-                            kycStatus: u.kycStatus || '',
-                            phone: u.phone || '',
-                            country: u.country || '',
-                            city: u.city || '',
-                            role: u.role || '',
-                            firstName: u.firstName || '',
-                            lastName: u.lastName || '',
-                            middleName: u.middleName || '',
-                            address: u.address || '',
-                            dateOfBirth: u.dateOfBirth || '',
-                          });
-                          router.push(`/admin/users/${u.id}?${p}`);
+                          const params: Record<string, string> = {};
+                          if (u.name || u.email) params.name = u.name || u.email;
+                          if (u.email) params.email = u.email;
+                          if (u.kycStatus) params.kycStatus = u.kycStatus;
+                          if (u.phone) params.phone = u.phone;
+                          if (u.country) params.country = u.country;
+                          if (u.city) params.city = u.city;
+                          if (u.role) params.role = u.role;
+                          if (u.firstName) params.firstName = u.firstName;
+                          if (u.lastName) params.lastName = u.lastName;
+                          if (u.middleName) params.middleName = u.middleName;
+                          if (u.address) params.address = u.address;
+                          if (u.dateOfBirth) params.dateOfBirth = u.dateOfBirth;
+                          router.push(`/admin/users/${u.id}?${new URLSearchParams(params)}`);
                         }}>
                           <Eye className="w-4 h-4 mr-1" />Voir
                         </Button>
