@@ -197,7 +197,9 @@ export default function HistoryPage() {
     };
 
     // === PIED DE PAGE AVEC EMPREINTE DE SÉCURITÉ ===
-    const footer = (pageNum: number) => {
+    let currentPage = 0;
+    const footer = () => {
+      currentPage++;
       const securityHash = generateSecurityHash(filteredTransactions);
 
       doc.setFont('helvetica', 'normal');
@@ -208,8 +210,8 @@ export default function HistoryPage() {
       doc.text(`Empreinte de sécurité : ${securityHash}`, 15, pageH - 12);
       doc.text('Document original signé numériquement — Toute modification invalide ce reçu.', 15, pageH - 8);
 
-      // Page X / Y
-      doc.text(`Page ${pageNum}`, pageW - 15, pageH - 8, { align: 'right' } as any);
+      // Page X
+      doc.text(`Page ${currentPage}`, pageW - 15, pageH - 8, { align: 'right' } as any);
 
       // Ligne de séparation
       doc.setDrawColor(200, 200, 200);
@@ -289,9 +291,9 @@ export default function HistoryPage() {
       margin: { top: 50, bottom: 22 },
       tableWidth: 'auto',
       showHead: 'everyPage',
-      didDrawPage: (data: any) => {
+      didDrawPage: () => {
         watermark();
-        footer(data.pageCount);
+        footer();
       },
     });
 

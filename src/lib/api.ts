@@ -277,6 +277,7 @@ export const api = {
 
   wallet: {
     getBalance: () => request<any>(`${API_URL}/wallet/balance`),
+    getStats: () => request<any>(`${API_URL}/wallet/stats`),
     getTransactions: () => request<any[]>(`${API_URL}/wallet/transactions`),
     deposit: (amountUSD: number, method: string) =>
       request<any>(`${API_URL}/wallet/deposit`, { method: 'POST', body: JSON.stringify({ amountUSD, method }) }),
@@ -672,15 +673,16 @@ export const api = {
 
   getStats: async () => {
     try {
-      const data = await api.dashboard.getStats();
+      const data = await api.wallet.getStats();
       return {
-        totalReceived: parseFloat(data.financials?.totalVolumeUSD || 0),
-        totalTransactions: data.overview?.successfulTransactions || 0,
-        successRate: parseFloat(data.overview?.successRate || 0),
-        pendingTransactions: data.overview?.pendingTransactions || 0,
+        totalReceived: parseFloat(data.totalReceived || 0),
+        totalTransactions: data.totalTransactions || 0,
+        successRate: parseFloat(data.successRate ?? 100),
+        pendingTransactions: data.pendingTransactions || 0,
+        monthlyStats: data.monthlyStats || [],
       };
     } catch {
-      return { totalReceived: 0, totalTransactions: 0, successRate: 100, pendingTransactions: 0 };
+      return { totalReceived: 0, totalTransactions: 0, successRate: 100, pendingTransactions: 0, monthlyStats: [] };
     }
   },
 
