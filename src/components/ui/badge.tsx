@@ -7,6 +7,7 @@ interface BadgeProps {
   size?: 'sm' | 'md';
   removable?: boolean;
   onRemove?: () => void;
+  onClick?: () => void;
   className?: string;
 }
 
@@ -30,10 +31,14 @@ export function Badge({
   size = 'sm',
   removable = false,
   onRemove,
+  onClick,
   className = '',
 }: BadgeProps) {
+  const Tag = onClick ? 'button' : 'span';
   return (
-    <span
+    <Tag
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
       className={`
         inline-flex items-center gap-1
         font-medium rounded-full border
@@ -44,14 +49,14 @@ export function Badge({
     >
       {children}
       {removable && (
-        <button
+        <span
           onClick={onRemove}
-          className="ml-0.5 hover:opacity-70 transition-opacity"
+          className="ml-0.5 hover:opacity-70 transition-opacity cursor-pointer"
           aria-label="Supprimer"
         >
           <X className="w-3 h-3" />
-        </button>
+        </span>
       )}
-    </span>
+    </Tag>
   );
 }
