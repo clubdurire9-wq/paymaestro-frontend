@@ -75,9 +75,15 @@ export default function AdminUserDetailPage() {
       name,
       email: searchParams?.get('email') || '',
       kyc_status: searchParams?.get('kycStatus') || '',
-      phone: searchParams?.get('phone') || '',
+      phone_number: searchParams?.get('phone') || '',
       country: searchParams?.get('country') || '',
+      city: searchParams?.get('city') || '',
       role: searchParams?.get('role') || '',
+      first_name: searchParams?.get('firstName') || '',
+      last_name: searchParams?.get('lastName') || '',
+      middle_name: searchParams?.get('middleName') || '',
+      address: searchParams?.get('address') || '',
+      date_of_birth: searchParams?.get('dateOfBirth') || '',
     };
   });
   const [userActivity, setUserActivity] = useState<any>(null);
@@ -241,21 +247,46 @@ export default function AdminUserDetailPage() {
                     {kycStatus === 'APPROVED' ? 'KYC Approuvé ✔️' : kycStatus === 'REJECTED' ? 'KYC Rejeté' : 'KYC: ' + (kycStatus || 'NONE')}
                   </Badge>
                   <Badge variant="default">{userProfile?.role || 'USER'}</Badge>
-                  {userProfile?.email && (
-                    <Badge variant="info" className="flex items-center gap-1">
-                      <Mail className="w-3 h-3" /> {userProfile.email}
-                    </Badge>
-                  )}
-                  {userProfile?.phone && (
-                    <Badge variant="info" className="flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {userProfile.phone}
-                    </Badge>
-                  )}
-                  {userProfile?.country && (
-                    <Badge variant="info" className="flex items-center gap-1">
-                      <Globe className="w-3 h-3" /> {getFlagEmoji(userProfile.country)} {userProfile.country}
-                    </Badge>
-                  )}
+                </div>
+
+                {/* Grille d'informations personnelles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Nom</p>
+                    <p className="text-sm font-semibold">{userProfile?.last_name || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Post-nom</p>
+                    <p className="text-sm font-semibold">{userProfile?.middle_name || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Prénom</p>
+                    <p className="text-sm font-semibold">{userProfile?.first_name || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Email</p>
+                    <p className="text-sm font-semibold truncate">{userProfile?.email || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Téléphone</p>
+                    <p className="text-sm font-semibold">{userProfile?.phone_number || userProfile?.phone || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Date de naissance</p>
+                    <p className="text-sm font-semibold">{userProfile?.date_of_birth ? new Date(userProfile.date_of_birth).toLocaleDateString('fr-FR') : '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Pays</p>
+                    <p className="text-sm font-semibold">{userProfile?.country ? `${getFlagEmoji(userProfile.country)} ${userProfile.country}` : '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                    <p className="text-xs text-slate-400">Ville</p>
+                    <p className="text-sm font-semibold">{userProfile?.city || '—'}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 sm:col-span-2 lg:col-span-1">
+                    <p className="text-xs text-slate-400">Adresse</p>
+                    <p className="text-sm font-semibold">{userProfile?.address || '—'}</p>
+                  </div>
                 </div>
               </div>
             </div>

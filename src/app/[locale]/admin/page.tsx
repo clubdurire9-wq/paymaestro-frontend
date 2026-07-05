@@ -433,7 +433,23 @@ export default function AdminPage() {
                             <Badge variant="default">{u.role || 'USER'}</Badge>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => router.push(`/admin/users/${u.id}?name=${encodeURIComponent(u.name || u.email || '')}&email=${encodeURIComponent(u.email || '')}&kycStatus=${u.kycStatus || ''}&phone=${encodeURIComponent(u.phone || '')}&country=${encodeURIComponent(u.country || '')}&role=${u.role || ''}`)}>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          const p = new URLSearchParams({
+                            name: u.name || u.email || '',
+                            email: u.email || '',
+                            kycStatus: u.kycStatus || '',
+                            phone: u.phone || '',
+                            country: u.country || '',
+                            city: u.city || '',
+                            role: u.role || '',
+                            firstName: u.firstName || '',
+                            lastName: u.lastName || '',
+                            middleName: u.middleName || '',
+                            address: u.address || '',
+                            dateOfBirth: u.dateOfBirth || '',
+                          });
+                          router.push(`/admin/users/${u.id}?${p}`);
+                        }}>
                           <Eye className="w-4 h-4 mr-1" />Voir
                         </Button>
                       </CardContent>
