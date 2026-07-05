@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, FileText, MapPin, Loader2, Mail, Phone, Globe,
-  CheckCircle, XCircle, Clock, AlertTriangle, DollarSign, Wallet,
-  CreditCard, Bitcoin, PiggyBank, BookOpen, Shield, LifeBuoy,
-  Key, Snowflake, TrendingUp, Activity, Headphones
+  CheckCircle, XCircle, Clock, DollarSign, Wallet,
+  CreditCard, Bitcoin, PiggyBank, TrendingUp, Activity,
+  ChevronDown, ChevronRight, Smartphone, Landmark
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,52 @@ import { Badge } from '@/components/ui/badge';
 import { api, Transaction } from '@/lib/api';
 import { generateTransactionPDF } from '@/lib/pdf-export';
 import MapEmbed from '@/components/ui/MapEmbed';
+
+type ServiceKey = 'mobile_deposit' | 'withdrawal' | 'wallet' | 'iban_deposit' | 'crypto' | 'paypal' | 'cards' | 'conversion' | 'fee';
+
+interface ServiceDef {
+  key: ServiceKey;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  getCount: (activity: any) => number;
+  getTxs: (activity: any) => any[];
+}
+
+const SERVICES: ServiceDef[] = [
+  { key: 'mobile_deposit', label: 'Dépôt Mobile Money', icon: Smartphone, color: 'green',
+    getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT').length,
+    getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT') },
+  { key: 'withdrawal', label: 'Retrait', icon: TrendingUp, color: 'red',
+    getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'WITHDRAWAL').length,
+    getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'WITHDRAWAL') },
+  { key: 'wallet', label: 'Wallet (solde)', icon: Wallet, color: 'violet',
+    getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL').length,
+    getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL') },
+  { key: 'conversion', label: 'Conversion', icon: Activity, color: 'blue',
+    getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'CONVERSION').length,
+    getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'CONVERSION') },
+  { key: 'fee', label: 'Frais', icon: Clock, color: 'yellow',
+    getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'FEE').length,
+    getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'FEE') },
+  { key: 'paypal', label: 'PayPal / Legacy', icon: CreditCard, color: 'orange',
+    getCount: (a) => a?.paypal?.length || 0,
+    getTxs: (a) => a?.paypal || [] },
+  { key: 'iban_deposit', label: 'IBAN Dépôt', icon: Landmark, color: 'blue',
+    getCount: () => 0, getTxs: () => [] },
+  { key: 'crypto', label: 'Crypto (BTC/ETH/USDT)', icon: Bitcoin, color: 'orange',
+    getCount: () => 0, getTxs: () => [] },
+  { key: 'cards', label: 'Cartes virtuelles', icon: CreditCard, color: 'purple',
+    getCount: () => 0, getTxs: () => [] },
+];
+
+const SERVICE_BADGE: Record<string, 'success' | 'error' | 'info' | 'warning'> = {
+  DEPOSIT: 'success', WITHDRAWAL: 'error', CONVERSION: 'info', FEE: 'warning',
+};
+
+const SERVICE_LABEL: Record<string, string> = {
+  DEPOSIT: 'DÉPÔT', WITHDRAWAL: 'RETRAIT', CONVERSION: 'CONV', FEE: 'FRAIS',
+};
 
 export default function AdminUserDetailPage() {
   const router = useRouter();
@@ -26,6 +72,7 @@ export default function AdminUserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showGeoModal, setShowGeoModal] = useState(false);
   const [loadingGeo, setLoadingGeo] = useState(false);
+  const [expandedService, setExpandedService] = useState<ServiceKey | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -106,7 +153,7 @@ export default function AdminUserDetailPage() {
         name: userProfile?.name || userProfile?.email || 'N/A',
         email: userProfile?.email || 'N/A',
         id: userProfile?.id || 'N/A',
-        kycStatus: userProfile?.kyc_status,
+        kycStatus: userProfile?.kyc_status || userProfile?.kycStatus,
       });
       const filename = `PayMaestro_Releve_${userProfile?.name || userProfile?.email}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
@@ -120,6 +167,8 @@ export default function AdminUserDetailPage() {
     const codePoints = countryCode.toUpperCase().split('').map((char) => 127397 + char.charCodeAt(0));
     return String.fromCodePoint(...codePoints);
   };
+
+  const kycStatus = userProfile?.kyc_status || userProfile?.kycStatus;
 
   if (loading) {
     return (
@@ -171,12 +220,12 @@ export default function AdminUserDetailPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">
-                  {userProfile?.name || 'Utilisateur'}
+                  {userProfile?.name || userProfile?.email || 'Utilisateur'}
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">{userProfile?.id}</p>
+                <p className="text-sm text-slate-400 mt-1">ID: {userProfile?.id}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <Badge variant={userProfile?.kyc_status === 'APPROVED' ? 'success' : userProfile?.kyc_status === 'REJECTED' ? 'error' : 'warning'} className="text-xs">
-                    {userProfile?.kyc_status === 'APPROVED' ? 'KYC Approuvé' : userProfile?.kyc_status === 'REJECTED' ? 'KYC Rejeté' : 'KYC: ' + (userProfile?.kyc_status || 'NONE')}
+                  <Badge variant={kycStatus === 'APPROVED' ? 'success' : kycStatus === 'REJECTED' ? 'error' : 'warning'} className="text-xs">
+                    {kycStatus === 'APPROVED' ? 'KYC Approuvé ✔️' : kycStatus === 'REJECTED' ? 'KYC Rejeté' : 'KYC: ' + (kycStatus || 'NONE')}
                   </Badge>
                   <Badge variant="default">{userProfile?.role || 'USER'}</Badge>
                   {userProfile?.email && (
@@ -200,102 +249,95 @@ export default function AdminUserDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Statistiques */}
-        {userActivity && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <DollarSign className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-green-600">
-                  ${(userActivity.wallet?.reduce((s: number, t: any) => s + parseFloat(t.amount_usd || 0), 0) || 0).toFixed(2)}
-                </p>
-                <p className="text-xs text-slate-400">Volume Wallet</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Activity className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold">
-                  {(userActivity.wallet?.length || 0) + (userActivity.paypal?.length || 0)}
-                </p>
-                <p className="text-xs text-slate-400">Transactions</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Wallet className="w-5 h-5 text-violet-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold">{userActivity.wallet?.length || 0}</p>
-                <p className="text-xs text-slate-400">Wallet</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <CreditCard className="w-5 h-5 text-orange-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold">{userActivity.paypal?.length || 0}</p>
-                <p className="text-xs text-slate-400">PayPal / Legacy</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Services - grille de cartes cliquables */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SERVICES.map((svc) => {
+            const count = svc.getCount(userActivity);
+            const txs = svc.getTxs(userActivity);
+            const isOpen = expandedService === svc.key;
+            const Icon = svc.icon;
 
-        {/* Toutes les transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Dernières transactions</span>
-              <span className="text-sm font-normal text-slate-400">
-                {((userActivity?.wallet?.length || 0) + (userActivity?.paypal?.length || 0))} au total
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              {userActivity?.wallet?.slice(0, 50).map((tx: any) => (
-                <div key={`w-${tx.id}`} className="flex items-center justify-between text-xs p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Badge variant={tx.type === 'DEPOSIT' ? 'success' : tx.type === 'WITHDRAWAL' ? 'error' : 'info'} className="shrink-0">
-                      {tx.type === 'DEPOSIT' ? 'DÉPÔT' : tx.type === 'WITHDRAWAL' ? 'RETRAIT' : tx.type === 'FEE' ? 'FRAIS' : tx.type === 'CONVERSION' ? 'CONV' : tx.type}
-                    </Badge>
-                    <span className="font-medium truncate">
-                      {parseFloat(tx.amount_currency || 0).toLocaleString('fr-FR')} {tx.currency_code}
-                    </span>
-                    {tx.metadata?.targetPhone && (
-                      <span className="text-slate-400 truncate">→ {tx.metadata.targetPhone}</span>
-                    )}
+            return (
+              <Card
+                key={svc.key}
+                className={`cursor-pointer transition-all hover:shadow-md ${isOpen ? 'ring-2 ring-violet-400' : ''}`}
+                onClick={() => setExpandedService(isOpen ? null : svc.key)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        svc.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' :
+                        svc.color === 'red' ? 'bg-red-100 dark:bg-red-900/20' :
+                        svc.color === 'violet' ? 'bg-violet-100 dark:bg-violet-900/20' :
+                        svc.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20' :
+                        svc.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/20' :
+                        svc.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
+                        svc.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/20' :
+                        'bg-slate-100 dark:bg-slate-800'
+                      }`}>
+                        <Icon className={`w-5 h-5 ${
+                          svc.color === 'green' ? 'text-green-600' :
+                          svc.color === 'red' ? 'text-red-600' :
+                          svc.color === 'violet' ? 'text-violet-600' :
+                          svc.color === 'blue' ? 'text-blue-600' :
+                          svc.color === 'yellow' ? 'text-yellow-600' :
+                          svc.color === 'orange' ? 'text-orange-600' :
+                          svc.color === 'purple' ? 'text-purple-600' :
+                          'text-slate-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-slate-900 dark:text-white">{svc.label}</p>
+                        <p className="text-xs text-slate-400">{count} transaction{count !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {count > 0 && (
+                        <Badge variant={svc.key === 'withdrawal' ? 'error' : svc.key === 'mobile_deposit' ? 'success' : 'info'}>
+                          {count}
+                        </Badge>
+                      )}
+                      {isOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-2">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">
-                      ${parseFloat(tx.amount_usd || 0).toFixed(2)}
-                    </span>
-                    <Badge variant={tx.status === 'COMPLETED' ? 'success' : tx.status === 'PENDING' ? 'warning' : 'error'}>
-                      {tx.status === 'COMPLETED' ? 'Succès' : tx.status === 'PENDING' ? 'En attente' : 'Échec'}
-                    </Badge>
-                    <span className="text-slate-400">{new Date(tx.created_at).toLocaleDateString('fr-FR')}</span>
-                  </div>
-                </div>
-              ))}
-              {userActivity?.paypal?.slice(0, 50).map((tx: any) => (
-                <div key={`p-${tx.id}`} className="flex items-center justify-between text-xs p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Badge variant="info" className="shrink-0">PAYPAL</Badge>
-                    <span className="font-medium truncate">
-                      ${parseFloat(tx.amount_usd || 0).toFixed(2)} → {parseFloat(tx.amount_local_currency || 0).toLocaleString('fr-FR')} {tx.currency_code}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-2">
-                    <Badge variant={tx.status === 'MOBILE_MONEY_SENT' ? 'success' : tx.status === 'FAILED' ? 'error' : 'warning'}>
-                      {tx.status === 'MOBILE_MONEY_SENT' ? 'Succès' : tx.status === 'FAILED' ? 'Échec' : tx.status}
-                    </Badge>
-                    <span className="text-slate-400">{new Date(tx.created_at).toLocaleDateString('fr-FR')}</span>
-                  </div>
-                </div>
-              ))}
-              {(!userActivity?.wallet?.length && !userActivity?.paypal?.length) && (
-                <p className="text-slate-400 text-center py-8 text-sm">Aucune transaction trouvée</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+
+                  {/* Transactions depliées */}
+                  {isOpen && (
+                    <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-4" onClick={e => e.stopPropagation()}>
+                      {txs.length > 0 ? txs.slice(0, 30).map((tx: any) => (
+                        <div key={`${svc.key}-${tx.id}`} className="flex items-center justify-between text-xs p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Badge variant={SERVICE_BADGE[tx.type] || 'info'} className="shrink-0">
+                              {SERVICE_LABEL[tx.type] || tx.type}
+                            </Badge>
+                            <span className="font-medium truncate">
+                              {parseFloat(tx.amount_currency || 0).toLocaleString('fr-FR')} {tx.currency_code}
+                            </span>
+                            {tx.metadata?.targetPhone && (
+                              <span className="text-slate-400 truncate">→ {tx.metadata.targetPhone}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              ${parseFloat(tx.amount_usd || 0).toFixed(2)}
+                            </span>
+                            <Badge variant={tx.status === 'COMPLETED' ? 'success' : tx.status === 'PENDING' ? 'warning' : 'error'}>
+                              {tx.status === 'COMPLETED' ? 'Succès' : tx.status === 'PENDING' ? 'En attente' : 'Échec'}
+                            </Badge>
+                            <span className="text-slate-400">{new Date(tx.created_at).toLocaleDateString('fr-FR')}</span>
+                          </div>
+                        </div>
+                      )) : (
+                        <p className="text-xs text-slate-400 text-center py-4">Aucune transaction pour ce service</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Modale Géolocalisation */}
