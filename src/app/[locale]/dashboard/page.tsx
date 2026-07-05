@@ -9,6 +9,7 @@ import {
   UserCheck, 
   TrendingUp, 
   DollarSign, 
+  Calendar,
   CheckCircle2, 
   Clock, 
   AlertCircle,
@@ -31,6 +32,7 @@ interface Stats {
   totalTransactions: number;
   successRate: number;
   pendingTransactions: number;
+  withdrawalsThisMonth?: number;
   monthlyStats?: { month: string; volumeUSD: number }[];
 }
 import { useAuth } from '@/hooks/useAuth';
@@ -203,7 +205,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-emerald-500">
+        <Card className="border-l-4 border-l-blue-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
@@ -211,11 +213,11 @@ export default function DashboardPage() {
                   {t('stats.totalTransactions')}
                 </p>
                 <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-2">
-                  {stats?.totalTransactions}
+                  {stats?.withdrawalsThisMonth ?? 0}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <Calendar className="w-6 h-6" />
               </div>
             </div>
           </CardContent>

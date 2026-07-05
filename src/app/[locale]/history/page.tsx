@@ -24,8 +24,10 @@ import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { Skeleton, SkeletonTable } from '@/components/ui/skeleton';
 import { api, Transaction, LIVE_RATES } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HistoryPage() {
+  const { user } = useAuth();
   const t = useTranslations('history');
   const tCommon = useTranslations('common');
   const locale = useLocale();
@@ -184,12 +186,40 @@ export default function HistoryPage() {
       doc.setFontSize(10);
       doc.text('Relevé de Transaction Officiel', 20, 24);
 
-      // Date d'édition
+      // === BLOC IDENTITÉ LÉGALE (coin supérieur droit) ===
+      const legalX = pageW - 80;
+      const legalY = 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(230, 230, 255);
+      doc.text('Titulaire :', legalX, legalY + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.text(user?.name || 'N/A', legalX + 18, legalY + 4);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Email :', legalX, legalY + 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(user?.email || 'N/A', legalX + 18, legalY + 10);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('ID Client :', legalX, legalY + 16);
+      doc.setFont('helvetica', 'normal');
+      doc.text(user?.id ? user.id.slice(0, 13) + '...' : 'N/A', legalX + 18, legalY + 16);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Statut :', legalX, legalY + 22);
+      const isVerified = user?.kycStatus === 'APPROVED';
+      doc.setTextColor(isVerified ? 100 : 255, isVerified ? 230 : 200, isVerified ? 100 : 200);
+      doc.setFont('helvetica', 'bold');
+      doc.text(isVerified ? 'COMPTE VÉRIFIÉ \u2714' : 'Non vérifié', legalX + 18, legalY + 22);
+
+      // Date d'édition (sous le bloc identité)
       const now = new Date();
       const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-      doc.setFontSize(8);
-      doc.setTextColor(200, 200, 200);
-      doc.text(`Édité le ${dateStr} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, pageW - 20, 18, { align: 'right' } as any);
+      doc.setFontSize(7);
+      doc.setTextColor(200, 200, 220);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Émis le ${dateStr} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, legalX, legalY + 28);
 
       // Séparateur
       doc.setDrawColor(200, 200, 200);

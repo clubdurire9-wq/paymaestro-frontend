@@ -679,10 +679,11 @@ export const api = {
         totalTransactions: data.totalTransactions || 0,
         successRate: parseFloat(data.successRate ?? 100),
         pendingTransactions: data.pendingTransactions || 0,
+        withdrawalsThisMonth: data.withdrawalsThisMonth || 0,
         monthlyStats: data.monthlyStats || [],
       };
     } catch {
-      return { totalReceived: 0, totalTransactions: 0, successRate: 100, pendingTransactions: 0, monthlyStats: [] };
+      return { totalReceived: 0, totalTransactions: 0, successRate: 100, pendingTransactions: 0, withdrawalsThisMonth: 0, monthlyStats: [] };
     }
   },
 
