@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { 
   Activity, Eye, RefreshCw, DollarSign, Users, 
   TrendingUp, Undo2, Loader2, Search, ArrowLeft, MapPin,
@@ -16,6 +17,7 @@ import MapEmbed from '@/components/ui/MapEmbed';
 
 export default function AdminLivePage() {
   const locale = useLocale();
+  const searchParams = useSearchParams();
 
   const [activities, setActivities] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -91,6 +93,14 @@ export default function AdminLivePage() {
       setSelectedUser(userId);
     } catch {}
   };
+
+  // Charger l'utilisateur depuis l'URL ?userId=xxx (lien depuis la recherche admin)
+  useEffect(() => {
+    const userId = searchParams?.get('userId');
+    if (userId) {
+      handleViewUser(userId);
+    }
+  }, []);
 
   const handleExportUserPDF = () => {
     if (!userActivity || !userProfile) return;
