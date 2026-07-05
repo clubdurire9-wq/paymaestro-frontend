@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Key, Plus, Copy, CheckCircle2, Eye, EyeOff, Loader2, 
-  Trash2, Shield, Code, BookOpen, Zap, Clock, AlertTriangle 
+  Trash2, Shield, Code, BookOpen, Zap, Clock, AlertTriangle,
+  ArrowUpRight, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export default function DeveloperPage() {
   const [creating, setCreating] = useState(false);
   const [businessType, setBusinessType] = useState('');
   const [businessLoading, setBusinessLoading] = useState(true);
+  const [showBusinessModal, setShowBusinessModal] = useState(false);
 
   useEffect(() => { loadKeys(); loadBusiness(); }, []);
 
@@ -211,7 +213,7 @@ export default function DeveloperPage() {
                 </div>
               </div>
               {businessType !== 'REGISTERED' && (
-                <Button variant="outline" onClick={() => alert('Fonctionnalité à venir — contactez le support pour soumettre vos documents.')}>
+                <Button variant="outline" onClick={() => setShowBusinessModal(true)}>
                   Devenir Enregistré
                 </Button>
               )}
@@ -333,6 +335,66 @@ export default function DeveloperPage() {
             </div>
 
             <Button fullWidth className="mt-3" onClick={() => setNewKey(null)}>Fermer</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Faire évoluer le compte */}
+      {showBusinessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative">
+            <button
+              onClick={() => setShowBusinessModal(false)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-violet-600 dark:text-violet-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                Faire évoluer votre compte
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                Passez de <strong className="text-slate-700 dark:text-slate-300">Compte Starter</strong> à{' '}
+                <strong className="text-green-600 dark:text-green-400">Compte Enregistré</strong>
+              </p>
+            </div>
+
+            <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+              <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
+                <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                <p>Le statut <strong>Compte Enregistré</strong> est nécessaire pour effectuer des transferts sortants (retraits Mobile Money, virements bancaires).</p>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl space-y-2">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">Pièces requises :</p>
+                <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
+                  <li>Registre du Commerce (RCCM)</li>
+                  <li>Pièce d'identité du dirigeant</li>
+                  <li>Justificatif de domicile</li>
+                </ul>
+              </div>
+
+              <p className="text-slate-500 dark:text-slate-400">
+                Notre équipe vérifiera vos documents sous 24 à 48 heures ouvrées.
+              </p>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" fullWidth onClick={() => setShowBusinessModal(false)}>
+                Plus tard
+              </Button>
+              <Button
+                fullWidth
+                icon={<ArrowUpRight className="w-4 h-4" />}
+                onClick={() => window.location.href = `/${window.location.pathname.split('/')[1]}/contact`}
+              >
+                Contacter le support
+              </Button>
+            </div>
           </div>
         </div>
       )}
