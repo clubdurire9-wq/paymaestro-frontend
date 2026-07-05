@@ -119,76 +119,172 @@ export function generateTransactionPDF(transactions: Transaction[], user: PDFUse
   header();
   watermark();
 
+  const SERVICE_SECTIONS = [
+    { type: 'DEPOSIT', label: 'Dépôt Mobile Money', tableLabel: 'Dépôts Mobile Money' },
+    { type: 'WITHDRAWAL', label: 'Retrait', tableLabel: 'Retraits' },
+    { type: 'CONVERSION', label: 'Conversion', tableLabel: 'Conversions' },
+    { type: 'FEE', label: 'Frais', tableLabel: 'Frais' },
+    { type: 'PAYPAL', label: 'PayPal / Legacy', tableLabel: 'Paiements PayPal' },
+  ] as const;
+
+  let yPos = 42;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
+  doc.setFontSize(14);
   doc.setTextColor(DEEP_CHARCOAL);
-  doc.text('Historique des transactions', 15, 42);
+  doc.text('Relevé par service', 15, yPos);
+  yPos += 8;
 
   const totalUSD = transactions.reduce((sum, t) => sum + t.amountUSD, 0);
   const successCount = transactions.filter(t => t.status === 'MOBILE_MONEY_SENT').length;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  doc.text(`${transactions.length} transaction(s) — ${successCount} réussie(s) — Total: $${totalUSD.toFixed(2)} USD`, 15, 47);
+  doc.text(`${transactions.length} transaction(s) — ${successCount} réussie(s) — Volume total: $${totalUSD.toFixed(2)} USD`, 15, yPos + 2);
 
-  const tableData = transactions.map(t => [
-    new Date(t.date).toLocaleDateString('fr-FR'),
-    t.id,
-    `${t.amountUSD.toFixed(2)} $`,
-    `${t.receivedAmount?.toFixed(2) || '0.00'} ${t.currency}`,
-    t.status === 'MOBILE_MONEY_SENT' ? 'Succès' :
-    t.status === 'FAILED' ? 'Échec' :
-    t.status === 'PENDING' ? 'En attente' : t.status,
-  ]);
+  let currentY = yPos + 8;
 
-  autoTable(doc, {
-    startY: 50,
-    head: [['Date', 'ID Retrait', 'Montant USD', 'Reçu', 'Statut']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [102, 126, 234],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 9,
-      halign: 'center',
-    },
-    bodyStyles: {
-      fontSize: 8,
-      textColor: [50, 50, 50],
-    },
-    columnStyles: {
-      0: { cellWidth: 35, halign: 'center' },
-      1: { cellWidth: 55, halign: 'center' },
-      2: { cellWidth: 35, halign: 'right' },
-      3: { cellWidth: 45, halign: 'right' },
-      4: { cellWidth: 35, halign: 'center' },
-    },
-    alternateRowStyles: {
-      fillColor: [245, 247, 255],
-    },
-    didParseCell: (data: any) => {
-      if (data.column.index === 4) {
-        if (data.cell.raw === 'Succès') {
-          data.cell.styles.textColor = [16, 185, 129];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (data.cell.raw === 'Échec') {
-          data.cell.styles.textColor = [239, 68, 68];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (data.cell.raw === 'En attente') {
-          data.cell.styles.textColor = [245, 158, 11];
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
-    },
-    margin: { top: 50, bottom: 22 },
-    tableWidth: 'auto',
-    showHead: 'everyPage',
-    didDrawPage: () => {
+  for (const section of SERVICE_SECTIONS) {
+    const sectionTxs = transactions.filter(t => t.type === section.type);
+
+    if (sectionTxs.length === 0) continue;
+
+    if (currentY > pageH - 50) {
+      doc.addPage();
       watermark();
-      footer();
-    },
-  });
+      header();
+      currentY = 42;
+    }
+
+    const sectionTotal = sectionTxs.reduce((s, t) => s + t.amountUSD, 0);
+    const sectionSuccess = sectionTxs.filter(t => t.status === 'MOBILE_MONEY_SENT').length;
+
+    // Titre de section
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(102, 126, 234);
+    doc.text(`${section.label} — ${sectionTxs.length} tx — $${sectionTotal.toFixed(2)} USD (${sectionSuccess} succès)`, 15, currentY);
+    currentY += 5;
+
+    const tableBody = sectionTxs.map(t => [
+      new Date(t.date).toLocaleDateString('fr-FR'),
+      t.id.slice(0, 13),
+      `${t.amountUSD.toFixed(2)} $`,
+      `${t.receivedAmount?.toFixed(2) || '0.00'} ${t.currency}`,
+      t.phone || '',
+      t.status === 'MOBILE_MONEY_SENT' ? 'Succès' :
+      t.status === 'FAILED' ? 'Échec' :
+      t.status === 'PENDING' ? 'En attente' : t.status,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [[section.tableLabel, 'ID', 'Montant USD', 'Reçu', 'Contact', 'Statut']],
+      body: tableBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [102, 126, 234],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'center',
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [50, 50, 50],
+      },
+      columnStyles: {
+        0: { cellWidth: 45, halign: 'left' },
+        1: { cellWidth: 30, halign: 'center' },
+        2: { cellWidth: 25, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' },
+        4: { cellWidth: 45, halign: 'center' },
+        5: { cellWidth: 25, halign: 'center' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 255],
+      },
+      didParseCell: (data: any) => {
+        if (data.column.index === 5) {
+          if (data.cell.raw === 'Succès') {
+            data.cell.styles.textColor = [16, 185, 129];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (data.cell.raw === 'Échec') {
+            data.cell.styles.textColor = [239, 68, 68];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (data.cell.raw === 'En attente') {
+            data.cell.styles.textColor = [245, 158, 11];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+      margin: { top: 50, bottom: 22 },
+      tableWidth: 'auto',
+      showHead: 'everyPage',
+      didDrawPage: () => {
+        watermark();
+        footer();
+      },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 10;
+  }
+
+  // Transactions sans type connu (history user, legacy)
+  const otherTxs = transactions.filter(t => !t.type || !SERVICE_SECTIONS.some(s => s.type === t.type));
+  if (otherTxs.length > 0) {
+    if (currentY > pageH - 50) {
+      doc.addPage();
+      watermark();
+      header();
+      currentY = 42;
+    }
+    const otherTotal = otherTxs.reduce((s, t) => s + t.amountUSD, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(102, 126, 234);
+    doc.text(`Autres transactions — ${otherTxs.length} tx — $${otherTotal.toFixed(2)} USD`, 15, currentY);
+    currentY += 5;
+
+    const otherBody = otherTxs.map(t => [
+      new Date(t.date).toLocaleDateString('fr-FR'),
+      t.id.slice(0, 13),
+      `${t.amountUSD.toFixed(2)} $`,
+      `${t.receivedAmount?.toFixed(2) || '0.00'} ${t.currency}`,
+      t.phone || '',
+      t.status === 'MOBILE_MONEY_SENT' ? 'Succès' :
+      t.status === 'FAILED' ? 'Échec' :
+      t.status === 'PENDING' ? 'En attente' : t.status,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Date', 'ID', 'Montant USD', 'Reçu', 'Contact', 'Statut']],
+      body: otherBody,
+      theme: 'grid',
+      headStyles: { fillColor: [102, 126, 234], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8, halign: 'center' },
+      bodyStyles: { fontSize: 7, textColor: [50, 50, 50] },
+      columnStyles: {
+        0: { cellWidth: 45, halign: 'left' },
+        1: { cellWidth: 30, halign: 'center' },
+        2: { cellWidth: 25, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' },
+        4: { cellWidth: 45, halign: 'center' },
+        5: { cellWidth: 25, halign: 'center' },
+      },
+      alternateRowStyles: { fillColor: [245, 247, 255] },
+      didParseCell: (data: any) => {
+        if (data.column.index === 5) {
+          if (data.cell.raw === 'Succès') { data.cell.styles.textColor = [16, 185, 129]; data.cell.styles.fontStyle = 'bold'; }
+          else if (data.cell.raw === 'Échec') { data.cell.styles.textColor = [239, 68, 68]; data.cell.styles.fontStyle = 'bold'; }
+          else if (data.cell.raw === 'En attente') { data.cell.styles.textColor = [245, 158, 11]; data.cell.styles.fontStyle = 'bold'; }
+        }
+      },
+      margin: { top: 50, bottom: 22 },
+      tableWidth: 'auto',
+      showHead: 'everyPage',
+      didDrawPage: () => { watermark(); footer(); },
+    });
+  }
 
   return doc;
 }

@@ -844,6 +844,7 @@ export interface Transaction {
   status: TransactionStatus;
   reference: string;
   phone: string;
+  type?: string;
   paypalOrderId?: string;
   flutterwaveReference?: string;
   exchangeRate: number;
