@@ -81,32 +81,32 @@ export default function DeveloperPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Code className="w-8 h-8 text-violet-600" />
             Portail Développeur
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Gérez vos clés API et intégrez PayMaestro à votre application</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez vos clés API et intégrez PayMaestro à votre application</p>
         </div>
       </div>
 
       {/* Documentation rapide */}
-      <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-200">
+      <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950 dark:to-indigo-950 border-violet-200 dark:border-violet-800">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <BookOpen className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Documentation API</p>
-              <p className="text-xs text-violet-600">Guide complet d'intégration</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">Documentation API</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">Guide complet d'intégration</p>
             </div>
             <div className="text-center">
               <Zap className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Quick Start</p>
-              <p className="text-xs text-violet-600">Intégrez en 5 minutes</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">Quick Start</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">Intégrez en 5 minutes</p>
             </div>
             <div className="text-center">
               <Shield className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Sécurisé</p>
-              <p className="text-xs text-violet-600">Authentification par clé API</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">Sécurisé</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">Authentification par clé API</p>
             </div>
           </div>
         </CardContent>
@@ -128,9 +128,9 @@ export default function DeveloperPage() {
         <CardContent>
           {apiKeys.length === 0 ? (
             <div className="text-center py-12">
-              <Key className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500">Aucune clé API</p>
-              <p className="text-xs text-slate-400 mt-1">Créez votre première clé pour commencer</p>
+              <Key className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-500 dark:text-slate-400">Aucune clé API</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Créez votre première clé pour commencer</p>
               <Button className="mt-4" onClick={() => setShowCreate(true)}>
                 Créer une clé API
               </Button>
@@ -138,29 +138,29 @@ export default function DeveloperPage() {
           ) : (
             <div className="space-y-3">
               {apiKeys.map(key => (
-                <div key={key.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                <div key={key.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      key.type === 'live' ? 'bg-green-100' : 'bg-yellow-100'
+                      key.type === 'live' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-yellow-100 dark:bg-yellow-900/50'
                     }`}>
-                      <Key className={`w-5 h-5 ${key.type === 'live' ? 'text-green-600' : 'text-yellow-600'}`} />
+                      <Key className={`w-5 h-5 ${key.type === 'live' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">{key.name}</p>
-                      <p className="text-xs font-mono text-slate-500">
+                      <p className="font-bold text-slate-800 dark:text-slate-200">{key.name}</p>
+                      <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
                         {key.key_prefix}...{key.last_four}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={key.type === 'live' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
+                        <Badge className={key.type === 'live' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'}>
                           {key.type === 'live' ? 'Production' : 'Test'}
                         </Badge>
-                        <Badge className={key.status === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}>
+                        <Badge className={key.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'}>
                           {key.status === 'active' ? 'Active' : 'Révoquée'}
                         </Badge>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
                     {key.last_used_at ? (
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -170,7 +170,7 @@ export default function DeveloperPage() {
                       <span>Jamais utilisée</span>
                     )}
                     {key.status === 'active' && (
-                      <button onClick={() => handleRevokeKey(key.id)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Révoquer">
+                      <button onClick={() => handleRevokeKey(key.id)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:text-red-300 rounded-lg transition-colors" title="Révoquer">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -195,15 +195,15 @@ export default function DeveloperPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  businessType === 'REGISTERED' ? 'bg-green-100' : 'bg-yellow-100'
+                  businessType === 'REGISTERED' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-yellow-100 dark:bg-yellow-900/50'
                 }`}>
-                  <Shield className={`w-5 h-5 ${businessType === 'REGISTERED' ? 'text-green-600' : 'text-yellow-600'}`} />
+                  <Shield className={`w-5 h-5 ${businessType === 'REGISTERED' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-slate-800 dark:text-slate-200">
                     {businessType === 'REGISTERED' ? 'Compte Enregistré' : 'Compte Starter'}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {businessType === 'REGISTERED'
                       ? 'Transferts sortants activés'
                       : 'Soumettez votre Registre du Commerce pour activer les transferts sortants'}
@@ -224,7 +224,7 @@ export default function DeveloperPage() {
       <Card>
         <CardHeader><CardTitle>🚀 Exemple d'intégration</CardTitle></CardHeader>
         <CardContent>
-          <div className="bg-slate-900 text-green-400 p-6 rounded-xl font-mono text-sm overflow-x-auto">
+          <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-6 rounded-xl font-mono text-sm overflow-x-auto">
             <p className="text-slate-400">// Initialiser un paiement PayMaestro</p>
             <p className="text-yellow-400">const</p> <span className="text-blue-400">API_KEY</span> = <span className="text-green-300">"pm_test_..."</span>;
             <br /><br />
@@ -260,42 +260,42 @@ export default function DeveloperPage() {
       {/* Modale création de clé */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-slate-100">
               <Plus className="w-5 h-5 text-violet-600" /> Nouvelle clé API
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold">Nom de la clé</label>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nom de la clé</label>
                 <input
                   type="text"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
                   placeholder="Ex: Mon site e-commerce"
-                  className="w-full px-4 py-3 border rounded-xl text-sm mt-1"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm mt-1"
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold">Type de clé</label>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Type de clé</label>
                 <div className="flex gap-3 mt-1">
                   <button
                     onClick={() => setNewKeyType('test')}
                     className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
-                      newKeyType === 'test' ? 'border-yellow-500 bg-yellow-50' : 'border-slate-200'
+                      newKeyType === 'test' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30' : 'border-slate-200 dark:border-slate-600 dark:text-slate-300'
                     }`}
                   >
                     <p className="font-bold">🧪 Test</p>
-                    <p className="text-xs text-slate-500">Pour les tests</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Pour les tests</p>
                   </button>
                   <button
                     onClick={() => setNewKeyType('live')}
                     className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
-                      newKeyType === 'live' ? 'border-green-500 bg-green-50' : 'border-slate-200'
+                      newKeyType === 'live' ? 'border-green-500 bg-green-50 dark:bg-green-900/30' : 'border-slate-200 dark:border-slate-600 dark:text-slate-300'
                     }`}
                   >
                     <p className="font-bold">🚀 Production</p>
-                    <p className="text-xs text-slate-500">Transactions réelles</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Transactions réelles</p>
                   </button>
                 </div>
               </div>
@@ -314,12 +314,12 @@ export default function DeveloperPage() {
       {/* Modale clé générée */}
       {newKey && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg">Clé API générée !</h3>
-            <p className="text-sm text-red-600 font-bold mt-2">⚠️ Conservez cette clé — elle ne sera plus affichée</p>
+            <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">Clé API générée !</h3>
+            <p className="text-sm text-red-600 dark:text-red-400 font-bold mt-2">⚠️ Conservez cette clé — elle ne sera plus affichée</p>
 
-            <div className="bg-slate-50 rounded-xl p-4 mt-4 font-mono text-sm break-all text-left">
+            <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 mt-4 font-mono text-sm break-all text-left text-slate-800 dark:text-slate-200">
               {showKey ? newKey.apiKey : '•'.repeat(40)}
             </div>
 

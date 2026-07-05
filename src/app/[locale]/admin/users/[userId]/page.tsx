@@ -237,7 +237,7 @@ export default function AdminUserDetailPage() {
             <span className="text-sm font-medium">Retour</span>
           </button>
           <div className="flex items-center gap-2">
-            <Badge className={`cursor-pointer select-none ${userProfile?.business_type === 'REGISTERED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+            <Badge className={`cursor-pointer select-none ${userProfile?.business_type === 'REGISTERED' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'}`}
               onClick={handleToggleBusiness}
               title="Cliquer pour changer le statut business">
               <Shield className="w-3 h-3 mr-1" />
