@@ -148,7 +148,22 @@ export default function AdminLivePage() {
   const handleShowGeo = async (email: string) => {
     try {
       const d = await api.admin.getUserGeo(email);
-      setUserGeo(d);
+      const geoLoc = d?.geoLocations?.find((g: any) => g.isCurrentIP) || d?.geoLocations?.[0];
+      setUserGeo({
+        userEmail: d?.user?.email || email,
+        lastIP: d?.user?.lastIP || d?.user?.last_ip || '',
+        lastLogin: d?.user?.createdAt || '',
+        geo: geoLoc ? {
+          countryCode: geoLoc.countryCode || '',
+          country: geoLoc.country || '',
+          city: geoLoc.city || '',
+          region: geoLoc.region || '',
+          isp: geoLoc.isp || '',
+          org: geoLoc.org || '',
+          lat: geoLoc.lat || 0,
+          lon: geoLoc.lon || 0,
+        } : null,
+      });
     } catch {}
   };
 
