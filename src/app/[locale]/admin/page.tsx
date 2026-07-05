@@ -30,6 +30,7 @@ import {
   Shield,
   LifeBuoy,
   Loader2,
+  X,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,10 @@ export default function AdminPage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<any>(null);
+  const [userActivity, setUserActivity] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loadingUserDetail, setLoadingUserDetail] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -111,6 +116,25 @@ export default function AdminPage() {
       }
     } finally {
       setSearching(false);
+    }
+  };
+
+  const handleViewUser = async (userId: string) => {
+    setLoadingUserDetail(true);
+    setSelectedUserDetail(userId);
+    setUserActivity(null);
+    setUserProfile(null);
+    try {
+      const [activity, profile] = await Promise.all([
+        api.admin.getUserActivity(userId),
+        api.admin.getUserProfile(userId).catch(() => null),
+      ]);
+      setUserActivity(activity);
+      setUserProfile(profile);
+    } catch (e: any) {
+      console.error('Erreur chargement utilisateur:', e);
+    } finally {
+      setLoadingUserDetail(false);
     }
   };
 
@@ -430,7 +454,7 @@ export default function AdminPage() {
                             <Badge variant="default">{u.role || 'USER'}</Badge>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => window.open(`/${locale}/admin/live?userId=${u.id}`, '_blank')}>
+                        <Button variant="outline" size="sm" onClick={() => handleViewUser(u.id)}>
                           <Eye className="w-4 h-4 mr-1" />Voir
                         </Button>
                       </CardContent>
@@ -443,6 +467,76 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-400 text-center py-4">
                   Utilisez la recherche ci-dessus pour trouver un utilisateur par email, téléphone ou nom.
                 </p>
+              )}
+
+              {/* Détail de l'utilisateur sélectionné */}
+              {selectedUserDetail && (
+                <Card className="border-2 border-violet-300">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle>
+                        {userProfile?.name || userProfile?.email || 'Utilisateur'}
+                      </CardTitle>
+                      <button onClick={() => { setSelectedUserDetail(null); setUserActivity(null); setUserProfile(null); }}>
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingUserDetail ? (
+                      <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-violet-600" /></div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Profil */}
+                        {userProfile && (
+                          <div className="grid grid-cols-2 gap-3 text-sm bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                            <div><span className="text-slate-500">Email :</span> <span className="font-medium">{userProfile.email}</span></div>
+                            <div><span className="text-slate-500">Téléphone :</span> <span className="font-medium">{userProfile.phone || '—'}</span></div>
+                            <div><span className="text-slate-500">Pays :</span> <span className="font-medium">{userProfile.country || '—'}</span></div>
+                            <div><span className="text-slate-500">KYC :</span>
+                              <Badge variant={userProfile.kyc_status === 'APPROVED' ? 'success' : 'warning'}>
+                                {userProfile.kyc_status || 'NONE'}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Transactions wallet */}
+                        <div>
+                          <h4 className="font-semibold text-sm mb-2">Transactions Wallet</h4>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {userActivity?.wallet?.length > 0 ? userActivity.wallet.slice(0, 10).map((tx: any) => (
+                              <div key={tx.id} className="text-xs p-2 bg-slate-50 dark:bg-slate-800 rounded flex justify-between">
+                                <span>
+                                  <Badge variant={tx.type === 'DEPOSIT' ? 'success' : tx.type === 'WITHDRAWAL' ? 'error' : 'info'} className="mr-2">
+                                    {tx.type}
+                                  </Badge>
+                                  {tx.amount_currency} {tx.currency_code}
+                                </span>
+                                <span className="text-slate-400">{new Date(tx.created_at).toLocaleDateString('fr-FR')}</span>
+                              </div>
+                            )) : <p className="text-xs text-slate-400">Aucune transaction wallet</p>}
+                          </div>
+                        </div>
+
+                        {/* Transactions PayPal */}
+                        <div>
+                          <h4 className="font-semibold text-sm mb-2">Transactions PayPal</h4>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {userActivity?.paypal?.length > 0 ? userActivity.paypal.slice(0, 10).map((tx: any) => (
+                              <div key={tx.id} className="text-xs p-2 bg-slate-50 dark:bg-slate-800 rounded flex justify-between items-center">
+                                <span>${tx.amount_usd} → {tx.amount_local_currency} {tx.currency_code}</span>
+                                <Badge variant={tx.status === 'MOBILE_MONEY_SENT' ? 'success' : tx.status === 'FAILED' ? 'error' : 'warning'}>
+                                  {tx.status}
+                                </Badge>
+                              </div>
+                            )) : <p className="text-xs text-slate-400">Aucune transaction PayPal</p>}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
