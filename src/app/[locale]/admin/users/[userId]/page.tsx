@@ -124,9 +124,9 @@ export default function AdminUserDetailPage() {
       const geoLoc = d?.geoLocations?.find((g: any) => g.isCurrentIP) || d?.geoLocations?.[0];
       setUserGeo({
         userEmail: d?.user?.email || email,
-        lastIP: d?.user?.lastIP || '',
+        lastIP: d?.user?.lastIP || d?.user?.last_ip || '',
         lastLogin: d?.user?.createdAt || '',
-        geo: geoLoc ? {
+        geo: geoLoc && !geoLoc.error ? {
           countryCode: geoLoc.countryCode || '',
           country: geoLoc.country || '',
           city: geoLoc.city || '',
@@ -402,28 +402,25 @@ export default function AdminUserDetailPage() {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm"><strong>Email :</strong> {userGeo?.userEmail || userProfile?.email}</p>
-                <p className="text-sm"><strong>Dernière IP :</strong> {userGeo?.lastIP}</p>
-                {userGeo?.geo && (
-                  <>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
-                      <p className="text-sm"><strong>Pays :</strong> {getFlagEmoji(userGeo.geo.countryCode)} {userGeo.geo.country}</p>
-                      <p className="text-sm"><strong>Ville :</strong> {userGeo.geo.city}</p>
-                      <p className="text-sm"><strong>Région :</strong> {userGeo.geo.region}</p>
-                      <p className="text-sm"><strong>FAI :</strong> {userGeo.geo.isp}</p>
-                      <p className="text-sm"><strong>Organisation :</strong> {userGeo.geo.org}</p>
-                    </div>
-                    <MapEmbed
-                      lat={userGeo.geo.lat}
-                      lon={userGeo.geo.lon}
-                      country={userGeo.geo.country}
-                      city={userGeo.geo.city}
-                      className="w-full h-48 rounded-xl"
-                    />
-                  </>
+                <p className="text-sm"><strong>Dernière IP :</strong> {userGeo?.lastIP || 'Non enregistrée'}</p>
+                {userGeo?.geo ? (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
+                    <p className="text-sm"><strong>Pays :</strong> {getFlagEmoji(userGeo.geo.countryCode)} {userGeo.geo.country}</p>
+                    <p className="text-sm"><strong>Ville :</strong> {userGeo.geo.city}</p>
+                    <p className="text-sm"><strong>Région :</strong> {userGeo.geo.region}</p>
+                    <p className="text-sm"><strong>FAI :</strong> {userGeo.geo.isp}</p>
+                    <p className="text-sm"><strong>Organisation :</strong> {userGeo.geo.org}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">Aucune donnée de géolocalisation disponible pour cet utilisateur.</p>
                 )}
-                {!userGeo?.geo && (
-                  <p className="text-sm text-slate-500">Géolocalisation non disponible pour cette IP.</p>
-                )}
+                <MapEmbed
+                  lat={userGeo?.geo?.lat || 0}
+                  lon={userGeo?.geo?.lon || 20}
+                  country={userGeo?.geo?.country}
+                  city={userGeo?.geo?.city}
+                  className="w-full h-56 rounded-xl"
+                />
               </div>
             )}
             <Button className="w-full mt-4" onClick={() => { setShowGeoModal(false); setUserGeo(null); }}>Fermer</Button>
