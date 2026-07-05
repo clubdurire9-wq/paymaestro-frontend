@@ -28,8 +28,8 @@ export default function DeveloperPage() {
 
   const loadBusiness = async () => {
     try {
-      const data = await api.auth.getProfile?.();
-      setBusinessType(data?.business_type || 'STARTER');
+      const data = await api.auth.getMe();
+      setBusinessType(data?.businessType || 'STARTER');
     } catch {}
     setBusinessLoading(false);
   };
