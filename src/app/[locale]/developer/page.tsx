@@ -21,8 +21,18 @@ export default function DeveloperPage() {
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [businessType, setBusinessType] = useState('');
+  const [businessLoading, setBusinessLoading] = useState(true);
 
-  useEffect(() => { loadKeys(); }, []);
+  useEffect(() => { loadKeys(); loadBusiness(); }, []);
+
+  const loadBusiness = async () => {
+    try {
+      const data = await api.auth.getProfile?.();
+      setBusinessType(data?.business_type || 'STARTER');
+    } catch {}
+    setBusinessLoading(false);
+  };
 
   const loadKeys = async () => {
     try {
@@ -33,9 +43,10 @@ export default function DeveloperPage() {
   };
 
   const handleCreateKey = async () => {
+    if (!newKeyName.trim()) { alert('Donnez un nom à votre clé'); return; }
     setCreating(true);
     try {
-      const data = await api.auth.createApiKey();
+      const data = await api.auth.createApiKey(newKeyName.trim(), newKeyType);
       setNewKey(data);
       setShowCreate(false);
       setNewKeyName('');
@@ -56,7 +67,8 @@ export default function DeveloperPage() {
     }
   };
 
-  const handleCopy = (text: string) => {
+  const handleCopy = (text: string | undefined) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -170,6 +182,44 @@ export default function DeveloperPage() {
         </CardContent>
       </Card>
 
+      {/* Statut Business */}
+      {!businessLoading && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-violet-600" />
+              Statut compte marchand
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  businessType === 'REGISTERED' ? 'bg-green-100' : 'bg-yellow-100'
+                }`}>
+                  <Shield className={`w-5 h-5 ${businessType === 'REGISTERED' ? 'text-green-600' : 'text-yellow-600'}`} />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-800">
+                    {businessType === 'REGISTERED' ? 'Compte Enregistré' : 'Compte Starter'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {businessType === 'REGISTERED'
+                      ? 'Transferts sortants activés'
+                      : 'Soumettez votre Registre du Commerce pour activer les transferts sortants'}
+                  </p>
+                </div>
+              </div>
+              {businessType !== 'REGISTERED' && (
+                <Button variant="outline" onClick={() => alert('Fonctionnalité à venir — contactez le support pour soumettre vos documents.')}>
+                  Devenir Enregistré
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Start Code */}
       <Card>
         <CardHeader><CardTitle>🚀 Exemple d'intégration</CardTitle></CardHeader>
@@ -270,14 +320,14 @@ export default function DeveloperPage() {
             <p className="text-sm text-red-600 font-bold mt-2">⚠️ Conservez cette clé — elle ne sera plus affichée</p>
 
             <div className="bg-slate-50 rounded-xl p-4 mt-4 font-mono text-sm break-all text-left">
-              {showKey ? newKey.raw : '•'.repeat(40)}
+              {showKey ? newKey.apiKey : '•'.repeat(40)}
             </div>
 
             <div className="flex gap-2 mt-4">
               <Button variant="outline" fullWidth onClick={() => setShowKey(!showKey)} icon={showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}>
                 {showKey ? 'Cacher' : 'Afficher'}
               </Button>
-              <Button fullWidth onClick={() => handleCopy(newKey.raw)} icon={copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}>
+              <Button fullWidth onClick={() => handleCopy(newKey.apiKey)} icon={copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}>
                 {copied ? 'Copié !' : 'Copier'}
               </Button>
             </div>

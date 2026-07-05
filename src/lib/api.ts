@@ -203,13 +203,19 @@ export const api = {
 
     getOnboardingStatus: () => request<any>(`${API_URL}/auth/onboarding-status`),
 
-    getApiKeys: () => request<any[]>(`${API_URL}/auth/api-keys`),
+    getApiKeys: () => request<any[]>(`${API_URL}/developer/api-keys`),
 
-    createApiKey: () =>
-      request<any>(`${API_URL}/auth/api-keys`, { method: 'POST' }),
+    createApiKey: (name: string, type: string) =>
+      request<any>(`${API_URL}/developer/api-keys`, {
+        method: 'POST',
+        body: JSON.stringify({ name, type }),
+      }),
 
     revokeApiKey: (id: string) =>
-      request<any>(`${API_URL}/auth/api-keys/${id}`, { method: 'DELETE' }),
+      request<any>(`${API_URL}/developer/api-keys/revoke`, {
+        method: 'POST',
+        body: JSON.stringify({ keyId: id }),
+      }),
 
     createPaymentPage: (data: any) =>
       request<any>(`${API_URL}/auth/payment-page`, {

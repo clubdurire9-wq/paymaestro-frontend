@@ -6,7 +6,8 @@ import {
   ArrowLeft, FileText, MapPin, Loader2, Mail, Phone, Globe,
   CheckCircle, XCircle, Clock, DollarSign, Wallet,
   CreditCard, Bitcoin, PiggyBank, TrendingUp, Activity,
-  ChevronDown, ChevronRight, Smartphone, Landmark
+  ChevronDown, ChevronRight, Smartphone, Landmark,
+  Shield
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,6 +93,27 @@ export default function AdminUserDetailPage() {
   const [showGeoModal, setShowGeoModal] = useState(false);
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [expandedService, setExpandedService] = useState<ServiceKey | null>(null);
+  const [updatingBusiness, setUpdatingBusiness] = useState(false);
+
+  const handleToggleBusiness = async () => {
+    const newType = userProfile?.business_type === 'REGISTERED' ? 'STARTER' : 'REGISTERED';
+    if (!confirm(`Passer cet utilisateur en "Compte ${newType === 'REGISTERED' ? 'Enregistré' : 'Starter'}" ?`)) return;
+    setUpdatingBusiness(true);
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/admin/users/business-type`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : ''}`,
+        },
+        body: JSON.stringify({ userId, businessType: newType }),
+      });
+      setUserProfile((prev: any) => ({ ...prev, business_type: newType }));
+    } catch (e) {
+      console.error(e);
+    }
+    setUpdatingBusiness(false);
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -215,6 +237,13 @@ export default function AdminUserDetailPage() {
             <span className="text-sm font-medium">Retour</span>
           </button>
           <div className="flex items-center gap-2">
+            <Badge className={`cursor-pointer select-none ${userProfile?.business_type === 'REGISTERED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+              onClick={handleToggleBusiness}
+              title="Cliquer pour changer le statut business">
+              <Shield className="w-3 h-3 mr-1" />
+              {userProfile?.business_type === 'REGISTERED' ? 'Enregistré' : 'Starter'}
+              {updatingBusiness && <Loader2 className="w-3 h-3 ml-1 animate-spin" />}
+            </Badge>
             <button
               onClick={handleShowGeo}
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
