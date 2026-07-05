@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { jsPDF, GState } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
+import { Toast, ToastContainer } from '@/components/ui/toast';
 import { 
   Search, 
   FileText,
@@ -35,6 +36,7 @@ export default function HistoryPage() {
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -244,7 +246,7 @@ export default function HistoryPage() {
       t.status === 'PENDING' ? 'En attente' : t.status,
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 50,
       head: [['Date', 'ID Retrait', 'Montant USD', 'Reçu', 'Statut']],
       body: tableData,
@@ -298,7 +300,7 @@ export default function HistoryPage() {
     doc.save(filename);
     } catch (e: any) {
       console.error('❌ Erreur génération PDF:', e);
-      alert('Erreur lors de la génération du PDF : ' + (e.message || 'Voir console'));
+      setToast({ type: 'error', message: 'Impossible de générer le PDF. Veuillez réessayer.' });
     }
   };
 
@@ -571,6 +573,16 @@ export default function HistoryPage() {
           </div>
         )}
       </Modal>
+
+      {toast && (
+        <ToastContainer>
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        </ToastContainer>
+      )}
     </div>
   );
 }
