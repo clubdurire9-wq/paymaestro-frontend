@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
@@ -31,18 +32,17 @@ import {
   LifeBuoy,
   Loader2,
   X,
-  MapPin,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api, Transaction, KYCDetails } from '@/lib/api';
-import { generateTransactionPDF } from '@/lib/pdf-export';
 import { useToast } from '@/hooks/useToast';
 
 type AdminTab = 'overview' | 'kyc' | 'transactions' | 'users';
 
 export default function AdminPage() {
+  const router = useRouter();
   const t = useTranslations('admin');
   const locale = useLocale();
   const { success, error } = useToast();
@@ -57,10 +57,6 @@ export default function AdminPage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
-  const [selectedUserDetail, setSelectedUserDetail] = useState<any>(null);
-  const [userActivity, setUserActivity] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loadingUserDetail, setLoadingUserDetail] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -118,92 +114,6 @@ export default function AdminPage() {
       }
     } finally {
       setSearching(false);
-    }
-  };
-
-  const [userGeo, setUserGeo] = useState<any>(null);
-
-  const handleViewUser = async (userId: string) => {
-    setLoadingUserDetail(true);
-    setSelectedUserDetail(userId);
-    setUserActivity(null);
-    setUserProfile(null);
-    try {
-      const [activity, profile] = await Promise.all([
-        api.admin.getUserActivity(userId),
-        api.admin.getUserProfile(userId).catch(() => null),
-      ]);
-      setUserActivity(activity);
-      setUserProfile(profile);
-    } catch (e: any) {
-      console.error('Erreur chargement utilisateur:', e);
-    } finally {
-      setLoadingUserDetail(false);
-    }
-  };
-
-  const handleShowGeo = async (email: string) => {
-    try {
-      const d = await api.admin.getUserGeo(email);
-      const geoLoc = d?.geoLocations?.find((g: any) => g.isCurrentIP) || d?.geoLocations?.[0];
-      setUserGeo({
-        userEmail: d?.user?.email || email,
-        lastIP: d?.user?.lastIP || '',
-        lastLogin: d?.user?.createdAt || '',
-        geo: geoLoc ? {
-          countryCode: geoLoc.countryCode || '',
-          country: geoLoc.country || '',
-          city: geoLoc.city || '',
-          region: geoLoc.region || '',
-          isp: geoLoc.isp || '',
-          org: geoLoc.org || '',
-          lat: geoLoc.lat || 0,
-          lon: geoLoc.lon || 0,
-        } : null,
-      });
-    } catch {}
-  };
-
-  const handleExportUserPDF = () => {
-    if (!userActivity || !userProfile) return;
-    try {
-      const walletTxs: Transaction[] = (userActivity.wallet || []).map((tx: any) => ({
-        id: String(tx.id),
-        date: tx.created_at,
-        amountUSD: parseFloat(tx.amount_usd || 0),
-        receivedAmount: parseFloat(tx.amount_currency || 0),
-        currency: tx.currency_code || 'USD',
-        status: tx.status === 'COMPLETED' ? 'MOBILE_MONEY_SENT' : tx.status === 'PENDING' ? 'PENDING' : 'FAILED',
-        reference: tx.paystack_reference || tx.flutterwave_reference || '',
-        phone: tx.metadata?.targetPhone || '',
-        exchangeRate: parseFloat(tx.exchange_rate || 1),
-        timeline: [],
-      }));
-      const paypalTxs: Transaction[] = (userActivity.paypal || []).map((tx: any) => ({
-        id: String(tx.id),
-        date: tx.created_at,
-        amountUSD: parseFloat(tx.amount_usd || 0),
-        receivedAmount: parseFloat(tx.amount_local_currency || 0),
-        currency: tx.currency_code || 'USD',
-        status: tx.status === 'MOBILE_MONEY_SENT' ? 'MOBILE_MONEY_SENT' : tx.status === 'FAILED' ? 'FAILED' : 'PENDING',
-        reference: tx.paypal_order_id || '',
-        phone: tx.phone_number || '',
-        exchangeRate: parseFloat(tx.exchange_rate || 1),
-        timeline: [],
-      }));
-      const allTxs = [...walletTxs, ...paypalTxs].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-      const doc = generateTransactionPDF(allTxs, {
-        name: userProfile?.name || userProfile?.email || 'N/A',
-        email: userProfile?.email || 'N/A',
-        id: userProfile?.id || 'N/A',
-        kycStatus: userProfile?.kyc_status,
-      });
-      const filename = `PayMaestro_Releve_${userProfile?.name || userProfile?.email}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(filename);
-    } catch (e) {
-      console.error('❌ Erreur export PDF admin:', e);
     }
   };
 
@@ -523,7 +433,7 @@ export default function AdminPage() {
                             <Badge variant="default">{u.role || 'USER'}</Badge>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => handleViewUser(u.id)}>
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/admin/users/${u.id}`)}>
                           <Eye className="w-4 h-4 mr-1" />Voir
                         </Button>
                       </CardContent>
@@ -538,142 +448,7 @@ export default function AdminPage() {
                 </p>
               )}
 
-              {/* MODALE PROFIL UTILISATEUR (tous les services PayMaestro) */}
-              {selectedUserDetail && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setSelectedUserDetail(null); setUserActivity(null); setUserProfile(null); }}>
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                    {/* Header */}
-                    <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 font-bold text-sm">
-                          {userProfile?.name?.charAt(0)?.toUpperCase() || userProfile?.email?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                            {userProfile?.name || userProfile?.email || 'Utilisateur'}
-                          </h3>
-                          <p className="text-xs text-slate-400">{userProfile?.id?.slice(0, 13)}...</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {userProfile && (
-                          <>
-                            <button onClick={() => handleShowGeo(userProfile.email)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors" title="Localiser">
-                              <MapPin className="w-4 h-4" />
-                            </button>
-                            <button onClick={handleExportUserPDF} className="p-2 hover:bg-violet-100 dark:hover:bg-violet-900/30 rounded-lg text-violet-600 transition-colors" title="Exporter le relevé PDF">
-                              <FileText className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                        <button onClick={() => { setSelectedUserDetail(null); setUserActivity(null); setUserProfile(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Body */}
-                    <div className="p-6 space-y-5">
-                      {loadingUserDetail ? (
-                        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-violet-600" /></div>
-                      ) : (
-                        <>
-                          {/* Badges profil */}
-                          {userProfile && (
-                            <div className="flex flex-wrap gap-2">
-                              <Badge variant={userProfile.kyc_status === 'APPROVED' ? 'success' : 'warning'}>
-                                KYC: {userProfile.kyc_status || 'NONE'}
-                              </Badge>
-                              <Badge variant="default">{userProfile.role || 'USER'}</Badge>
-                              {userProfile.phone && <Badge variant="info">{userProfile.phone}</Badge>}
-                              {userProfile.country && <Badge variant="info">{userProfile.country}</Badge>}
-                            </div>
-                          )}
-
-                          {/* Toutes les transactions confondues */}
-                          <div>
-                            <h4 className="font-semibold text-sm text-slate-700 dark:text-slate-300 mb-3">
-                              Dernières transactions 
-                              <span className="text-slate-400 font-normal ml-1">
-                                ({((userActivity?.wallet?.length || 0) + (userActivity?.paypal?.length || 0))})
-                              </span>
-                            </h4>
-                            <div className="space-y-1.5">
-                              {/* Transactions Wallet */}
-                              {userActivity?.wallet?.slice(0, 20).map((tx: any) => (
-                                <div key={`w-${tx.id}`} className="flex items-center justify-between text-xs p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Badge variant={tx.type === 'DEPOSIT' ? 'success' : tx.type === 'WITHDRAWAL' ? 'error' : 'info'} className="shrink-0">
-                                      {tx.type === 'DEPOSIT' ? 'DÉPÔT' : tx.type === 'WITHDRAWAL' ? 'RETRAIT' : tx.type === 'FEE' ? 'FRAIS' : tx.type === 'CONVERSION' ? 'CONV' : tx.type}
-                                    </Badge>
-                                    <span className="font-medium truncate">
-                                      {parseFloat(tx.amount_currency || 0).toLocaleString('fr-FR')} {tx.currency_code}
-                                    </span>
-                                    {tx.metadata?.targetPhone && (
-                                      <span className="text-slate-400 truncate">→ {tx.metadata.targetPhone}</span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2 shrink-0 ml-2">
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">
-                                      ${parseFloat(tx.amount_usd || 0).toFixed(2)}
-                                    </span>
-                                    <Badge variant={tx.status === 'COMPLETED' ? 'success' : tx.status === 'PENDING' ? 'warning' : 'error'}>
-                                      {tx.status === 'COMPLETED' ? 'Succès' : tx.status === 'PENDING' ? 'En attente' : 'Échec'}
-                                    </Badge>
-                                  </div>
-                                </div>
-                              ))}
-                              {/* Transactions PayPal / Legacy */}
-                              {userActivity?.paypal?.slice(0, 20).map((tx: any) => (
-                                <div key={`p-${tx.id}`} className="flex items-center justify-between text-xs p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Badge variant="info" className="shrink-0">PAYPAL</Badge>
-                                    <span className="font-medium truncate">
-                                      ${parseFloat(tx.amount_usd || 0).toFixed(2)} → {parseFloat(tx.amount_local_currency || 0).toLocaleString('fr-FR')} {tx.currency_code}
-                                    </span>
-                                  </div>
-                                  <Badge variant={tx.status === 'MOBILE_MONEY_SENT' ? 'success' : tx.status === 'FAILED' ? 'error' : 'warning'}>
-                                    {tx.status === 'MOBILE_MONEY_SENT' ? 'Succès' : tx.status === 'FAILED' ? 'Échec' : tx.status}
-                                  </Badge>
-                                </div>
-                              ))}
-                              {(!userActivity?.wallet?.length && !userActivity?.paypal?.length) && (
-                                <p className="text-xs text-slate-400 text-center py-6">Aucune transaction trouvée</p>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* MODALE GÉOLOCALISATION */}
-              {userGeo && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setUserGeo(null)}>
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-                    <h3 className="font-bold text-lg mb-4">📍 Localisation de l'utilisateur</h3>
-                    <div className="space-y-3">
-                      <p className="text-sm"><strong>Email :</strong> {userGeo.userEmail}</p>
-                      <p className="text-sm"><strong>Dernière IP :</strong> {userGeo.lastIP}</p>
-                      {userGeo.geo && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
-                          <p className="text-sm"><strong>Pays :</strong> {userGeo.geo.countryCode ? `${userGeo.geo.country}` : userGeo.geo.country}</p>
-                          <p className="text-sm"><strong>Ville :</strong> {userGeo.geo.city}</p>
-                          <p className="text-sm"><strong>Région :</strong> {userGeo.geo.region}</p>
-                          <p className="text-sm"><strong>FAI :</strong> {userGeo.geo.isp}</p>
-                          <p className="text-sm"><strong>Organisation :</strong> {userGeo.geo.org}</p>
-                        </div>
-                      )}
-                      {!userGeo.geo && (
-                        <p className="text-sm text-slate-500">Géolocalisation non disponible pour cette IP.</p>
-                      )}
-                    </div>
-                    <Button className="w-full mt-4" onClick={() => setUserGeo(null)}>Fermer</Button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
