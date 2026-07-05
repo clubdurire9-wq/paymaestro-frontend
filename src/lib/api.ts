@@ -73,14 +73,19 @@ function authHeaders(): Record<string, string> {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+        ...options?.headers,
+      },
+    });
+  } catch (e: any) {
+    throw new Error('Impossible de contacter le serveur. Vérifiez votre connexion.');
+  }
   let data: any;
   try {
     data = await res.json();
