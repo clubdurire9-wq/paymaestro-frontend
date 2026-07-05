@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { jsPDF } from 'jspdf';
+import { jsPDF, GState } from 'jspdf';
 import 'jspdf-autotable';
 import { 
   Search, 
@@ -136,7 +136,7 @@ export default function HistoryPage() {
   // Export PDF sécurisé
   const exportToPDF = () => {
     if (filteredTransactions.length === 0) return;
-
+    try {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
@@ -150,14 +150,13 @@ export default function HistoryPage() {
     const watermark = () => {
       doc.saveGraphicsState();
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(36);
-      doc.setTextColor(180, 180, 180);
-      doc.setGState(new (doc as any).GState({ opacity: 0.12 }));
-      for (let i = -20; i < 60; i += 18) {
-        for (let j = -10; j < 40; j += 12) {
-          doc.text('PAYMAESTRO ORIGINAL DOCUMENT - SECURED', i * 15, j * 15, {
-            angle: 45,
-          } as any);
+      doc.setFontSize(22);
+      doc.setTextColor(200, 200, 200);
+      const gState = new GState({ opacity: 0.15 });
+      doc.setGState(gState);
+      for (let i = -8; i < 40; i += 12) {
+        for (let j = -4; j < 25; j += 8) {
+          doc.text('PAYMAESTRO ORIGINAL', i * 15, j * 15 + 10, { angle: 45 } as any);
         }
       }
       doc.restoreGraphicsState();
@@ -297,6 +296,10 @@ export default function HistoryPage() {
     // Sauvegarde
     const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(filename);
+    } catch (e: any) {
+      console.error('❌ Erreur génération PDF:', e);
+      alert('Erreur lors de la génération du PDF : ' + (e.message || 'Voir console'));
+    }
   };
 
   return (
