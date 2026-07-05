@@ -29,6 +29,7 @@ import {
   BookOpen,
   Shield,
   LifeBuoy,
+  Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +50,9 @@ export default function AdminPage() {
   const [adminStats, setAdminStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,6 +90,24 @@ export default function AdminPage() {
       error('KYC rejeté.');
     } catch (e: any) { error(e.message); }
     setReviewingKycId(null);
+  };
+
+  const handleSearchUsers = async () => {
+    const q = searchTerm.trim();
+    if (q.length < 2) return;
+    setSearching(true);
+    setSearchError('');
+    setSearchResults(null);
+    try {
+      const data = await api.admin.searchUsers(q);
+      setSearchResults(data || []);
+      if (!data || data.length === 0) setSearchError('Aucun utilisateur trouvé');
+    } catch (e: any) {
+      setSearchResults([]);
+      setSearchError(e?.message || 'Erreur lors de la recherche');
+    } finally {
+      setSearching(false);
+    }
   };
 
   const tabs: { tab: AdminTab; label: string; icon: React.ElementType }[] = [
@@ -361,22 +383,63 @@ export default function AdminPage() {
               </div>
               <Card>
                 <CardContent className="p-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder={t('users.search')}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
-                    />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder={t('users.search')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSearchUsers(); }}
+                        className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSearchUsers}
+                      disabled={searching || searchTerm.trim().length < 2}
+                      size="sm"
+                    >
+                      {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <p className="text-xs text-slate-400 text-center py-4">
-                Utilisez la recherche ci-dessus pour trouver un utilisateur par email ou téléphone.
-              </p>
+              {searchError && (
+                <p className="text-xs text-red-500 text-center py-2">{searchError}</p>
+              )}
+
+              {searchResults && searchResults.length > 0 && (
+                <div className="space-y-2">
+                  {searchResults.map((u: any) => (
+                    <Card key={u.id}>
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{u.name || u.email}</p>
+                          <p className="text-xs text-slate-400 truncate">{u.email} {u.phone ? `— ${u.phone}` : ''}</p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant={u.kycStatus === 'APPROVED' ? 'success' : u.kycStatus === 'REJECTED' ? 'error' : 'warning'}>
+                              KYC: {u.kycStatus || 'NONE'}
+                            </Badge>
+                            {u.isBanned && <Badge variant="error">Banni</Badge>}
+                            <Badge variant="default">{u.role || 'USER'}</Badge>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => window.open(`/${locale}/admin/live?userId=${u.id}`, '_blank')}>
+                          <Eye className="w-4 h-4 mr-1" />Voir
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {!searchResults && !searchError && (
+                <p className="text-xs text-slate-400 text-center py-4">
+                  Utilisez la recherche ci-dessus pour trouver un utilisateur par email, téléphone ou nom.
+                </p>
+              )}
             </div>
           )}
         </div>
