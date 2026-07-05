@@ -8,6 +8,7 @@ interface BadgeProps {
   removable?: boolean;
   onRemove?: () => void;
   onClick?: () => void;
+  title?: string;
   className?: string;
 }
 
@@ -32,6 +33,7 @@ export function Badge({
   removable = false,
   onRemove,
   onClick,
+  title,
   className = '',
 }: BadgeProps) {
   const Tag = onClick ? 'button' : 'span';
@@ -39,6 +41,7 @@ export function Badge({
     <Tag
       type={onClick ? 'button' : undefined}
       onClick={onClick}
+      title={title}
       className={`
         inline-flex items-center gap-1
         font-medium rounded-full border
