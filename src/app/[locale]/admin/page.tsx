@@ -104,7 +104,11 @@ export default function AdminPage() {
       if (!data || data.length === 0) setSearchError('Aucun utilisateur trouvé');
     } catch (e: any) {
       setSearchResults([]);
-      setSearchError(e?.message || 'Erreur lors de la recherche');
+      if (e?.name === 'TypeError' && e?.message === 'Failed to fetch') {
+        setSearchError('Erreur réseau. Vérifiez votre connexion ou réessayez.');
+      } else {
+        setSearchError(e?.message || 'Erreur lors de la recherche');
+      }
     } finally {
       setSearching(false);
     }
