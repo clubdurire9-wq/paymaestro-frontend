@@ -46,9 +46,14 @@ export default function HistoryPage() {
   useEffect(() => {
     async function loadTransactions() {
       try {
-        const txs = await api.getTransactions();
-        setTransactions(txs);
-        setFilteredTransactions(txs);
+        const [txs, walletTxs] = await Promise.all([
+          api.getTransactions(),
+          api.wallet.getTransactions().catch(() => []),
+        ]);
+        const allTxs = [...(txs || []), ...(walletTxs || [])];
+        allTxs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setTransactions(allTxs);
+        setFilteredTransactions(allTxs);
       } catch (err) {
         console.error('Failed to load transactions:', err);
       } finally {

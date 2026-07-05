@@ -54,12 +54,15 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [statsData, txsData] = await Promise.all([
+        const [statsData, txsData, walletTxs] = await Promise.all([
           api.getStats(),
-          api.getTransactions()
+          api.getTransactions(),
+          api.wallet.getTransactions().catch(() => []),
         ]);
+        const allTxs = [...(txsData || []), ...(walletTxs || [])];
+        allTxs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setStats(statsData);
-        setTransactions(txsData.slice(0, 5)); // show top 5
+        setTransactions(allTxs.slice(0, 5));
       } catch (err) {
         console.error('Error loading dashboard data:', err);
       } finally {
@@ -68,15 +71,17 @@ export default function DashboardPage() {
     }
     loadData();
 
-    // Auto-refresh every 15 seconds to catch transaction status updates
     const interval = setInterval(async () => {
       try {
-        const [statsData, txsData] = await Promise.all([
+        const [statsData, txsData, walletTxs] = await Promise.all([
           api.getStats(),
-          api.getTransactions()
+          api.getTransactions(),
+          api.wallet.getTransactions().catch(() => []),
         ]);
+        const allTxs = [...(txsData || []), ...(walletTxs || [])];
+        allTxs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setStats(statsData);
-        setTransactions(txsData.slice(0, 5));
+        setTransactions(allTxs.slice(0, 5));
       } catch {}
     }, 15000);
 
