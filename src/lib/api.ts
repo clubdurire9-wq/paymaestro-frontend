@@ -515,6 +515,7 @@ export const api = {
   admin: {
     getStats: () => request<any>(`${API_URL}/admin/stats`),
     getLiveStats: () => request<any>(`${API_URL}/admin/stats/live`),
+    getDashboardStats: () => request<any>(`${API_URL}/admin/dashboard-stats`),
     getLiveActivity: () => request<any[]>(`${API_URL}/admin/activity/live`),
     getUserActivity: (userId: string) => request<any>(`${API_URL}/admin/activity/user/${userId}`),
     getUserProfile: (userId: string) => request<any>(`${API_URL}/admin/users/${userId}/profile`),

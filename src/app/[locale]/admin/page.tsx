@@ -48,31 +48,32 @@ export default function AdminPage() {
   const { success, error } = useToast();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [kycQueue, setKycQueue] = useState<any[]>([]);
-  const [adminStats, setAdminStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
 
+  async function loadDashboard(showRefresh = false) {
+    if (showRefresh) setRefreshing(true);
+    try {
+      const [dashboardResult, pendingKyc] = await Promise.all([
+        api.admin.getDashboardStats(),
+        api.admin.listPendingKYC(),
+      ]);
+      if (dashboardResult?.data) setDashboardData(dashboardResult.data);
+      setKycQueue(pendingKyc || []);
+    } catch {}
+    setLoading(false);
+    setRefreshing(false);
+  }
+
   useEffect(() => {
-    async function load() {
-      try {
-        const [txs, stats, pendingKyc] = await Promise.all([
-          api.getTransactions(),
-          api.admin.getStats(),
-          api.admin.listPendingKYC(),
-        ]);
-        setTransactions(txs);
-        setAdminStats(stats);
-        setKycQueue(pendingKyc || []);
-      } catch {}
-      setLoading(false);
-    }
-    load();
+    loadDashboard();
   }, []);
 
   const handleApproveKYC = async (userId: string) => {
@@ -196,29 +197,63 @@ export default function AdminPage() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Refresh indicator */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-400">
+                  {dashboardData?.lastRefresh
+                    ? `Dernière mise à jour : ${new Date(dashboardData.lastRefresh).toLocaleTimeString('fr-FR')}`
+                    : 'Données en temps réel'}
+                </p>
+                <button
+                  onClick={() => loadDashboard(true)}
+                  disabled={refreshing}
+                  className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 disabled:opacity-50 transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+                  Actualiser
+                </button>
+              </div>
+
+              {/* 6 stat cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <Card className="border-l-4 border-l-violet-600">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Utilisateurs</p>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(adminStats?.totalUsers || 0).toLocaleString()}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(dashboardData?.totalUsers || 0).toLocaleString()}</h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-emerald-500">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Volume total</p>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">${(adminStats?.totalVolumeUSD || 0).toLocaleString()}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                      ${parseFloat(dashboardData?.totalVolumeUSD || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-amber-500">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">KYC en attente</p>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{adminStats?.pendingKYC || kycQueue.length}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{dashboardData?.pendingKYC ?? kycQueue.length}</h3>
                   </CardContent>
                 </Card>
                 <Card className="border-l-4 border-l-sky-500">
                   <CardContent className="pt-6">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transactions</p>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{adminStats?.totalTransactions || 0}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(dashboardData?.totalTransactions || 0).toLocaleString()}</h3>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-rose-500">
+                  <CardContent className="pt-6">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Comptes gelés</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(dashboardData?.frozenAccounts || 0).toLocaleString()}</h3>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-orange-500">
+                  <CardContent className="pt-6">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Revenus</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                      ${parseFloat(dashboardData?.totalRevenueUSD || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h3>
                   </CardContent>
                 </Card>
               </div>
@@ -226,33 +261,63 @@ export default function AdminPage() {
               {/* Recent Transactions */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Transactions récentes</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Transactions récentes</CardTitle>
+                    <span className="text-xs text-slate-400">
+                      {dashboardData?.recentTransactions?.length || 0} sur {dashboardData?.totalTransactions || 0}
+                    </span>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="divide-y divide-slate-50">
-                    {transactions.slice(0, 5).map((tx) => (
+                  {(!dashboardData?.recentTransactions || dashboardData.recentTransactions.length === 0) ? (
+                    <p className="text-sm text-slate-400 text-center py-8">Aucune transaction récente</p>
+                  ) : (
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {dashboardData.recentTransactions.slice(0, 5).map((tx) => (
                       <div key={tx.id} className="flex items-center justify-between py-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{tx.id}</p>
-                          <p className="text-xs text-slate-400">{tx.phone}</p>
+                        <div className="flex-1 min-w-0 mr-4">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                              {tx.userName || tx.userEmail || 'Inconnu'}
+                            </p>
+                            <span className="text-[10px] text-slate-400 font-mono">#{tx.id}</span>
+                          </div>
+                          <p className="text-xs text-slate-400 truncate">
+                            {tx.phone && <>{tx.phone} — </>}
+                            {tx.notes ? (
+                              <span className="italic">{tx.notes}</span>
+                            ) : (
+                              <span>{tx.type} via {tx.method}</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-slate-300 mt-0.5">
+                            {new Date(tx.date).toLocaleString('fr-FR', {
+                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">${tx.amountUSD}</p>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">
+                            ${parseFloat(tx.amountUSD || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </p>
                           <Badge
                             variant={
-                              tx.status === 'MOBILE_MONEY_SENT'
+                              tx.status === 'COMPLETED' || tx.status === 'MOBILE_MONEY_SENT'
                                 ? 'success'
-                                : tx.status === 'FAILED'
+                                : tx.status === 'FAILED' || tx.status === 'REFUNDED'
                                 ? 'error'
-                                : 'warning'
+                                : tx.status === 'PENDING'
+                                ? 'warning'
+                                : 'info'
                             }
                           >
-                            {tx.status}
+                            {tx.status === 'MOBILE_MONEY_SENT' ? 'COMPLETED' : tx.status}
                           </Badge>
                         </div>
                       </div>
                     ))}
                   </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -343,7 +408,7 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {transactions.map((tx) => (
+                        {(dashboardData?.recentTransactions || []).map((tx) => (
                           <tr key={tx.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/50 transition-colors">
                             <td className="py-3 px-5 font-semibold text-slate-900 dark:text-white">{tx.id}</td>
                             <td className="py-3 px-5 text-xs text-slate-400">
@@ -354,22 +419,22 @@ export default function AdminPage() {
                                 minute: '2-digit',
                               })}
                             </td>
-                            <td className="py-3 px-5 font-bold text-slate-800 dark:text-white">${tx.amountUSD}</td>
-                            <td className="py-3 px-5 text-slate-600 dark:text-slate-300">{tx.currency}</td>
-                            <td className="py-3 px-5 font-mono text-xs text-slate-500 dark:text-slate-400">{tx.phone}</td>
+                            <td className="py-3 px-5 font-bold text-slate-800 dark:text-white">${parseFloat(tx.amountUSD || 0).toFixed(2)}</td>
+                            <td className="py-3 px-5 text-slate-600 dark:text-slate-300">{tx.currencyCode || 'USD'}</td>
+                            <td className="py-3 px-5 font-mono text-xs text-slate-500 dark:text-slate-400">{tx.phone || '-'}</td>
                             <td className="py-3 px-5">
                               <Badge
                                 variant={
-                                  tx.status === 'MOBILE_MONEY_SENT'
+                                  tx.status === 'COMPLETED' || tx.status === 'MOBILE_MONEY_SENT'
                                     ? 'success'
-                                    : tx.status === 'FAILED'
+                                    : tx.status === 'FAILED' || tx.status === 'REFUNDED'
                                     ? 'error'
-                                    : tx.status === 'PAYPAL_APPROVED'
-                                    ? 'info'
-                                    : 'warning'
+                                    : tx.status === 'PENDING'
+                                    ? 'warning'
+                                    : 'info'
                                 }
                               >
-                                {tx.status}
+                                {tx.status === 'MOBILE_MONEY_SENT' ? 'COMPLETED' : tx.status}
                               </Badge>
                             </td>
                           </tr>
