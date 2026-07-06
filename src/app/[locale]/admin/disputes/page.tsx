@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import {
   ArrowLeft, AlertTriangle, RotateCcw, Send, Loader2,
-  CheckCircle, X, User, ShieldAlert
+  CheckCircle, Wallet
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 
-type Tab = 'pm2pm' | 'withdrawal';
+type Tab = 'pm2pm' | 'credit';
 
 export default function AdminDisputesPage() {
   const locale = useLocale();
@@ -28,12 +28,12 @@ export default function AdminDisputesPage() {
   const [pmResult, setPmResult] = useState<any>(null);
   const [pmLoading, setPmLoading] = useState(false);
 
-  // Withdrawal Compensation
-  const [wdTxId, setWdTxId] = useState('');
-  const [wdAmount, setWdAmount] = useState('');
-  const [wdReason, setWdReason] = useState('');
-  const [wdResult, setWdResult] = useState<any>(null);
-  const [wdLoading, setWdLoading] = useState(false);
+  // Wallet Credit Compensation (crypto, PayPal, IBAN, Mobile Money…)
+  const [crTxId, setCrTxId] = useState('');
+  const [crAmount, setCrAmount] = useState('');
+  const [crReason, setCrReason] = useState('');
+  const [crResult, setCrResult] = useState<any>(null);
+  const [crLoading, setCrLoading] = useState(false);
 
   const handleRedirectPm = async () => {
     if (!pmTxId.trim() || !pmCorrectEmail.trim() || !pmReason.trim()) return;
@@ -49,23 +49,23 @@ export default function AdminDisputesPage() {
     setPmLoading(false);
   };
 
-  const handleCompensate = async () => {
-    if (!wdTxId.trim() || !wdReason.trim()) return;
-    setWdLoading(true);
-    setWdResult(null);
+  const handleCredit = async () => {
+    if (!crTxId.trim() || !crReason.trim()) return;
+    setCrLoading(true);
+    setCrResult(null);
     try {
-      const amount = wdAmount.trim() ? parseFloat(wdAmount) : undefined;
-      const res = await api.admin.compensate(wdTxId.trim(), wdReason.trim(), amount);
-      setWdResult(res);
-      success(`Compensation réussie ! ${res.data?.amount}$ crédités au wallet`);
+      const amount = crAmount.trim() ? parseFloat(crAmount) : undefined;
+      const res = await api.admin.compensate(crTxId.trim(), crReason.trim(), amount);
+      setCrResult(res);
+      success(`Crédit réussi ! ${res.data?.amount}$ crédités au wallet`);
     } catch (e: any) {
       toastError(e.message || 'Erreur de compensation');
     }
-    setWdLoading(false);
+    setCrLoading(false);
   };
 
   const resetPm = () => { setPmTxId(''); setPmCorrectEmail(''); setPmReason(''); setPmResult(null); };
-  const resetWd = () => { setWdTxId(''); setWdAmount(''); setWdReason(''); setWdResult(null); };
+  const resetCr = () => { setCrTxId(''); setCrAmount(''); setCrReason(''); setCrResult(null); };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
@@ -111,8 +111,8 @@ export default function AdminDisputesPage() {
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
         >
-          <ShieldAlert className="w-4 h-4" />
-          Litige retrait Mobile Money
+          <Wallet className="w-4 h-4" />
+          Crédit wallet (crypto, PayPal, IBAN…)
         </button>
       </div>
 
@@ -181,6 +181,14 @@ export default function AdminDisputesPage() {
                     className="w-full px-4 py-2.5 mt-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   />
                 </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+                  <span>
+                    Action tracée dans la blockchain d&apos;audit avec votre identité
+                    (<strong className="text-slate-700 dark:text-slate-300">{'{'}email, ID, IP{'}'}</strong>).
+                    Votre geste admin est horodaté et infalsifiable.
+                  </span>
+                </div>
                 <Button
                   onClick={handleRedirectPm}
                   disabled={pmLoading || !pmTxId.trim() || !pmCorrectEmail.trim() || !pmReason.trim()}
@@ -219,46 +227,46 @@ export default function AdminDisputesPage() {
         </Card>
       )}
 
-      {tab === 'withdrawal' && (
+      {tab === 'credit' && (
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
-                <ShieldAlert className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <div className="p-2 rounded-xl bg-violet-100 dark:bg-violet-900/30">
+                <Wallet className="w-5 h-5 text-violet-600 dark:text-violet-400" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Compenser un retrait échoué</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Créditer le wallet (tous services)</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  L&apos;utilisateur a retiré son argent mais le wallet a été débité sans que l&apos;argent
-                  n&apos;arrive sur Mobile Money. Créditez son wallet depuis la trésorerie.
+                  L&apos;utilisateur a déposé des fonds (crypto, PayPal, IBAN, Mobile Money…) mais
+                  l&apos;argent n&apos;est pas arrivé sur son wallet. Créditez-le depuis la trésorerie.
                 </p>
               </div>
             </div>
 
-            {!wdResult ? (
+            {!crResult ? (
               <div className="space-y-4 max-w-lg">
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    ID de la transaction de retrait
+                    ID de la transaction
                   </label>
                   <input
                     type="text"
-                    value={wdTxId}
-                    onChange={(e) => setWdTxId(e.target.value)}
+                    value={crTxId}
+                    onChange={(e) => setCrTxId(e.target.value)}
                     placeholder="Ex: 1234"
                     className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Montant à compenser <span className="text-xs text-slate-400 font-normal">(laissez vide pour le total)</span>
+                    Montant à créditer <span className="text-xs text-slate-400 font-normal">(laissez vide pour le total)</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
                     <input
                       type="number"
-                      value={wdAmount}
-                      onChange={(e) => setWdAmount(e.target.value)}
+                      value={crAmount}
+                      onChange={(e) => setCrAmount(e.target.value)}
                       className="w-full pl-8 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                       placeholder="0.00"
                       min="0.01"
@@ -268,35 +276,45 @@ export default function AdminDisputesPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Raison de la compensation
+                    Raison
                   </label>
                   <select
-                    value={wdReason}
-                    onChange={(e) => setWdReason(e.target.value)}
+                    value={crReason}
+                    onChange={(e) => setCrReason(e.target.value)}
                     className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   >
                     <option value="">Sélectionnez...</option>
+                    <option value="Dépôt crypto non reçu (capture écran fournie)">Dépôt crypto non reçu (capture écran fournie)</option>
+                    <option value="Dépôt PayPal non reçu (capture écran fournie)">Dépôt PayPal non reçu (capture écran fournie)</option>
+                    <option value="Dépôt IBAN non reçu (capture écran fournie)">Dépôt IBAN non reçu (capture écran fournie)</option>
                     <option value="Retrait Mobile Money non reçu">Retrait Mobile Money non reçu</option>
-                    <option value="Erreur de la plateforme Mobile Money">Erreur de la plateforme Mobile Money</option>
                     <option value="Timeout du fournisseur de paiement">Timeout du fournisseur de paiement</option>
-                    <option value="Transaction annulée par l'opérateur">Transaction annulée par l&apos;opérateur</option>
                     <option value="Fonds bloqués chez le fournisseur">Fonds bloqués chez le fournisseur</option>
+                    <option value="Litige client résolu en sa faveur">Litige client résolu en sa faveur</option>
                   </select>
                   <input
                     type="text"
-                    value={wdReason}
-                    onChange={(e) => setWdReason(e.target.value)}
+                    value={crReason}
+                    onChange={(e) => setCrReason(e.target.value)}
                     placeholder="Ou tapez une raison personnalisée..."
                     className="w-full px-4 py-2.5 mt-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   />
                 </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+                  <span>
+                    Cette action sera enregistrée dans la blockchain d&apos;audit avec votre identité
+                    d&apos;admin (<strong className="text-slate-700 dark:text-slate-300">email, ID, IP</strong>).
+                    Toute modification est tracée et vérifiable.
+                  </span>
+                </div>
                 <Button
-                  onClick={handleCompensate}
-                  disabled={wdLoading || !wdTxId.trim() || !wdReason.trim()}
-                  icon={wdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-                  variant="danger"
+                  onClick={handleCredit}
+                  disabled={crLoading || !crTxId.trim() || !crReason.trim()}
+                  icon={crLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
+                  variant="primary"
                 >
-                  {wdLoading ? 'Compensation en cours...' : 'Compenser le retrait'}
+                  {crLoading ? 'Crédit en cours...' : 'Créditer le wallet'}
                 </Button>
               </div>
             ) : (
@@ -304,20 +322,20 @@ export default function AdminDisputesPage() {
                 <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    <h3 className="font-bold text-emerald-800 dark:text-emerald-200">Compensation effectuée</h3>
+                    <h3 className="font-bold text-emerald-800 dark:text-emerald-200">Wallet crédité avec succès</h3>
                   </div>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300">{wdResult.message}</p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">{crResult.message}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-1 text-sm">
                   <p className="text-slate-500 dark:text-slate-400">
-                    Montant crédité : <span className="font-bold text-slate-900 dark:text-white">{wdResult.data?.amount}$</span>
+                    Montant crédité : <span className="font-bold text-slate-900 dark:text-white">{crResult.data?.amount}$</span>
                   </p>
                   <p className="text-slate-500 dark:text-slate-400">
-                    Transaction : <span className="font-mono text-slate-700 dark:text-slate-300">#{wdResult.data?.originalTransactionId}</span>
+                    Transaction : <span className="font-mono text-slate-700 dark:text-slate-300">#{crResult.data?.originalTransactionId}</span>
                   </p>
                 </div>
-                <Button variant="outline" onClick={resetWd} icon={<RotateCcw className="w-4 h-4" />}>
-                  Effectuer une autre compensation
+                <Button variant="outline" onClick={resetCr} icon={<RotateCcw className="w-4 h-4" />}>
+                  Effectuer un autre crédit
                 </Button>
               </div>
             )}
