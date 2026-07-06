@@ -104,9 +104,9 @@ export default function AdminDisputesPage() {
           Erreur d&apos;envoi PM→PM
         </button>
         <button
-          onClick={() => setTab('withdrawal')}
+          onClick={() => setTab('credit')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
-            tab === 'withdrawal'
+            tab === 'credit'
               ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
