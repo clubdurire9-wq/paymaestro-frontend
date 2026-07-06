@@ -112,7 +112,7 @@ export default function AdminPage() {
       setRefundAmount('');
       loadTxList(txDays, txSearchId.trim() || undefined);
     } catch (e: any) {
-      toastError(e.message || 'Erreur de remboursement');
+      error(e.message || 'Erreur de remboursement');
     }
     setRefundProcessing(false);
   };
