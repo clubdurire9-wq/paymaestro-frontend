@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import {
   ArrowLeft, AlertTriangle, RotateCcw, Send, Loader2,
-  CheckCircle, Wallet
+  CheckCircle, Wallet, User, Search
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,12 @@ export default function AdminDisputesPage() {
 
   // PM→PM Redirect
   const [pmTxId, setPmTxId] = useState('');
+  const [pmTxLookup, setPmTxLookup] = useState<any>(null);
+  const [pmTxLookupLoading, setPmTxLookupLoading] = useState(false);
+  const [pmTxLookupError, setPmTxLookupError] = useState('');
   const [pmCorrectEmail, setPmCorrectEmail] = useState('');
+  const [pmCorrectUser, setPmCorrectUser] = useState<any>(null);
+  const [pmCorrectLookupLoading, setPmCorrectLookupLoading] = useState(false);
   const [pmReason, setPmReason] = useState('');
   const [pmResult, setPmResult] = useState<any>(null);
   const [pmLoading, setPmLoading] = useState(false);
@@ -34,6 +39,46 @@ export default function AdminDisputesPage() {
   const [crReason, setCrReason] = useState('');
   const [crResult, setCrResult] = useState<any>(null);
   const [crLoading, setCrLoading] = useState(false);
+
+  // Lookup transaction details when ID changes
+  useEffect(() => {
+    if (!pmTxId.trim() || pmTxId === pmTxLookup?.transaction?.id?.toString()) return;
+    const timer = setTimeout(async () => {
+      setPmTxLookupLoading(true);
+      setPmTxLookupError('');
+      setPmTxLookup(null);
+      try {
+        const res = await api.admin.getPmToPmDetails(pmTxId.trim());
+        if (res?.transaction) {
+          setPmTxLookup(res);
+        } else {
+          setPmTxLookupError('Transaction non trouvée ou pas un transfert PM→PM');
+        }
+      } catch (e: any) {
+        setPmTxLookupError(e.message || 'Transaction introuvable');
+      }
+      setPmTxLookupLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [pmTxId]);
+
+  // Lookup correct email user
+  useEffect(() => {
+    if (!pmCorrectEmail.trim() || !pmCorrectEmail.includes('@')) { setPmCorrectUser(null); return; }
+    const timer = setTimeout(async () => {
+      setPmCorrectLookupLoading(true);
+      setPmCorrectUser(null);
+      try {
+        const users = await api.admin.searchUsers(pmCorrectEmail.trim());
+        const found = users?.find((u: any) => u.email === pmCorrectEmail.trim());
+        setPmCorrectUser(found || { notFound: true, email: pmCorrectEmail.trim() });
+      } catch {
+        setPmCorrectUser({ notFound: true, email: pmCorrectEmail.trim() });
+      }
+      setPmCorrectLookupLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [pmCorrectEmail]);
 
   const handleRedirectPm = async () => {
     if (!pmTxId.trim() || !pmCorrectEmail.trim() || !pmReason.trim()) return;
@@ -64,7 +109,7 @@ export default function AdminDisputesPage() {
     setCrLoading(false);
   };
 
-  const resetPm = () => { setPmTxId(''); setPmCorrectEmail(''); setPmReason(''); setPmResult(null); };
+  const resetPm = () => { setPmTxId(''); setPmTxLookup(null); setPmCorrectEmail(''); setPmCorrectUser(null); setPmReason(''); setPmResult(null); };
   const resetCr = () => { setCrTxId(''); setCrAmount(''); setCrReason(''); setCrResult(null); };
 
   return (
@@ -134,29 +179,110 @@ export default function AdminDisputesPage() {
 
             {!pmResult ? (
               <div className="space-y-4 max-w-lg">
+                {/* Transaction ID with lookup */}
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     ID de la transaction PM→PM
                   </label>
-                  <input
-                    type="text"
-                    value={pmTxId}
-                    onChange={(e) => setPmTxId(e.target.value)}
-                    placeholder="Ex: 1234"
-                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={pmTxId}
+                      onChange={(e) => setPmTxId(e.target.value)}
+                      placeholder="Ex: 156"
+                      className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    />
+                    {pmTxLookupLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />}
+                  </div>
+                  {pmTxLookupError && (
+                    <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> {pmTxLookupError}
+                    </p>
+                  )}
+                  {pmTxLookup && (
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-400 uppercase">Transaction #{pmTxLookup.transaction.id}</span>
+                        <Badge variant={
+                          pmTxLookup.transaction.status === 'COMPLETED' ? 'success' :
+                          pmTxLookup.transaction.status === 'REVERSED' ? 'error' : 'warning'
+                        }>{pmTxLookup.transaction.status}</Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-sm font-semibold text-slate-800 dark:text-white">{pmTxLookup.sender.name}</span>
+                        <span className="text-xs text-slate-400">({pmTxLookup.sender.email})</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Montant</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{pmTxLookup.transaction.amount}$</span>
+                      </div>
+                      {pmTxLookup.recipient ? (
+                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                          <p className="text-xs text-slate-400 mb-1">Destinataire actuel (mauvais)</p>
+                          <div className="flex items-center gap-2">
+                            <User className="w-3.5 h-3.5 text-amber-500" />
+                            <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">{pmTxLookup.recipient.name}</span>
+                            <span className="text-xs text-slate-400">({pmTxLookup.recipient.email})</span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Solde : <span className={`font-semibold ${pmTxLookup.canRefund ? 'text-emerald-600' : 'text-red-500'}`}>
+                              {pmTxLookup.recipient.balance}$
+                            </span>
+                            {!pmTxLookup.canRefund && (
+                              <span className="text-red-500 ml-1">
+                                — Fonds insuffisants pour rembourser
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-amber-600">Destinataire d'origine introuvable</p>
+                      )}
+                      {pmTxLookup.transaction.notes && (
+                        <p className="text-xs text-slate-400 italic">{pmTxLookup.transaction.notes}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {/* Correct email with user lookup */}
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     Email du BON destinataire
                   </label>
-                  <input
-                    type="email"
-                    value={pmCorrectEmail}
-                    onChange={(e) => setPmCorrectEmail(e.target.value)}
-                    placeholder="bon.destinataire@email.com"
-                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
-                  />
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="email"
+                      value={pmCorrectEmail}
+                      onChange={(e) => setPmCorrectEmail(e.target.value)}
+                      placeholder="bon.destinataire@email.com"
+                      className="w-full pl-9 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    />
+                    {pmCorrectLookupLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />}
+                  </div>
+                  {pmCorrectUser && !pmCorrectUser.notFound && (
+                    <div className="mt-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <div>
+                          <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">{pmCorrectUser.name || 'Utilisateur'}</p>
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400">{pmCorrectUser.email}{pmCorrectUser.phone_number ? ` • ${pmCorrectUser.phone_number}` : ''}</p>
+                        </div>
+                      </div>
+                      {pmCorrectUser.kyc_status && (
+                        <Badge variant={pmCorrectUser.kyc_status === 'APPROVED' ? 'success' : 'warning'} className="mt-1">
+                          KYC {pmCorrectUser.kyc_status}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  {pmCorrectUser?.notFound && (
+                    <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Aucun compte trouvé avec cet email
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -191,11 +317,21 @@ export default function AdminDisputesPage() {
                 </div>
                 <Button
                   onClick={handleRedirectPm}
-                  disabled={pmLoading || !pmTxId.trim() || !pmCorrectEmail.trim() || !pmReason.trim()}
+                  disabled={pmLoading || !pmTxLookup?.recipient || !pmCorrectUser?.id || pmCorrectUser?.id === pmTxLookup?.recipient?.id || !pmReason.trim()}
+                  title={
+                    !pmTxLookup?.recipient ? 'Vérifiez d\'abord la transaction' :
+                    !pmCorrectUser?.id ? 'Vérifiez d\'abord le destinataire' :
+                    pmCorrectUser?.id === pmTxLookup?.recipient?.id ? 'Le destinataire est identique à l\'actuel' :
+                    ''
+                  }
                   icon={pmLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   variant="primary"
                 >
-                  {pmLoading ? 'Redirection en cours...' : 'Rediriger le transfert'}
+                  {pmLoading ? 'Redirection en cours...' :
+                   !pmTxLookup?.recipient ? 'Vérifiez la transaction' :
+                   !pmCorrectUser?.id ? 'Vérifiez le destinataire' :
+                   pmCorrectUser?.id === pmTxLookup?.recipient?.id ? 'Même destinataire' :
+                   'Rediriger le transfert'}
                 </Button>
               </div>
             ) : (
