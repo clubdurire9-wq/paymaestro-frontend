@@ -93,78 +93,146 @@ export default function AdminFinancePage() {
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
       const margin = 20;
       const violet = '#7c3aed';
+      const violetLight = '#ede9fe';
       const gray = '#64748b';
       const dark = '#1e293b';
+      const green = '#059669';
+      const blue = '#2563eb';
+      const amber = '#d97706';
 
-      // Helper
-      const sectionTitle = (y: number, label: string) => {
-        doc.setFontSize(14);
-        doc.setTextColor(violet);
-        doc.text(label, margin, y);
-        doc.setDrawColor(violet);
-        doc.setLineWidth(0.5);
-        doc.line(margin, y + 2, pageW - margin, y + 2);
-        return y + 10;
+      let pageNum = 1;
+
+      const footer = () => {
+        const pages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pages; i++) {
+          doc.setPage(i);
+          doc.setDrawColor('#e2e8f0');
+          doc.setLineWidth(0.3);
+          doc.line(margin, pageH - 18, pageW - margin, pageH - 18);
+          doc.setFontSize(7);
+          doc.setTextColor('#94a3b8');
+          doc.text('PayMaestro — Rapport financier confidentiel', margin, pageH - 10);
+          doc.text(`Page ${i} / ${pages}`, pageW - margin, pageH - 10, { align: 'right' });
+          doc.text(`Généré le ${new Date().toLocaleString('fr-FR')}`, pageW - margin, pageH - 5, { align: 'right' });
+        }
+        doc.setPage(pages);
       };
 
-      // ===== HEADER =====
-      doc.setFontSize(24);
+      const addSectionTitle = (label: string, y: number) => {
+        doc.setFontSize(13);
+        doc.setTextColor(dark);
+        doc.setFont(undefined, 'bold');
+        doc.text(label, margin, y);
+        doc.setFont(undefined, 'normal');
+        doc.setDrawColor(violet);
+        doc.setLineWidth(0.8);
+        doc.line(margin, y + 1.5, pageW - margin, y + 1.5);
+        return y + 9;
+      };
+
+      const formatEuro = (val: any) => {
+        const n = parseFloat(val || 0);
+        return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $';
+      };
+
+      // ========================================
+      // PAGE 1 — HEADER BANNER
+      // ========================================
+      // Violet gradient banner
+      doc.setFillColor(124, 58, 237);
+      doc.rect(0, 0, pageW, 55, 'F');
+      doc.setFillColor(139, 92, 246);
+      doc.rect(0, 0, pageW, 55, 'F');
+
+      // Company name on banner
+      doc.setFontSize(28);
+      doc.setTextColor('#ffffff');
+      doc.setFont(undefined, 'bold');
+      doc.text('PayMaestro', margin, 22);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(11);
+      doc.text('Rapport financier', margin, 33);
+      doc.setFontSize(8);
+      doc.text(new Date(d.generatedAt).toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      }), margin, 42);
+
+      // Logo circle
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(255, 255, 255);
+      doc.circle(pageW - margin - 10, 27, 14, 'F');
+      doc.setFontSize(16);
       doc.setTextColor(violet);
-      doc.text('PayMaestro', margin, 25);
-      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('PM', pageW - margin - 15, 31);
+
+      // ========================================
+      // KEY METRICS — 4 cards
+      // ========================================
+      let y = 68;
+      doc.setFontSize(8);
       doc.setTextColor(gray);
-      doc.text('Rapport financier', margin, 32);
-      doc.text(`Généré le ${new Date(d.generatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, margin, 38);
+      doc.setFont(undefined, 'normal');
+      doc.text('Indicateurs clés', margin, y);
 
-      // ===== SUMMARY TABLE =====
-      let y = sectionTitle(50, 'Résumé');
-      doc.autoTable({
-        startY: y,
-        margin: { left: margin, right: margin },
-        tableWidth: pageW - margin * 2,
-        theme: 'grid',
-        headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 10, halign: 'center' },
-        bodyStyles: { fontSize: 10, textColor: dark, halign: 'center' },
-        alternateRowStyles: { fillColor: '#f5f3ff' },
-        columns: [
-          { header: "Aujourd'hui", dataKey: 'today' },
-          { header: 'Cette semaine', dataKey: 'week' },
-          { header: 'Ce mois', dataKey: 'month' },
-          { header: 'Total', dataKey: 'total' },
-        ],
-        body: [[
-          { content: `${parseFloat(s.today || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#059669' } },
-          { content: `${parseFloat(s.week || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#2563eb' } },
-          { content: `${parseFloat(s.month || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#7c3aed' } },
-          { content: `${parseFloat(s.total || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#d97706' } },
-        ]],
-      });
-      y = (doc as any).lastAutoTable.finalY + 10;
+      const cards = [
+        { label: "Aujourd'hui", value: formatEuro(s.today), color: green, bg: '#ecfdf5' },
+        { label: 'Cette semaine', value: formatEuro(s.week), color: blue, bg: '#eff6ff' },
+        { label: 'Ce mois', value: formatEuro(s.month), color: violet, bg: violetLight },
+        { label: 'Total', value: formatEuro(s.total), color: amber, bg: '#fffbeb' },
+      ];
 
-      // ===== COMMISSION BREAKDOWN =====
-      y = sectionTitle(y, 'Répartition des commissions');
-      const breakdownData = (s.breakdown || []).map((b: any) => [
-        b.type || 'Autres',
-        `${parseFloat(b.total || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`,
-      ]);
-      if (breakdownData.length === 0) {
-        doc.setFontSize(10);
+      const cardW = (pageW - margin * 2 - 6) / 4;
+      y += 3;
+
+      cards.forEach((card, i) => {
+        const x = margin + i * (cardW + 2);
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor('#e2e8f0');
+        doc.roundedRect(x, y, cardW, 22, 2, 2, 'FD');
+        // Top color bar
+        doc.setFillColor(parseInt(card.color.slice(1, 3), 16), parseInt(card.color.slice(3, 5), 16), parseInt(card.color.slice(5, 7), 16));
+        doc.rect(x, y, cardW, 2.5, 'F');
+        // Label
+        doc.setFontSize(6);
         doc.setTextColor(gray);
-        doc.text('Aucune commission enregistrée', margin, y + 8);
-        y += 18;
+        doc.setFont(undefined, 'normal');
+        doc.text(card.label, x + 2, y + 8);
+        // Value
+        doc.setFontSize(9);
+        doc.setTextColor(card.color);
+        doc.setFont(undefined, 'bold');
+        doc.text(card.value, x + 2, y + 18);
+      });
+
+      y += 32;
+
+      // ========================================
+      // BREAKDOWN TABLE
+      // ========================================
+      y = addSectionTitle('Répartition des commissions', y);
+
+      const breakdownData = (s.breakdown || []).map((b: any) => [b.type || 'Autres', formatEuro(b.total)]);
+      if (breakdownData.length === 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(gray);
+        doc.setFont(undefined, 'normal');
+        doc.text('Aucune commission enregistrée', margin, y + 6);
+        y += 16;
       } else {
         doc.autoTable({
           startY: y,
           margin: { left: margin, right: margin },
           tableWidth: pageW - margin * 2,
           theme: 'grid',
-          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 10 },
-          bodyStyles: { fontSize: 10, textColor: dark },
-          alternateRowStyles: { fillColor: '#f5f3ff' },
+          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 8, halign: 'left' },
+          bodyStyles: { fontSize: 8, textColor: dark },
+          alternateRowStyles: { fillColor: '#f8fafc' },
           columns: [
-            { header: 'Type', dataKey: 'type' },
+            { header: 'Type de commission', dataKey: 'type' },
             { header: 'Montant', dataKey: 'amount' },
           ],
           body: breakdownData.map((row: string[]) => ({
@@ -172,27 +240,74 @@ export default function AdminFinancePage() {
             amount: { content: row[1], styles: { halign: 'right', fontStyle: 'bold' } },
           })),
           foot: [{
-            type: { content: 'Total', styles: { fontStyle: 'bold', fontSize: 10 } },
-            amount: { content: `${breakdownData.reduce((sum: number, r: string[]) => sum + parseFloat(r[1].replace(/\s/g, '').replace('$', '')), 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { halign: 'right', fontStyle: 'bold', fontSize: 10, textColor: violet } },
+            type: { content: 'Total', styles: { fontStyle: 'bold', fontSize: 8 } },
+            amount: { content: breakdownData.reduce((sum: number, r: string[]) => sum + parseFloat(r[1].replace(/\s/g, '').replace('$', '')), 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' $', styles: { halign: 'right', fontStyle: 'bold', fontSize: 8, textColor: violet } },
           }],
-          footStyles: { fillColor: '#ede9fe', textColor: violet },
+          footStyles: { fillColor: violetLight, textColor: violet },
         });
-        y = (doc as any).lastAutoTable.finalY + 10;
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // ===== MONTHLY HISTORY =====
-      if (y > 240) { doc.addPage(); y = 30; }
-      y = sectionTitle(y, 'Historique mensuel (12 mois)');
+      // ========================================
+      // MONTHLY HISTORY TABLE + BAR CHART
+      // ========================================
+      if (y > 210) { doc.addPage(); y = 30; }
+      y = addSectionTitle('Historique mensuel (12 mois)', y);
 
       if (h.length === 0) {
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         doc.setTextColor(gray);
-        doc.text('Aucun historique disponible', margin, y + 8);
+        doc.text('Aucun historique disponible', margin, y + 6);
       } else {
+        // --- BAR CHART ---
+        const chartTop = y + 2;
+        const chartH = 45;
+        const chartBottom = chartTop + chartH;
+        const chartLeft = margin;
+        const chartRight = pageW - margin;
+        const chartW = chartRight - chartLeft;
+
+        const revenues = h.map((r: any) => parseFloat(r.revenue || 0));
+        const maxRev = Math.max(...revenues, 1);
+        const barW = Math.max(4, Math.min(12, (chartW - (revenues.length - 1) * 1.5) / revenues.length));
+
+        // Axis line
+        doc.setDrawColor('#e2e8f0');
+        doc.setLineWidth(0.3);
+        doc.line(chartLeft, chartBottom, chartRight, chartBottom);
+
+        // Bars
+        revenues.forEach((rev: number, i: number) => {
+          const barH = (rev / maxRev) * (chartH - 8);
+          const x = chartLeft + i * (barW + 1.5);
+          const yBar = chartBottom - barH;
+
+          doc.setFillColor(139, 92, 246);
+          doc.roundedRect(x, yBar, barW, barH, 1, 1, 'F');
+
+          // Value on top
+          doc.setFontSize(5);
+          doc.setTextColor(dark);
+          doc.setFont(undefined, 'bold');
+          doc.text(rev.toLocaleString('fr-FR'), x + barW / 2, yBar - 1, { align: 'center' });
+
+          // Month label
+          doc.setFontSize(5);
+          doc.setTextColor(gray);
+          doc.setFont(undefined, 'normal');
+          const monthLabel = new Date(h[i].month).toLocaleDateString('fr-FR', { month: 'short' });
+          doc.text(monthLabel, x + barW / 2, chartBottom + 4, { align: 'center', angle: 0 });
+        });
+
+        y = chartBottom + 14;
+
+        // --- HISTORY TABLE ---
+        if (y > 230) { doc.addPage(); y = 30; }
+
         const historyRows = h.map((hItem: any) => [
           new Date(hItem.month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
           hItem.transactions.toString(),
-          { content: `${parseFloat(hItem.revenue || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { halign: 'right', fontStyle: 'bold', textColor: '#059669' } },
+          { content: formatEuro(hItem.revenue), styles: { halign: 'right', fontStyle: 'bold', textColor: green } },
         ]);
 
         doc.autoTable({
@@ -200,9 +315,9 @@ export default function AdminFinancePage() {
           margin: { left: margin, right: margin },
           tableWidth: pageW - margin * 2,
           theme: 'grid',
-          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 9 },
-          bodyStyles: { fontSize: 9, textColor: dark },
-          alternateRowStyles: { fillColor: '#f5f3ff' },
+          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 8 },
+          bodyStyles: { fontSize: 8, textColor: dark },
+          alternateRowStyles: { fillColor: '#f8fafc' },
           columns: [
             { header: 'Mois', dataKey: 'month' },
             { header: 'Transactions', dataKey: 'tx' },
@@ -214,20 +329,34 @@ export default function AdminFinancePage() {
             revenue: row[2],
           })),
         });
-        y = (doc as any).lastAutoTable.finalY + 10;
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // ===== FOOTER =====
-      if (y > 270) { doc.addPage(); y = 30; }
-      doc.setDrawColor('#e2e8f0');
-      doc.setLineWidth(0.3);
-      doc.line(margin, y, pageW - margin, y);
+      // ========================================
+      // SUMMARY BOX
+      // ========================================
+      if (y > 250) { doc.addPage(); y = 30; }
+      doc.setDrawColor(violet);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, y, pageW - margin * 2, 28, 3, 3, 'FD');
+
+      doc.setFontSize(9);
+      doc.setTextColor(violet);
+      doc.setFont(undefined, 'bold');
+      doc.text('RÉSULTAT NET', margin + 4, y + 9);
+
       doc.setFontSize(8);
       doc.setTextColor(gray);
-      doc.text(`PayMaestro — Rapport financier généré le ${new Date().toLocaleString('fr-FR')}`, margin, y + 5);
-      doc.text('Ce document est confidentiel et destiné à l\'administration PayMaestro.', margin, y + 10);
-      doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageW - margin, y + 5, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      doc.text('Total des commissions perçues sur la période', margin + 4, y + 18);
 
+      doc.setFontSize(16);
+      doc.setTextColor(violet);
+      doc.setFont(undefined, 'bold');
+      doc.text(formatEuro(s.total), pageW - margin - 4, y + 18, { align: 'right' });
+
+      // ===== FOOTER =====
+      footer();
       doc.save(`paymaestro_rapport_financier_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (e: any) {
       toastError(e.message || "Erreur d'export");
