@@ -103,10 +103,8 @@ export default function AdminFinancePage() {
       const blue = '#2563eb';
       const amber = '#d97706';
 
-      let pageNum = 1;
-
       const footer = () => {
-        const pages = doc.internal.getNumberOfPages();
+        const pages = (doc as any).getNumberOfPages();
         for (let i = 1; i <= pages; i++) {
           doc.setPage(i);
           doc.setDrawColor('#e2e8f0');
