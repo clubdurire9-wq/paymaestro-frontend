@@ -8,8 +8,7 @@ import {
   Calendar, AlertCircle, X, RefreshCw, History
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-type DocWithAutoTable = jsPDF & { autoTable: (options: any) => void; lastAutoTable: { finalY: number } };
+import autoTable from 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -222,7 +221,7 @@ export default function AdminFinancePage() {
         doc.text('Aucune commission enregistrée', margin, y + 6);
         y += 16;
       } else {
-        (doc as DocWithAutoTable).autoTable({
+        autoTable(doc, {
           startY: y,
           margin: { left: margin, right: margin },
           tableWidth: pageW - margin * 2,
@@ -244,7 +243,7 @@ export default function AdminFinancePage() {
           }],
           footStyles: { fillColor: violetLight, textColor: violet },
         });
-        y = (doc as DocWithAutoTable).lastAutoTable.finalY + 8;
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
       // ========================================
@@ -309,7 +308,7 @@ export default function AdminFinancePage() {
           { content: formatEuro(hItem.revenue), styles: { halign: 'right', fontStyle: 'bold', textColor: green } },
         ]);
 
-        (doc as DocWithAutoTable).autoTable({
+        autoTable(doc, {
           startY: y,
           margin: { left: margin, right: margin },
           tableWidth: pageW - margin * 2,
@@ -328,7 +327,7 @@ export default function AdminFinancePage() {
             revenue: row[2],
           })),
         });
-        y = (doc as DocWithAutoTable).lastAutoTable.finalY + 8;
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
       // ========================================
