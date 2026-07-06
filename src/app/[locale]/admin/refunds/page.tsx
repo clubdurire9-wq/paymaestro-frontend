@@ -21,6 +21,7 @@ export default function AdminRefundsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => { loadRefunds(); }, []);
 
@@ -36,12 +37,12 @@ export default function AdminRefundsPage() {
     setLoading(false);
   };
 
-  const filtered = searchTerm.trim()
+  const filtered = searchQuery.trim()
     ? refunds.filter(r =>
-        String(r.id).includes(searchTerm.trim()) ||
-        (r.userEmail || '').toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
-        (r.userName || '').toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
-        (r.notes || '').toLowerCase().includes(searchTerm.trim().toLowerCase())
+        String(r.id).includes(searchQuery.trim()) ||
+        (r.userEmail || '').toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+        (r.userName || '').toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+        (r.notes || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
       )
     : refunds;
 
@@ -126,15 +127,26 @@ export default function AdminRefundsPage() {
       {/* Search bar */}
       <Card>
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par ID, email, utilisateur ou notes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Rechercher par ID, email, utilisateur ou notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') setSearchQuery(searchTerm.trim()); }}
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+              />
+            </div>
+            <Button onClick={() => setSearchQuery(searchTerm.trim())} icon={<Search className="w-4 h-4" />}>
+              <span className="hidden sm:inline">Rechercher</span>
+            </Button>
+            {searchQuery && (
+              <Button variant="ghost" onClick={() => { setSearchTerm(''); setSearchQuery(''); }}>
+                ✕
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -149,10 +161,10 @@ export default function AdminRefundsPage() {
           <CardContent className="py-16 text-center">
             <RotateCcw className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="font-semibold text-slate-600 dark:text-slate-400">
-              {searchTerm ? 'Aucun remboursement ne correspond' : 'Aucun remboursement'}
+              {searchQuery ? 'Aucun remboursement ne correspond' : 'Aucun remboursement'}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {searchTerm ? 'Essayez un autre terme de recherche' : 'Les remboursements effectués apparaîtront ici'}
+              {searchQuery ? 'Essayez un autre terme de recherche' : 'Les remboursements effectués apparaîtront ici'}
             </p>
           </CardContent>
         </Card>
