@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { 
   Send, CheckCircle2, 
-  Loader2, Users
+  Loader2, Users, Snowflake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PasswordModal } from '@/components/wallet/PasswordModal';
+import { FrozenModal } from '@/components/FrozenModal';
 
 export default function TransferPage() {
   const locale = useLocale();
@@ -35,6 +36,10 @@ export default function TransferPage() {
   const [lookupResult, setLookupResult] = useState<any>(null);
   const [lookingUp, setLookingUp] = useState(false);
 
+  // Frozen check
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
   // Pré-sélection de la source si le paramètre est présent
   useEffect(() => {
     if (sourceParam === 'pm') {
@@ -42,6 +47,20 @@ export default function TransferPage() {
       setStep('lookup');
     }
   }, [sourceParam]);
+
+  // Vérifier si le compte est gelé au chargement
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, { headers });
+        const d = await res.json();
+        if (d.success && d.data) {
+          setFrozenData(d.data);
+          setFrozenModalOpen(true);
+        }
+      } catch {}
+    })();
+  }, []);
 
   const handleLookupUser = async () => {
     setLookingUp(true);
@@ -324,6 +343,13 @@ export default function TransferPage() {
           onClose={() => setShowPassword(false)}
         />
       )}
+
+      {/* Modal gel */}
+      <FrozenModal
+        isOpen={frozenModalOpen}
+        data={frozenData}
+        onClose={() => setFrozenModalOpen(false)}
+      />
     </div>
   );
 }

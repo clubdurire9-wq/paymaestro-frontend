@@ -87,7 +87,7 @@ export default function AdminDisputesPage() {
     try {
       const res = await api.admin.redirectPmToPm(pmTxId.trim(), pmCorrectEmail.trim(), pmReason.trim());
       setPmResult(res);
-      success(`Redirection réussie ! ${res.data?.amount}$ redirigés`);
+      success(`Redirection réussie ! ${res?.amount}$ redirigés`);
     } catch (e: any) {
       toastError(e.message || 'Erreur de redirection');
     }
@@ -102,7 +102,7 @@ export default function AdminDisputesPage() {
       const amount = crAmount.trim() ? parseFloat(crAmount) : undefined;
       const res = await api.admin.compensate(crTxId.trim(), crReason.trim(), amount);
       setCrResult(res);
-      success(`Crédit réussi ! ${res.data?.amount}$ crédités au wallet`);
+      success(`Crédit réussi ! ${res?.amount}$ crédités au wallet`);
     } catch (e: any) {
       toastError(e.message || 'Erreur de compensation');
     }
@@ -341,18 +341,27 @@ export default function AdminDisputesPage() {
                     <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     <h3 className="font-bold text-emerald-800 dark:text-emerald-200">Redirection réussie</h3>
                   </div>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300">{pmResult.message}</p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">Redirection de {pmResult?.amount}$ de {pmResult?.wrongRecipient} vers {pmResult?.correctRecipient}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-1 text-sm">
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Montant : <span className="font-bold text-slate-900 dark:text-white">{pmResult.data?.amount}$</span>
-                  </p>
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Ancien destinataire : <span className="font-mono text-slate-700 dark:text-slate-300">{pmResult.data?.wrongRecipient}</span>
-                  </p>
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Nouveau destinataire : <span className="font-mono text-slate-700 dark:text-slate-300">{pmResult.data?.correctRecipient}</span>
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Montant</span>
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">{pmResult?.amount}$</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Ancien</span>
+                    <span className="font-mono text-sm text-red-600 dark:text-red-400">{pmResult?.wrongRecipient}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Nouveau</span>
+                    <span className="font-mono text-sm text-emerald-600 dark:text-emerald-400">{pmResult?.correctRecipient}</span>
+                  </div>
+                  {pmResult?.reference && (
+                    <div className="flex items-center gap-2 pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Réf.</span>
+                      <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{pmResult.reference}</span>
+                    </div>
+                  )}
                 </div>
                 <Button variant="outline" onClick={resetPm} icon={<RotateCcw className="w-4 h-4" />}>
                   Effectuer une autre redirection
@@ -460,15 +469,17 @@ export default function AdminDisputesPage() {
                     <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     <h3 className="font-bold text-emerald-800 dark:text-emerald-200">Wallet crédité avec succès</h3>
                   </div>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300">{crResult.message}</p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">Compensation de {crResult?.amount}$ effectuée sur la transaction #{crResult?.originalTransactionId}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-1 text-sm">
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Montant crédité : <span className="font-bold text-slate-900 dark:text-white">{crResult.data?.amount}$</span>
-                  </p>
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Transaction : <span className="font-mono text-slate-700 dark:text-slate-300">#{crResult.data?.originalTransactionId}</span>
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Montant</span>
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">{crResult?.amount}$</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[90px]">Transaction</span>
+                    <span className="font-mono text-sm text-slate-700 dark:text-slate-300">#{crResult?.originalTransactionId}</span>
+                  </div>
                 </div>
                 <Button variant="outline" onClick={resetCr} icon={<RotateCcw className="w-4 h-4" />}>
                   Effectuer un autre crédit
