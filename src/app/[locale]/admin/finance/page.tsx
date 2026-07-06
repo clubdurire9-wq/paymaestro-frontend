@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { 
   DollarSign, TrendingUp, ArrowUp, ArrowDown,
-  Send, Loader2, Wallet, Phone, Building, FileText,
-  Calendar, Download, AlertCircle, X, RefreshCw, History
+  Send, Loader2, Wallet, Phone, Building, FileText, FileDown,
+  Calendar, AlertCircle, X, RefreshCw, History
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,45 +90,147 @@ export default function AdminFinancePage() {
       const d = await api.finance.exportPDF();
       const s = d.stats || {};
       const h = d.history || [];
-      
-      const lines = [
-        '═══════════════════════════════════',
-        '  PAYMAESTRO — RAPPORT FINANCIER',
-        '═══════════════════════════════════',
-        `Date : ${new Date(d.generatedAt).toLocaleDateString('fr-FR')}`,
-        '',
-        '📊 RÉSUMÉ',
-        '───────────────────────────────────',
-        `Aujourd'hui  : +${s.today || 0}$`,
-        `Cette semaine : +${s.week || 0}$`,
-        `Ce mois      : +${s.month || 0}$`,
-        `Total        : +${s.total || 0}$`,
-        '',
-        '📋 RÉPARTITION',
-        '───────────────────────────────────',
-      ];
-      (s.breakdown || []).forEach((b: any) => {
-        lines.push(`${b.type || 'Autres'} : ${b.total}$`);
-      });
-      if (!s.breakdown?.length) lines.push('Aucune répartition disponible');
-      lines.push('', '📈 HISTORIQUE MENSUEL', '───────────────────────────────────');
-      h.forEach((hItem: any) => {
-        lines.push(`${new Date(hItem.month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })} : ${hItem.revenue}$ (${hItem.transactions} tx)`);
-      });
-      if (!h.length) lines.push('Aucun historique');
-      lines.push('', '═══════════════════════════════════');
-      lines.push(`Généré par PayMaestro le ${new Date().toLocaleString('fr-FR')}`);
-      lines.push('═══════════════════════════════════');
 
-      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `paymaestro_rapport_financier_${new Date().toISOString().split('T')[0]}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const violet = '#7c3aed';
+      const gray = '#64748b';
+      const dark = '#1e293b';
+
+      // Helper
+      const sectionTitle = (y: number, label: string) => {
+        doc.setFontSize(14);
+        doc.setTextColor(violet);
+        doc.text(label, margin, y);
+        doc.setDrawColor(violet);
+        doc.setLineWidth(0.5);
+        doc.line(margin, y + 2, pageW - margin, y + 2);
+        return y + 10;
+      };
+
+      // ===== HEADER =====
+      doc.setFontSize(24);
+      doc.setTextColor(violet);
+      doc.text('PayMaestro', margin, 25);
+      doc.setFontSize(10);
+      doc.setTextColor(gray);
+      doc.text('Rapport financier', margin, 32);
+      doc.text(`Généré le ${new Date(d.generatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, margin, 38);
+
+      // ===== SUMMARY TABLE =====
+      let y = sectionTitle(50, 'Résumé');
+      doc.autoTable({
+        startY: y,
+        margin: { left: margin, right: margin },
+        tableWidth: pageW - margin * 2,
+        theme: 'grid',
+        headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 10, halign: 'center' },
+        bodyStyles: { fontSize: 10, textColor: dark, halign: 'center' },
+        alternateRowStyles: { fillColor: '#f5f3ff' },
+        columns: [
+          { header: "Aujourd'hui", dataKey: 'today' },
+          { header: 'Cette semaine', dataKey: 'week' },
+          { header: 'Ce mois', dataKey: 'month' },
+          { header: 'Total', dataKey: 'total' },
+        ],
+        body: [[
+          { content: `${parseFloat(s.today || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#059669' } },
+          { content: `${parseFloat(s.week || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#2563eb' } },
+          { content: `${parseFloat(s.month || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#7c3aed' } },
+          { content: `${parseFloat(s.total || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { fontStyle: 'bold', fontSize: 12, textColor: '#d97706' } },
+        ]],
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // ===== COMMISSION BREAKDOWN =====
+      y = sectionTitle(y, 'Répartition des commissions');
+      const breakdownData = (s.breakdown || []).map((b: any) => [
+        b.type || 'Autres',
+        `${parseFloat(b.total || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`,
+      ]);
+      if (breakdownData.length === 0) {
+        doc.setFontSize(10);
+        doc.setTextColor(gray);
+        doc.text('Aucune commission enregistrée', margin, y + 8);
+        y += 18;
+      } else {
+        doc.autoTable({
+          startY: y,
+          margin: { left: margin, right: margin },
+          tableWidth: pageW - margin * 2,
+          theme: 'grid',
+          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 10 },
+          bodyStyles: { fontSize: 10, textColor: dark },
+          alternateRowStyles: { fillColor: '#f5f3ff' },
+          columns: [
+            { header: 'Type', dataKey: 'type' },
+            { header: 'Montant', dataKey: 'amount' },
+          ],
+          body: breakdownData.map((row: string[]) => ({
+            type: row[0],
+            amount: { content: row[1], styles: { halign: 'right', fontStyle: 'bold' } },
+          })),
+          foot: [{
+            type: { content: 'Total', styles: { fontStyle: 'bold', fontSize: 10 } },
+            amount: { content: `${breakdownData.reduce((sum: number, r: string[]) => sum + parseFloat(r[1].replace(/\s/g, '').replace('$', '')), 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { halign: 'right', fontStyle: 'bold', fontSize: 10, textColor: violet } },
+          }],
+          footStyles: { fillColor: '#ede9fe', textColor: violet },
+        });
+        y = (doc as any).lastAutoTable.finalY + 10;
+      }
+
+      // ===== MONTHLY HISTORY =====
+      if (y > 240) { doc.addPage(); y = 30; }
+      y = sectionTitle(y, 'Historique mensuel (12 mois)');
+
+      if (h.length === 0) {
+        doc.setFontSize(10);
+        doc.setTextColor(gray);
+        doc.text('Aucun historique disponible', margin, y + 8);
+      } else {
+        const historyRows = h.map((hItem: any) => [
+          new Date(hItem.month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+          hItem.transactions.toString(),
+          { content: `${parseFloat(hItem.revenue || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}$`, styles: { halign: 'right', fontStyle: 'bold', textColor: '#059669' } },
+        ]);
+
+        doc.autoTable({
+          startY: y,
+          margin: { left: margin, right: margin },
+          tableWidth: pageW - margin * 2,
+          theme: 'grid',
+          headStyles: { fillColor: '#7c3aed', textColor: '#ffffff', fontStyle: 'bold', fontSize: 9 },
+          bodyStyles: { fontSize: 9, textColor: dark },
+          alternateRowStyles: { fillColor: '#f5f3ff' },
+          columns: [
+            { header: 'Mois', dataKey: 'month' },
+            { header: 'Transactions', dataKey: 'tx' },
+            { header: 'Revenu', dataKey: 'revenue' },
+          ],
+          body: historyRows.map((row: any[]) => ({
+            month: row[0],
+            tx: { content: row[1], styles: { halign: 'center' } },
+            revenue: row[2],
+          })),
+        });
+        y = (doc as any).lastAutoTable.finalY + 10;
+      }
+
+      // ===== FOOTER =====
+      if (y > 270) { doc.addPage(); y = 30; }
+      doc.setDrawColor('#e2e8f0');
+      doc.setLineWidth(0.3);
+      doc.line(margin, y, pageW - margin, y);
+      doc.setFontSize(8);
+      doc.setTextColor(gray);
+      doc.text(`PayMaestro — Rapport financier généré le ${new Date().toLocaleString('fr-FR')}`, margin, y + 5);
+      doc.text('Ce document est confidentiel et destiné à l\'administration PayMaestro.', margin, y + 10);
+      doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageW - margin, y + 5, { align: 'right' });
+
+      doc.save(`paymaestro_rapport_financier_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (e: any) {
-      toastError(e.message || 'Erreur d\'export');
+      toastError(e.message || "Erreur d'export");
     }
     setExporting(false);
   };
@@ -168,9 +272,9 @@ export default function AdminFinancePage() {
           <Button onClick={() => setShowWithdraw(true)} icon={<Send className="w-4 h-4" />}>
             Retirer des fonds
           </Button>
-          <Button variant="outline" onClick={handleExportPDF} disabled={exporting} icon={<FileText className="w-4 h-4" />}>
-            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Exporter
+          <Button variant="outline" onClick={handleExportPDF} disabled={exporting} icon={<FileDown className="w-4 h-4" />}>
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            {exporting ? 'Génération...' : 'Export PDF'}
           </Button>
         </div>
       </div>
