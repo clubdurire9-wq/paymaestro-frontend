@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import {
-  Lock, Unlock, Loader2, AlertTriangle,
+  Lock, Unlock, Loader2, AlertTriangle, Search, User,
   ArrowLeft, Snowflake, RefreshCw, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,14 @@ export default function FrozenAccountsPage() {
 
   const [showFreezeModal, setShowFreezeModal] = useState(false);
   const [freezeUserId, setFreezeUserId] = useState('');
+  const [freezeUserName, setFreezeUserName] = useState('');
   const [freezeReason, setFreezeReason] = useState('');
   const [freezeType, setFreezeType] = useState('ALL');
+
+  // User search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => { loadAccounts(); }, []);
 
@@ -68,13 +74,31 @@ export default function FrozenAccountsPage() {
     setActionLoading(null);
   };
 
+  const searchUsers = async (q: string) => {
+    setSearchQuery(q);
+    if (!q.trim()) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const res = await api.admin.searchUsers(q.trim());
+      setSearchResults(res || []);
+    } catch { setSearchResults([]); }
+    setSearching(false);
+  };
+
+  const selectUser = (u: any) => {
+    setFreezeUserId(u.id);
+    setFreezeUserName(`${u.name || ''} (${u.email || ''})`);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   const freezeTypes = [
     { value: 'ALL', label: '🔒 Tout bloquer' },
     { value: 'MOBILE_MONEY', label: '📱 Mobile Money' },
-    { value: 'BANK', label: '🏦 Banque' },
+    { value: 'BANK', label: '🏦 Banque / Stripe' },
     { value: 'PAYPAL', label: '💳 PayPal' },
-    { value: 'STRIPE', label: '🏦 Stripe/IBAN' },
-    { value: 'WALLET', label: '👛 Wallet' },
+    { value: 'CRYPTO', label: '₿ Crypto' },
+    { value: 'INTERNAL', label: '↔️ PM→PM' },
   ];
 
   return (
@@ -176,14 +200,49 @@ export default function FrozenAccountsPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">ID de l&apos;utilisateur</label>
-                <input
-                  type="text"
-                  value={freezeUserId}
-                  onChange={(e) => setFreezeUserId(e.target.value)}
-                  placeholder="UUID de l'utilisateur"
-                  className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                />
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Utilisateur à geler
+                </label>
+                {freezeUserId ? (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <User className="w-4 h-4 text-red-500 shrink-0" />
+                      <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{freezeUserName}</span>
+                    </div>
+                    <button onClick={() => { setFreezeUserId(''); setFreezeUserName(''); }} className="p-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
+                      <X className="w-4 h-4 text-red-400" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => searchUsers(e.target.value)}
+                      placeholder="Rechercher par email ou nom..."
+                      className="w-full pl-9 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                    />
+                    {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />}
+                    {searchResults.length > 0 && (
+                      <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                        {searchResults.map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => selectUser(u)}
+                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0"
+                          >
+                            <User className="w-4 h-4 text-slate-400 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-semibold text-slate-800 dark:text-white truncate">{u.name || 'Sans nom'}</p>
+                              <p className="text-xs text-slate-400 truncate">{u.email} {u.phone_number ? `• ${u.phone_number}` : ''}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">Motif du gel</label>

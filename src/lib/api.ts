@@ -539,10 +539,10 @@ export const api = {
     toggleBan: (userId: string, ban: boolean, reason?: string) =>
       request<any>(`${API_URL}/admin/users/ban`, { method: 'POST', body: JSON.stringify({ userId, ban, reason }) }),
     freeze: (userId: string, reason: string, freezeType?: string) =>
-      request<any>(`${API_URL}/admin/users/freeze`, { method: 'POST', body: JSON.stringify({ userId, reason, freezeType }) }),
+      request<any>(`${API_URL}/admin/freeze`, { method: 'POST', body: JSON.stringify({ userId, reason, freezeType }) }),
     unfreeze: (userId: string) =>
-      request<any>(`${API_URL}/admin/users/unfreeze`, { method: 'POST', body: JSON.stringify({ userId }) }),
-    getFrozenAccounts: () => request<any[]>(`${API_URL}/admin/users/frozen`),
+      request<any>(`${API_URL}/admin/unfreeze`, { method: 'POST', body: JSON.stringify({ userId }) }),
+    getFrozenAccounts: () => request<any[]>(`${API_URL}/admin/frozen-accounts`),
     blockServices: (userId: string, reason?: string) =>
       request<any>(`${API_URL}/admin/users/block-services`, { method: 'POST', body: JSON.stringify({ userId, reason }) }),
     restoreServices: (userId: string) =>
