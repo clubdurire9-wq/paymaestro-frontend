@@ -57,6 +57,10 @@ export default function AdminPage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [reviewingKycId, setReviewingKycId] = useState<string | null>(null);
+  const [txList, setTxList] = useState<any[]>([]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txSearchId, setTxSearchId] = useState('');
+  const [txDays, setTxDays] = useState(7);
 
   async function loadDashboard(showRefresh = false) {
     if (showRefresh) setRefreshing(true);
@@ -75,6 +79,21 @@ export default function AdminPage() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  async function loadTxList(days = txDays, transactionId?: string) {
+    setTxLoading(true);
+    try {
+      const data = await api.admin.getTransactions(days, transactionId || undefined);
+      setTxList(data || []);
+    } catch {}
+    setTxLoading(false);
+  }
+
+  useEffect(() => {
+    if (activeTab === 'transactions') {
+      loadTxList(txDays, txSearchId.trim() || undefined);
+    }
+  }, [activeTab]);
 
   const handleApproveKYC = async (userId: string) => {
     setReviewingKycId(userId);
@@ -392,14 +411,75 @@ export default function AdminPage() {
           {/* Transactions Tab */}
           {activeTab === 'transactions' && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('sidebar.transactions')}</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('sidebar.transactions')}</h2>
+                <span className="text-xs text-slate-400">{txList.length} résultat(s)</span>
+              </div>
+
+              {/* Search + Filter bar */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Rechercher par ID de transaction..."
+                        value={txSearchId}
+                        onChange={(e) => setTxSearchId(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') loadTxList(0, e.currentTarget.value.trim() || undefined);
+                        }}
+                        className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                      />
+                    </div>
+                    <select
+                      value={txDays}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setTxDays(val);
+                        loadTxList(val, txSearchId.trim() || undefined);
+                      }}
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    >
+                      <option value={1}>24h</option>
+                      <option value={7}>7 jours</option>
+                      <option value={30}>30 jours</option>
+                      <option value={90}>90 jours</option>
+                      <option value={0}>Tout</option>
+                    </select>
+                    <Button
+                      size="sm"
+                      onClick={() => loadTxList(txSearchId.trim() ? 0 : txDays, txSearchId.trim() || undefined)}
+                      disabled={txLoading}
+                    >
+                      {txLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Results table */}
               <Card className="border border-slate-100 dark:border-slate-700 overflow-hidden">
                 <CardContent className="p-0">
+                  {txLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+                    </div>
+                  ) : txList.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <p className="text-sm text-slate-400">Aucune transaction trouvée</p>
+                      {txSearchId && (
+                        <p className="text-xs text-slate-400 mt-1">Essayez un autre ID ou retirez le filtre de recherche</p>
+                      )}
+                    </div>
+                  ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 dark:border-slate-700 dark:bg-slate-800/50 text-xs uppercase font-semibold">
                           <th className="py-3 px-5">ID</th>
+                          <th className="py-3 px-5">Utilisateur</th>
                           <th className="py-3 px-5">Date</th>
                           <th className="py-3 px-5">Montant</th>
                           <th className="py-3 px-5">Devise</th>
@@ -408,9 +488,10 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {(dashboardData?.recentTransactions || []).map((tx) => (
+                        {txList.map((tx) => (
                           <tr key={tx.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/50 transition-colors">
-                            <td className="py-3 px-5 font-semibold text-slate-900 dark:text-white">{tx.id}</td>
+                            <td className="py-3 px-5 font-semibold text-slate-900 dark:text-white font-mono text-xs">{tx.id}</td>
+                            <td className="py-3 px-5 text-xs text-slate-500 dark:text-slate-400">{tx.userName || tx.userEmail || '-'}</td>
                             <td className="py-3 px-5 text-xs text-slate-400">
                               {new Date(tx.date).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
@@ -442,6 +523,7 @@ export default function AdminPage() {
                       </tbody>
                     </table>
                   </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

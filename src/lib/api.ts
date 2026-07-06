@@ -516,6 +516,11 @@ export const api = {
     getStats: () => request<any>(`${API_URL}/admin/stats`),
     getLiveStats: () => request<any>(`${API_URL}/admin/stats/live`),
     getDashboardStats: () => request<any>(`${API_URL}/admin/dashboard-stats`),
+    getTransactions: (days = 7, transactionId?: string) => {
+      const params = new URLSearchParams({ days: String(days) });
+      if (transactionId) params.set('transactionId', transactionId);
+      return request<any[]>(`${API_URL}/admin/transactions?${params.toString()}`);
+    },
     getLiveActivity: () => request<any[]>(`${API_URL}/admin/activity/live`),
     getUserActivity: (userId: string) => request<any>(`${API_URL}/admin/activity/user/${userId}`),
     getUserProfile: (userId: string) => request<any>(`${API_URL}/admin/users/${userId}/profile`),
