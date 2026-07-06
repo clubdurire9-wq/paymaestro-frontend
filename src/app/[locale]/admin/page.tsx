@@ -65,7 +65,7 @@ export default function AdminPage() {
         api.admin.getDashboardStats(),
         api.admin.listPendingKYC(),
       ]);
-      if (dashboardResult?.data) setDashboardData(dashboardResult.data);
+      if (dashboardResult) setDashboardData(dashboardResult);
       setKycQueue(pendingKyc || []);
     } catch {}
     setLoading(false);
