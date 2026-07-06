@@ -39,6 +39,65 @@ import { MOBILE_MONEY_COUNTRIES, getOperatorsByCountryCode } from '@/data/mobile
 import { useToast } from '@/hooks/useToast';
 import { ALL_WORLD_COUNTRIES } from '@/data/all-countries';
 
+function CountrySelect({ value, onChange, error }: { value: string; onChange: (code: string) => void; error?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selected = MOBILE_MONEY_COUNTRIES.find(c => c.code === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`
+          w-full flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border rounded-xl cursor-pointer
+          focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
+          ${error ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
+          bg-white dark:bg-slate-800 text-slate-800 dark:text-white
+        `}
+      >
+        {selected ? (
+          <>
+            <img src={`https://flagcdn.com/w20/${selected.code.toLowerCase()}.png`} alt={selected.name} className="w-5 h-4 rounded object-cover" />
+            <span className="flex-1 text-left">{selected.name} ({selected.dialCode})</span>
+          </>
+        ) : (
+          <span className="flex-1 text-left text-slate-400">Sélectionnez un pays</span>
+        )}
+        <span className="text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl shadow-lg">
+          {MOBILE_MONEY_COUNTRIES.map((c) => (
+            <button
+              key={c.code}
+              type="button"
+              onClick={() => { onChange(c.code); setOpen(false); }}
+              className={`
+                w-full flex items-center gap-2 px-3.5 py-2 text-xs text-left hover:bg-slate-100 dark:hover:bg-slate-700
+                ${value === c.code ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-bold' : 'text-slate-800 dark:text-white font-semibold'}
+              `}
+            >
+              <img src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`} alt={c.name} className="w-5 h-4 rounded object-cover" />
+              <span className="flex-1">{c.name}</span>
+              <span className="text-slate-400 text-[10px]">{c.dialCode}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const t = useTranslations('profile');
   const tCommon = useTranslations('common');
@@ -74,11 +133,13 @@ export default function ProfilePage() {
   const [passwordStatusLoading, setPasswordStatusLoading] = useState(true);
 
   // 2FA management
-  const [twoFAStatus, setTwoFAStatus] = useState<{ enabled: boolean; enabledAt?: string } | null>(null);
+  const [twoFAStatus, setTwoFAStatus] = useState<{ enabled: boolean; enabledAt?: string; method?: string } | null>(null);
   const [twoFASecret, setTwoFASecret] = useState<{ secret: string; qrCode?: string } | null>(null);
   const [twoFAToken, setTwoFAToken] = useState('');
   const [twoFALoading, setTwoFALoading] = useState(false);
   const [twoFAStatusLoading, setTwoFAStatusLoading] = useState(true);
+  const [twoFAMethodChoice, setTwoFAMethodChoice] = useState<'totp' | 'otp' | null>(null);
+  const [twoFAOTPSent, setTwoFAOTPSent] = useState(false);
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -295,7 +356,7 @@ export default function ProfilePage() {
     try {
       await api.twoFactor.enable(twoFAToken);
       success('2FA activé avec succès');
-      setTwoFAStatus({ enabled: true, enabledAt: new Date().toISOString() });
+      setTwoFAStatus({ enabled: true, enabledAt: new Date().toISOString(), method: 'totp' });
       setTwoFASecret(null);
       setTwoFAToken('');
     } catch (e: any) { showError(e.message); }
@@ -309,6 +370,30 @@ export default function ProfilePage() {
       await api.twoFactor.disable(twoFAToken);
       success('2FA désactivé');
       setTwoFAStatus({ enabled: false });
+      setTwoFAToken('');
+    } catch (e: any) { showError(e.message); }
+    setTwoFALoading(false);
+  };
+
+  const handleSend2FAOTP = async () => {
+    setTwoFALoading(true);
+    try {
+      await api.twoFactor.sendOTP();
+      setTwoFAOTPSent(true);
+      success('Code OTP envoyé par email');
+    } catch (e: any) { showError(e.message); }
+    setTwoFALoading(false);
+  };
+
+  const handleEnable2FAOTP = async () => {
+    if (!twoFAToken || twoFAToken.length !== 6) { showError('Entrez le code à 6 chiffres reçu par email'); return; }
+    setTwoFALoading(true);
+    try {
+      await api.twoFactor.enableOTP(twoFAToken);
+      success('2FA activé avec succès');
+      setTwoFAStatus({ enabled: true, enabledAt: new Date().toISOString(), method: 'otp' });
+      setTwoFAMethodChoice(null);
+      setTwoFAOTPSent(false);
       setTwoFAToken('');
     } catch (e: any) { showError(e.message); }
     setTwoFALoading(false);
@@ -487,7 +572,11 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl">
                     <ShieldCheck className="w-5 h-5 text-emerald-500" />
                     <div>
-                      <p className="text-xs font-semibold text-emerald-800">2FA Activé</p>
+                      <p className="text-xs font-semibold text-emerald-800">
+                        2FA Activé
+                        {twoFAStatus.method === 'otp' && <span className="ml-1 text-[10px] text-emerald-600">(Code par email)</span>}
+                        {twoFAStatus.method === 'totp' && <span className="ml-1 text-[10px] text-emerald-600">(Application)</span>}
+                      </p>
                       {twoFAStatus.enabledAt && <p className="text-[10px] text-emerald-600">Depuis le {new Date(twoFAStatus.enabledAt).toLocaleDateString()}</p>}
                     </div>
                   </div>
@@ -502,11 +591,73 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-3">
                   <p className="text-xs text-slate-500 dark:text-slate-400">Ajoutez une couche de sécurité supplémentaire à votre compte.</p>
-                  {!twoFASecret ? (
-                    <Button variant="primary" fullWidth size="sm" loading={twoFALoading} onClick={handleGenerate2FA}>
-                      <QrCode className="w-3.5 h-3.5 mr-1" /> Activer 2FA
-                    </Button>
-                  ) : (
+
+                  {!twoFAMethodChoice && !twoFASecret && (
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTwoFAMethodChoice('otp')}
+                        className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left"
+                      >
+                        <Mail className="w-5 h-5 text-violet-500 shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">Code par email</p>
+                          <p className="text-[10px] text-slate-500">Recevez un code PayMaestro-XXXXXX par email</p>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleGenerate2FA}
+                        className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left"
+                      >
+                        <Smartphone className="w-5 h-5 text-violet-500 shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">Application d'authentification</p>
+                          <p className="text-[10px] text-slate-500">Google Authenticator, Authy, etc.</p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {twoFAMethodChoice === 'otp' && (
+                    <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        Un code à 6 chiffres vous sera envoyé par email à chaque connexion.
+                      </p>
+                      {!twoFAOTPSent ? (
+                        <Button variant="primary" fullWidth size="sm" loading={twoFALoading} onClick={handleSend2FAOTP}>
+                          <Mail className="w-3.5 h-3.5 mr-1" /> Envoyer le code de vérification
+                        </Button>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold text-emerald-600">Code envoyé ! Vérifiez votre boîte email.</p>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Code reçu par email</label>
+                            <div className="flex gap-2 mt-1">
+                              <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 bg-white dark:bg-slate-800" placeholder="000000" maxLength={6} />
+                              <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FAOTP}>Activer</Button>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleSend2FAOTP}
+                            className="text-[10px] text-violet-600 hover:underline font-semibold"
+                          >
+                            Renvoyer le code
+                          </button>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setTwoFAMethodChoice(null); setTwoFAOTPSent(false); setTwoFAToken(''); }}
+                        className="text-[10px] text-slate-400 hover:underline"
+                      >
+                        Retour
+                      </button>
+                    </div>
+                  )}
+
+                  {twoFASecret && (
                     <div className="space-y-3">
                       {twoFASecret.qrCode && (
                         <div className="flex justify-center">
@@ -520,10 +671,17 @@ export default function ProfilePage() {
                       <div>
                         <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Code de vérification</label>
                         <div className="flex gap-2 mt-1">
-                          <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="000000" maxLength={6} />
+                          <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 bg-white dark:bg-slate-800" placeholder="000000" maxLength={6} />
                           <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FA}>Vérifier</Button>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setTwoFASecret(null)}
+                        className="text-[10px] text-slate-400 hover:underline"
+                      >
+                        Retour
+                      </button>
                     </div>
                   )}
                 </div>
@@ -701,30 +859,15 @@ export default function ProfilePage() {
                   {t('wallets.add')}
                 </h4>
 
-                {/* Country + Operator row */}
+                  {/* Country + Operator row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Pays</label>
-                    <div className="relative">
-                      <select
-                        value={newCountry}
-                        onChange={(e) => { setNewCountry(e.target.value); setNewOperator(''); setNewPhone(''); setErrors({}); }}
-                        className={`
-                          w-full px-3.5 py-2 text-xs text-slate-800 dark:text-white font-semibold border rounded-xl appearance-none cursor-pointer
-                          focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
-                          ${errors.country ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'}
-                          bg-white dark:bg-slate-800
-                        `}
-                      >
-                        <option value="">Sélectionnez un pays</option>
-                        {MOBILE_MONEY_COUNTRIES.map((c) => (
-                          <option key={c.code} value={c.code}>
-                            {c.flag} {c.name} ({c.dialCode})
-                          </option>
-                        ))}
-                      </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">▼</span>
-                    </div>
+                    <CountrySelect
+                      value={newCountry}
+                      onChange={(code) => { setNewCountry(code); setNewOperator(''); setNewPhone(''); setErrors({}); }}
+                      error={!!errors.country}
+                    />
                     {errors.country && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.country}</p>}
                   </div>
                   <div>

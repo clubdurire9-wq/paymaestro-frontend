@@ -198,6 +198,12 @@ export const api = {
 
     getPasswordStatus: () =>
       request<{ hasPassword: boolean }>(`${API_URL}/auth/password-status`),
+    forgotPassword: (email: string) =>
+      request<{ message: string }>(`${API_URL}/auth/forgot-password`, { method: 'POST', body: JSON.stringify({ email }) }),
+    verifyResetCode: (email: string, code: string) =>
+      request<{ message: string }>(`${API_URL}/auth/verify-reset-code`, { method: 'POST', body: JSON.stringify({ email, code }) }),
+    resetPassword: (email: string, code: string, newPassword: string, confirmPassword: string) =>
+      request<{ message: string }>(`${API_URL}/auth/reset-password`, { method: 'POST', body: JSON.stringify({ email, code, newPassword, confirmPassword }) }),
 
     getAdminCheck: () => request<any>(`${API_URL}/auth/admin-check`),
 
@@ -235,10 +241,13 @@ export const api = {
   // ==========================================
 
   twoFactor: {
-    getStatus: () => request<{ enabled: boolean; enabledAt?: string }>(`${API_URL}/2fa/status`),
+    getStatus: () => request<{ enabled: boolean; enabledAt?: string; method?: string }>(`${API_URL}/2fa/status`),
     generateSecret: () => request<{ secret: string; qrCode?: string }>(`${API_URL}/2fa/generate`, { method: 'POST' }),
     enable: (token: string) => request<any>(`${API_URL}/2fa/enable`, { method: 'POST', body: JSON.stringify({ token }) }),
     disable: (token: string) => request<any>(`${API_URL}/2fa/disable`, { method: 'POST', body: JSON.stringify({ token }) }),
+    sendOTP: () => request<{ success: boolean; message: string }>(`${API_URL}/2fa/send-otp`, { method: 'POST' }),
+    enableOTP: (code: string) => request<any>(`${API_URL}/2fa/enable-otp`, { method: 'POST', body: JSON.stringify({ code }) }),
+    sendLoginOTP: () => request<{ success: boolean; message: string }>(`${API_URL}/2fa/send-login-otp`, { method: 'POST' }),
   },
 
   // ==========================================

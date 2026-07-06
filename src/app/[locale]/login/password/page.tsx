@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Loader2, Eye, EyeOff, ShieldCheck, ArrowLeft, MapPin, CheckCircle } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ShieldCheck, ArrowLeft, MapPin, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth, AuthUser } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -22,9 +22,20 @@ export default function LoginPasswordPage() {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'password' | '2fa' | 'location'>('password');
+  const [is2FAOTP, setIs2FAOTP] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [newGeo, setNewGeo] = useState<{ country: string; city: string; region: string; isp: string; ip: string } | null>(null);
+
+  // Forgot password
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetCode, setResetCode] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetVerified, setResetVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const token = sessionStorage.getItem('pm_login_token');
@@ -38,7 +49,8 @@ export default function LoginPasswordPage() {
 
     setLoginToken(token);
 
-    if (status === '2FA_REQUIRED') {
+    if (status === '2FA_REQUIRED' || status === '2FA_OTP_REQUIRED') {
+      setIs2FAOTP(status === '2FA_OTP_REQUIRED');
       setStep('2fa');
     } else if (status === 'NEW_LOCATION_REQUIRED') {
       const geoRaw = sessionStorage.getItem('pm_login_geo');
@@ -94,9 +106,10 @@ export default function LoginPasswordPage() {
     try {
       const res = await api.auth.completeLogin({ loginToken, password });
 
-      if (res.status === '2FA_REQUIRED') {
+      if (res.status === '2FA_REQUIRED' || res.status === '2FA_OTP_REQUIRED') {
         if (res.loginToken) sessionStorage.setItem('pm_login_token', res.loginToken);
-        sessionStorage.setItem('pm_login_status', '2FA_REQUIRED');
+        sessionStorage.setItem('pm_login_status', res.status);
+        setIs2FAOTP(res.status === '2FA_OTP_REQUIRED');
         setStep('2fa');
         setLoading(false);
         return;
@@ -167,6 +180,45 @@ export default function LoginPasswordPage() {
     setLoading(false);
   };
 
+  const handleSendResetCode = async () => {
+    setLoading(true);
+    try {
+      await api.auth.forgotPassword(userEmail);
+      setResetSent(true);
+      toastSuccess('Code de réinitialisation envoyé par email');
+    } catch (e: any) { showError(e.message); }
+    setLoading(false);
+  };
+
+  const handleVerifyResetCode = async () => {
+    if (!resetCode) { showError('Entrez le code reçu par email'); return; }
+    setLoading(true);
+    try {
+      await api.auth.verifyResetCode(userEmail, resetCode);
+      setResetVerified(true);
+      toastSuccess('Code vérifié');
+    } catch (e: any) { showError(e.message); }
+    setLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword) { showError('Nouveau mot de passe requis'); return; }
+    if (!PASSWORD_REGEX.test(newPassword)) { showError('Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé.'); return; }
+    if (newPassword !== confirmPassword) { showError('Les mots de passe ne correspondent pas'); return; }
+    setLoading(true);
+    try {
+      await api.auth.resetPassword(userEmail, resetCode, newPassword, confirmPassword);
+      toastSuccess('Mot de passe réinitialisé avec succès');
+      setShowForgot(false);
+      setResetSent(false);
+      setResetVerified(false);
+      setResetCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e: any) { showError(e.message); }
+    setLoading(false);
+  };
+
   if (!loginToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900 flex items-center justify-center">
@@ -190,7 +242,7 @@ export default function LoginPasswordPage() {
             Retour
           </button>
 
-          {step === 'password' && (
+          {step === 'password' && !showForgot && (
             <>
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
@@ -239,7 +291,126 @@ export default function LoginPasswordPage() {
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier'}
                 </button>
+
+                <p className="text-center text-xs text-slate-500">
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgot(true); setError(''); }}
+                    className="text-violet-400 hover:underline font-semibold"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </p>
               </form>
+            </>
+          )}
+
+          {step === 'password' && showForgot && (
+            <>
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
+                  <KeyRound className="w-7 h-7 text-violet-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-1">Réinitialisation du mot de passe</h1>
+                <p className="text-sm text-slate-400">
+                  {!resetSent ? 'Un code vous sera envoyé par email' : resetVerified ? 'Définissez votre nouveau mot de passe' : `Code envoyé à ${userEmail}`}
+                </p>
+              </div>
+
+              {!resetSent && (
+                <div className="space-y-5">
+                  <p className="text-sm text-slate-400 text-center">
+                    Un code <span className="text-violet-300 font-mono">PM_ReinXXXXXX</span> sera envoyé à votre adresse email.
+                  </p>
+                  {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"><p className="text-sm text-red-400">{error}</p></div>}
+                  <button
+                    type="button"
+                    onClick={handleSendResetCode}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Mail className="w-5 h-5" /> Envoyer le code</>}
+                  </button>
+                </div>
+              )}
+
+              {resetSent && !resetVerified && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Code de réinitialisation</label>
+                    <input
+                      type="text"
+                      value={resetCode}
+                      onChange={e => { setResetCode(e.target.value); setError(''); }}
+                      placeholder="PM_ReinXXXXXX"
+                      autoFocus
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all text-center font-mono tracking-wider"
+                    />
+                  </div>
+                  {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"><p className="text-sm text-red-400">{error}</p></div>}
+                  <button
+                    type="button"
+                    onClick={handleVerifyResetCode}
+                    disabled={loading || !resetCode}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier le code'}
+                  </button>
+                  <p className="text-center text-xs text-slate-500">
+                    Vous n&apos;avez pas reçu le code ?{' '}
+                    <button type="button" onClick={handleSendResetCode} className="text-violet-400 hover:underline">Renvoyer</button>
+                  </p>
+                </div>
+              )}
+
+              {resetVerified && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Nouveau mot de passe</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        placeholder="Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
+                      />
+                      <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Confirmer le mot de passe</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        placeholder="Répétez le mot de passe"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
+                      />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"><p className="text-sm text-red-400">{error}</p></div>}
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Réinitialiser le mot de passe'}
+                  </button>
+                  <p className="text-center text-xs text-slate-500">
+                    <button type="button" onClick={() => { setShowForgot(false); setResetSent(false); setResetVerified(false); setResetCode(''); setNewPassword(''); setConfirmPassword(''); }} className="text-slate-400 hover:underline">
+                      Retour à la connexion
+                    </button>
+                  </p>
+                </div>
+              )}
             </>
           )}
 
@@ -251,7 +422,9 @@ export default function LoginPasswordPage() {
                 </div>
                 <h1 className="text-2xl font-bold text-white mb-1">Authentification à deux facteurs</h1>
                 <p className="text-sm text-slate-400">
-                  Saisissez le code généré par votre application d&apos;authentification
+                  {is2FAOTP
+                    ? 'Un code à 6 chiffres vous a été envoyé par email'
+                    : 'Saisissez le code généré par votre application d\'authentification'}
                 </p>
               </div>
 
@@ -281,6 +454,24 @@ export default function LoginPasswordPage() {
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier le code'}
                 </button>
+                {is2FAOTP && (
+                  <p className="text-center text-xs text-slate-500">
+                    Vous n&apos;avez pas reçu le code ?{' '}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const currentToken = sessionStorage.getItem('pm_login_token') || loginToken;
+                        try {
+                          await api.twoFactor.sendLoginOTP?.();
+                          toastSuccess('Nouveau code envoyé par email');
+                        } catch { /* ignore */ }
+                      }}
+                      className="text-violet-400 hover:underline"
+                    >
+                      Renvoyer
+                    </button>
+                  </p>
+                )}
               </form>
             </>
           )}

@@ -64,9 +64,9 @@ export default function OnboardingPasswordPage() {
     try {
       const res = await api.auth.completeLogin({ loginToken, createPassword: true, password });
 
-      if (res.status === '2FA_REQUIRED') {
+      if (res.status === '2FA_REQUIRED' || res.status === '2FA_OTP_REQUIRED') {
         sessionStorage.setItem('pm_login_token', res.loginToken || loginToken);
-        sessionStorage.setItem('pm_login_status', '2FA_REQUIRED');
+        sessionStorage.setItem('pm_login_status', res.status);
         toastSuccess('Mot de passe créé avec succès');
         router.push(`/${locale}/login/password`);
         return;
