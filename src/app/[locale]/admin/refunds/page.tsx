@@ -21,7 +21,6 @@ export default function AdminRefundsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => { loadRefunds(); }, []);
 
@@ -37,12 +36,12 @@ export default function AdminRefundsPage() {
     setLoading(false);
   };
 
-  const filtered = searchQuery.trim()
+  const filtered = searchTerm.trim()
     ? refunds.filter(r =>
-        String(r.id).includes(searchQuery.trim()) ||
-        (r.userEmail || '').toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-        (r.userName || '').toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-        (r.notes || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
+        String(r.id).includes(searchTerm.trim()) ||
+        (r.userEmail || '').toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        (r.userName || '').toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        (r.notes || '').toLowerCase().includes(searchTerm.trim().toLowerCase())
       )
     : refunds;
 
@@ -135,15 +134,15 @@ export default function AdminRefundsPage() {
                 placeholder="Rechercher par ID, email, utilisateur ou notes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') setSearchQuery(searchTerm.trim()); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') setSearchTerm(e.currentTarget.value.trim()); }}
                 className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
               />
             </div>
-            <Button onClick={() => setSearchQuery(searchTerm.trim())} icon={<Search className="w-4 h-4" />}>
+            <Button onClick={() => setSearchTerm(searchTerm.trim())} icon={<Search className="w-4 h-4" />}>
               <span className="hidden sm:inline">Rechercher</span>
             </Button>
-            {searchQuery && (
-              <Button variant="ghost" onClick={() => { setSearchTerm(''); setSearchQuery(''); }}>
+            {searchTerm && (
+              <Button variant="ghost" onClick={() => setSearchTerm('')}>
                 ✕
               </Button>
             )}
@@ -161,10 +160,10 @@ export default function AdminRefundsPage() {
           <CardContent className="py-16 text-center">
             <RotateCcw className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="font-semibold text-slate-600 dark:text-slate-400">
-              {searchQuery ? 'Aucun remboursement ne correspond' : 'Aucun remboursement'}
+              {searchTerm ? 'Aucun remboursement ne correspond' : 'Aucun remboursement'}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {searchQuery ? 'Essayez un autre terme de recherche' : 'Les remboursements effectués apparaîtront ici'}
+              {searchTerm ? 'Essayez un autre terme de recherche' : 'Les remboursements effectués apparaîtront ici'}
             </p>
           </CardContent>
         </Card>
