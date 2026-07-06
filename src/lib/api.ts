@@ -571,6 +571,12 @@ export const api = {
     reversePmToPm: (transactionId: string, reason?: string) =>
       request<any>(`${API_URL}/admin/pm-to-pm/reverse`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
 
+    // Disputes
+    compensate: (transactionId: string, reason: string, amount?: number) =>
+      request<any>(`${API_URL}/admin/disputes/compensate`, { method: 'POST', body: JSON.stringify({ transactionId, reason, amount }) }),
+    redirectPmToPm: (transactionId: string, correctEmail: string, reason: string) =>
+      request<any>(`${API_URL}/admin/disputes/redirect-pm2pm`, { method: 'POST', body: JSON.stringify({ transactionId, correctEmail, reason }) }),
+
     // Sessions
     revokeSessions: (userId: string) =>
       request<any>(`${API_URL}/admin/sessions/revoke`, { method: 'POST', body: JSON.stringify({ userId }) }),

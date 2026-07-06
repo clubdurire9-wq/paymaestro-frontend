@@ -167,6 +167,7 @@ export default function AdminPage() {
   ];
   const links: { href: string; label: string; icon: React.ElementType }[] = [
     { href: `/${locale}/admin/live`, label: 'Live', icon: Activity },
+    { href: `/${locale}/admin/disputes`, label: 'Litiges', icon: AlertTriangle },
     { href: `/${locale}/admin/refunds`, label: 'Remboursements', icon: RotateCcw },
     { href: `/${locale}/admin/agents`, label: 'Agents', icon: Headphones },
     { href: `/${locale}/admin/api-keys`, label: 'API Keys', icon: Key },
