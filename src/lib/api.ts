@@ -561,6 +561,9 @@ export const api = {
       request<any>(`${API_URL}/admin/refund-to-bank`, { method: 'POST', body: JSON.stringify(data) }),
 
     // Claims
+    getRefunds: () => request<any[]>(`${API_URL}/admin/refunds`),
+    refundTransaction: (transactionId: string, data: { reason?: string; amount?: number }) =>
+      request<any>(`${API_URL}/admin/transactions/${transactionId}/refund`, { method: 'POST', body: JSON.stringify(data) }),
     verifyClaim: (transactionId: string) => request<any>(`${API_URL}/admin/verify-claim/${transactionId}`),
 
     // P2P

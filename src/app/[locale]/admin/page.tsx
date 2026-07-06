@@ -32,6 +32,7 @@ import {
   LifeBuoy,
   Loader2,
   X,
+  RotateCcw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +62,10 @@ export default function AdminPage() {
   const [txLoading, setTxLoading] = useState(false);
   const [txSearchId, setTxSearchId] = useState('');
   const [txDays, setTxDays] = useState(7);
+  const [refundTx, setRefundTx] = useState<any>(null);
+  const [refundReason, setRefundReason] = useState('');
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundProcessing, setRefundProcessing] = useState(false);
 
   async function loadDashboard(showRefresh = false) {
     if (showRefresh) setRefreshing(true);
@@ -94,6 +99,23 @@ export default function AdminPage() {
       loadTxList(txDays, txSearchId.trim() || undefined);
     }
   }, [activeTab]);
+
+  const handleRefund = async () => {
+    if (!refundTx || !refundReason.trim()) return;
+    setRefundProcessing(true);
+    try {
+      const amount = refundAmount.trim() ? parseFloat(refundAmount) : undefined;
+      await api.admin.refundTransaction(refundTx.id, { reason: refundReason.trim(), amount });
+      success(`Remboursement effectué sur la transaction #${refundTx.id}`);
+      setRefundTx(null);
+      setRefundReason('');
+      setRefundAmount('');
+      loadTxList(txDays, txSearchId.trim() || undefined);
+    } catch (e: any) {
+      toastError(e.message || 'Erreur de remboursement');
+    }
+    setRefundProcessing(false);
+  };
 
   const handleApproveKYC = async (userId: string) => {
     setReviewingKycId(userId);
@@ -145,6 +167,7 @@ export default function AdminPage() {
   ];
   const links: { href: string; label: string; icon: React.ElementType }[] = [
     { href: `/${locale}/admin/live`, label: 'Live', icon: Activity },
+    { href: `/${locale}/admin/refunds`, label: 'Remboursements', icon: RotateCcw },
     { href: `/${locale}/admin/agents`, label: 'Agents', icon: Headphones },
     { href: `/${locale}/admin/api-keys`, label: 'API Keys', icon: Key },
     { href: `/${locale}/admin/cards`, label: 'Cartes', icon: CreditCard },
@@ -485,6 +508,7 @@ export default function AdminPage() {
                           <th className="py-3 px-5">Devise</th>
                           <th className="py-3 px-5">Téléphone</th>
                           <th className="py-3 px-5">Statut</th>
+                          <th className="py-3 px-5">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -517,6 +541,17 @@ export default function AdminPage() {
                               >
                                 {tx.status === 'MOBILE_MONEY_SENT' ? 'COMPLETED' : tx.status}
                               </Badge>
+                            </td>
+                            <td className="py-3 px-5">
+                              {(tx.status === 'COMPLETED' || tx.status === 'MOBILE_MONEY_SENT') && (
+                                <button
+                                  onClick={() => { setRefundTx(tx); setRefundAmount(''); setRefundReason(''); }}
+                                  className="text-xs text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 font-semibold flex items-center gap-1 transition-colors"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  Rembourser
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -615,6 +650,97 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Refund Modal */}
+      {refundTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !refundProcessing && setRefundTx(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <RotateCcw className="w-5 h-5 text-orange-500" />
+                Remboursement
+              </h2>
+              <button onClick={() => setRefundTx(null)} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-sm">
+                <p className="text-slate-500 dark:text-slate-400">Transaction <span className="font-mono font-bold text-slate-800 dark:text-white">#{refundTx.id}</span></p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Montant original : <span className="font-bold text-slate-800 dark:text-white">{parseFloat(refundTx.amountUSD || 0).toFixed(2)}$</span>
+                </p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Utilisateur : <span className="font-semibold text-slate-800 dark:text-white">{refundTx.userName || refundTx.userEmail || '-'}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Montant à rembourser <span className="text-xs text-slate-400 font-normal">(laissez vide pour le total)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
+                  <input
+                    type="number"
+                    value={refundAmount}
+                    onChange={(e) => setRefundAmount(e.target.value)}
+                    className="w-full pl-8 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-lg font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    placeholder={parseFloat(refundTx.amountUSD || 0).toFixed(2)}
+                    min="0.01"
+                    step="0.01"
+                    max={refundTx.amountUSD}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">Raison du remboursement</label>
+                <select
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                >
+                  <option value="">Sélectionnez une raison...</option>
+                  <option value="Erreur numéro destinataire">Erreur numéro destinataire</option>
+                  <option value="Annulation client">Annulation client</option>
+                  <option value="Transaction dupliquée">Transaction dupliquée</option>
+                  <option value="Service non délivré">Service non délivré</option>
+                  <option value="Litige client">Litige client</option>
+                  <option value="Erreur montant">Erreur montant</option>
+                  <option value="Frais incorrects">Frais incorrects</option>
+                </select>
+                <input
+                  type="text"
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  placeholder="Ou tapez une raison personnalisée..."
+                  className="w-full px-4 py-2.5 mt-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" fullWidth onClick={() => setRefundTx(null)} disabled={refundProcessing}>
+                Annuler
+              </Button>
+              <Button
+                fullWidth
+                onClick={handleRefund}
+                disabled={refundProcessing || !refundReason.trim()}
+                icon={refundProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                variant={refundAmount && parseFloat(refundAmount) < parseFloat(refundTx.amountUSD) ? 'primary' : 'danger'}
+              >
+                {refundProcessing
+                  ? 'Traitement...'
+                  : `${refundAmount && parseFloat(refundAmount) < parseFloat(refundTx.amountUSD) ? 'Remb. partiel' : 'Rembourser total'}${refundAmount ? ` ${parseFloat(refundAmount).toFixed(2)}$` : ''}`
+                }
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
