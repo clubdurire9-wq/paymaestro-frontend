@@ -567,9 +567,9 @@ export const api = {
     verifyClaim: (transactionId: string) => request<any>(`${API_URL}/admin/verify-claim/${transactionId}`),
 
     // P2P
-    getPmToPmDetails: (transactionId: string) => request<any>(`${API_URL}/admin/pm-to-pm/${transactionId}`),
+    getPmToPmDetails: (transactionId: string) => request<any>(`${API_URL}/admin/pm2pm/${transactionId}`),
     reversePmToPm: (transactionId: string, reason?: string) =>
-      request<any>(`${API_URL}/admin/pm-to-pm/reverse`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
+      request<any>(`${API_URL}/admin/refund/pm2pm`, { method: 'POST', body: JSON.stringify({ transactionId, reason }) }),
 
     // Disputes
     compensate: (transactionId: string, reason: string, amount?: number) =>
