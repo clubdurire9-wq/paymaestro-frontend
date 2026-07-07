@@ -222,6 +222,9 @@ export default function BankPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <Building className="w-5 h-5 text-violet-600" />
                     <h4 className="font-bold text-sm text-violet-800 dark:text-violet-300">Envoyez votre argent sur ce compte PayMaestro</h4>
+                    {pmAccount._virtual && (
+                      <span className="ml-auto text-[10px] font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">Virtuel Flutterwave</span>
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <span className="text-slate-500 dark:text-slate-400">Banque :</span>
