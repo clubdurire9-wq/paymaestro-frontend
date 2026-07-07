@@ -48,6 +48,15 @@ export default function AdminAgentsPage() {
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
 
+  // Mass email state
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState<any>(null);
+  const [searchUserFilter, setSearchUserFilter] = useState('');
+
   let currentUserEmail = '';
   if (typeof window !== 'undefined') {
     try {
@@ -287,6 +296,12 @@ export default function AdminAgentsPage() {
           <button onClick={() => { setActiveTab('payroll'); loadPayrollAgents(); }}
             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${activeTab === 'payroll' ? 'bg-white shadow' : 'text-slate-500'}`}>
             Remuneration
+          </button>
+        )}
+        {isAdmin && (
+          <button onClick={() => { setActiveTab('email'); setEmailResult(null); api.admin.listAllUsers().then(setAllUsers).catch(() => {}); }}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${activeTab === 'email' ? 'bg-white shadow' : 'text-slate-500'}`}>
+            Email
           </button>
         )}
       </div>
@@ -557,6 +572,109 @@ export default function AdminAgentsPage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      {activeTab === 'email' && isAdmin && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5 text-violet-600" /> Envoyer un email en masse
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-700 block mb-1">Sujet</label>
+                <input type="text" value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Sujet de l'email..."
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700 block mb-1">Message</label>
+                <textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)}
+                  placeholder="Votre message..."
+                  rows={5}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 resize-y" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-slate-700">Destinataires ({selectedEmails.size} sélectionnés)</label>
+                  <div className="flex items-center gap-2">
+                    <input type="text" value={searchUserFilter} onChange={(e) => setSearchUserFilter(e.target.value)}
+                      placeholder="Rechercher..."
+                      className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20" />
+                    <button onClick={() => {
+                      if (selectedEmails.size === allUsers.length) {
+                        setSelectedEmails(new Set());
+                      } else {
+                        setSelectedEmails(new Set(allUsers.map(u => u.email)));
+                      }
+                    }} className="text-xs text-violet-600 hover:underline">
+                      {selectedEmails.size === allUsers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
+                  {allUsers
+                    .filter(u => !searchUserFilter || u.name?.toLowerCase().includes(searchUserFilter.toLowerCase()) || u.email?.toLowerCase().includes(searchUserFilter.toLowerCase()))
+                    .map(user => (
+                      <label key={user.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+                        <input type="checkbox" checked={selectedEmails.has(user.email)}
+                          onChange={(e) => {
+                            const next = new Set(selectedEmails);
+                            e.target.checked ? next.add(user.email) : next.delete(user.email);
+                            setSelectedEmails(next);
+                          }}
+                          className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{user.name || 'Sans nom'}</p>
+                          <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                        </div>
+                      </label>
+                    ))}
+                  {allUsers.length === 0 && (
+                    <div className="text-center py-6 text-slate-400 text-sm">Aucun utilisateur trouvé</div>
+                  )}
+                </div>
+              </div>
+              <Button onClick={async () => {
+                if (!emailSubject.trim() || !emailMessage.trim() || selectedEmails.size === 0) return;
+                setSendingEmail(true);
+                setEmailResult(null);
+                try {
+                  const result = await api.admin.sendMassEmail({
+                    subject: emailSubject.trim(),
+                    message: emailMessage.trim(),
+                    recipientEmails: Array.from(selectedEmails),
+                  });
+                  setEmailResult(result);
+                  if (result.sent > 0) {
+                    setEmailSubject('');
+                    setEmailMessage('');
+                    setSelectedEmails(new Set());
+                  }
+                } catch (e: any) {
+                  setEmailResult({ error: e.message || 'Erreur lors de l\'envoi' });
+                }
+                setSendingEmail(false);
+              }} disabled={!emailSubject.trim() || !emailMessage.trim() || selectedEmails.size === 0 || sendingEmail}
+                icon={sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}>
+                {sendingEmail ? 'Envoi en cours...' : `Envoyer à ${selectedEmails.size} destinataire${selectedEmails.size > 1 ? 's' : ''}`}
+              </Button>
+              {emailResult && (
+                <div className={`p-4 rounded-xl text-sm ${emailResult.error ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-emerald-50 border border-emerald-200 text-emerald-700'}`}>
+                  {emailResult.error ? (
+                    <p>❌ {emailResult.error}</p>
+                  ) : (
+                    <div className="space-y-1">
+                      <p>✅ Email envoyé avec succès</p>
+                      <p className="text-xs opacity-75">{emailResult.sent} envoyé{emailResult.sent > 1 ? 's' : ''}{emailResult.failed > 0 ? `, ${emailResult.failed} échoué${emailResult.failed > 1 ? 's' : ''}` : ''}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

@@ -641,6 +641,11 @@ export const api = {
     getPayrollAgents: () => request<any[]>(`${API_URL}/admin/payroll/agents`),
     getPayrollHistory: () => request<any[]>(`${API_URL}/admin/payroll/history`),
     removeAgent: (agentUserId: string) => request<any>(`${API_URL}/admin/payroll/remove-agent`, { method: 'POST', body: JSON.stringify({ agentUserId }) }),
+
+    // Mass Email
+    listAllUsers: () => request<any[]>(`${API_URL}/admin/users/all`),
+    sendMassEmail: (data: { subject: string; message: string; recipientEmails: string[] }) =>
+      request<any>(`${API_URL}/admin/send-mass-email`, { method: 'POST', body: JSON.stringify(data) }),
   },
 
   // ==========================================
