@@ -118,7 +118,7 @@ export default function BankPage() {
     setStep('form');
     setPmAccount(null);
     if (direction === 'IN') {
-      api.bank.getPaymaestroAccounts(c.iso2).then(r => setPmAccount(r.data)).catch(() => setPmAccount({ bank: 'Non disponible', holder: 'PayMaestro', iban: '—', swift: '—' }));
+      api.bank.getPaymaestroAccounts(c.iso2).then(setPmAccount).catch(() => setPmAccount({ bank: 'Non disponible', holder: 'PayMaestro', iban: '—', swift: '—' }));
     }
   };
 
