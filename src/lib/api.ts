@@ -11,8 +11,8 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v
 function zPhone() {
   return {
     parse: (val: string) => {
-      if (!val || val.length < 8) throw new Error('Le numéro de téléphone est trop court.');
-      if (val.length > 15) throw new Error('Le numéro de téléphone est trop long.');
+      if (!val || val.length < 8) throw new Error('Le numÃƒÂ©ro de tÃƒÂ©lÃƒÂ©phone est trop court.');
+      if (val.length > 15) throw new Error('Le numÃƒÂ©ro de tÃƒÂ©lÃƒÂ©phone est trop long.');
       if (!/^\+?[1-9]\d{1,14}$/.test(val)) throw new Error('Format invalide. Exemple: +2250700000000');
       return val;
     },
@@ -27,7 +27,7 @@ function zOperator() {
   const operators = ['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'];
   return {
     parse: (val: string) => {
-      if (!operators.includes(val)) throw new Error('Opérateur invalide');
+      if (!operators.includes(val)) throw new Error('OpÃƒÂ©rateur invalide');
       return val;
     },
     safeParse: (val: string) => {
@@ -44,8 +44,8 @@ export const WalletSchema = {
     error?: { errors: { path: string[]; message: string }[] };
   } => {
     const errors: { path: string[]; message: string }[] = [];
-    if (!data.phone || data.phone.length < 8) errors.push({ path: ['phone'], message: 'Numéro trop court' });
-    if (!['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'].includes(data.operator)) errors.push({ path: ['operator'], message: 'Opérateur invalide' });
+    if (!data.phone || data.phone.length < 8) errors.push({ path: ['phone'], message: 'NumÃƒÂ©ro trop court' });
+    if (!['MTN', 'Orange', 'Wave', 'Moov', 'Airtel', 'Safaricom'].includes(data.operator)) errors.push({ path: ['operator'], message: 'OpÃƒÂ©rateur invalide' });
     if (errors.length) return { success: false, error: { errors } };
     return { success: true, data };
   },
@@ -54,9 +54,9 @@ export const WalletSchema = {
 export const WithdrawSchema = {
   safeParse: (data: { amountUSD: number; currency: string; phone: string }) => {
     const errors: { path: string; message: string }[] = [];
-    if (!data.amountUSD || data.amountUSD < 10 || data.amountUSD > 2000) errors.push({ path: 'amountUSD', message: 'Le montant doit être entre 10 et 2000 USD' });
+    if (!data.amountUSD || data.amountUSD < 10 || data.amountUSD > 2000) errors.push({ path: 'amountUSD', message: 'Le montant doit ÃƒÂªtre entre 10 et 2000 USD' });
     if (!['XOF', 'XAF', 'GHS', 'KES', 'NGN'].includes(data.currency)) errors.push({ path: 'currency', message: 'Devise invalide' });
-    if (!data.phone || data.phone.length < 8) errors.push({ path: 'phone', message: 'Téléphone invalide' });
+    if (!data.phone || data.phone.length < 8) errors.push({ path: 'phone', message: 'TÃƒÂ©lÃƒÂ©phone invalide' });
     if (errors.length) return { success: false as const, error: { errors } };
     return { success: true as const, data };
   },
@@ -84,14 +84,14 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       },
     });
   } catch (e: any) {
-    throw new Error('Impossible de contacter le serveur. Vérifiez votre connexion.');
+    throw new Error('Impossible de contacter le serveur. VÃƒÂ©rifiez votre connexion.');
   }
   let data: any;
   try {
     data = await res.json();
   } catch {
     const text = await res.text().catch(() => '');
-    throw new Error(text || `Erreur ${res.status} — Réponse vide du serveur`);
+    throw new Error(text || `Erreur ${res.status} Ã¢â‚¬â€ RÃƒÂ©ponse vide du serveur`);
   }
   if (!res.ok || data.success === false) {
     throw new Error(data.error || data.message || `Erreur ${res.status}`);
@@ -640,6 +640,7 @@ export const api = {
     runPayroll: () => request<any>(`${API_URL}/admin/payroll/run-now`, { method: 'POST' }),
     getPayrollAgents: () => request<any[]>(`${API_URL}/admin/payroll/agents`),
     getPayrollHistory: () => request<any[]>(`${API_URL}/admin/payroll/history`),
+    removeAgent: (agentUserId: string) => request<any>(`${API_URL}/admin/payroll/remove-agent`, { method: 'POST', body: JSON.stringify({ agentUserId }) }),
   },
 
   // ==========================================
@@ -800,7 +801,7 @@ export const api = {
   sendOTP: async (phone: string) => {
     try {
       await api.auth.requestOTP(phone);
-      return { success: true, message: `Code envoyé au ${phone}` };
+      return { success: true, message: `Code envoyÃƒÂ© au ${phone}` };
     } catch (e: any) {
       return { success: false, message: e.message };
     }
@@ -809,7 +810,7 @@ export const api = {
   verifyOTP: async (phone: string, code: string) => {
     try {
       await api.auth.verifyOTP(phone, code);
-      return { success: true, message: 'Numéro vérifié avec succès' };
+      return { success: true, message: 'NumÃƒÂ©ro vÃƒÂ©rifiÃƒÂ© avec succÃƒÂ¨s' };
     } catch (e: any) {
       return { success: false, message: e.message };
     }
@@ -844,19 +845,19 @@ export async function fetchLiveRates(): Promise<any[]> {
 }
 
 export const FALLBACK_RATES = [
-  { currency: 'XOF', rate: 618.50, flag: '🇨🇮', label: 'FCFA - UEMOA' },
-  { currency: 'XAF', rate: 618.50, flag: '🇨🇲', label: 'FCFA - CEMAC' },
-  { currency: 'KES', rate: 135, flag: '🇰🇪', label: 'Shilling Kenyan' },
-  { currency: 'NGN', rate: 1550, flag: '🇳🇬', label: 'Naira Nigérian' },
-  { currency: 'GHS', rate: 13.50, flag: '🇬🇭', label: 'Cedi Ghanéen' },
+  { currency: 'XOF', rate: 618.50, flag: 'Ã°Å¸â€¡Â¨Ã°Å¸â€¡Â®', label: 'FCFA - UEMOA' },
+  { currency: 'XAF', rate: 618.50, flag: 'Ã°Å¸â€¡Â¨Ã°Å¸â€¡Â²', label: 'FCFA - CEMAC' },
+  { currency: 'KES', rate: 135, flag: 'Ã°Å¸â€¡Â°Ã°Å¸â€¡Âª', label: 'Shilling Kenyan' },
+  { currency: 'NGN', rate: 1550, flag: 'Ã°Å¸â€¡Â³Ã°Å¸â€¡Â¬', label: 'Naira NigÃƒÂ©rian' },
+  { currency: 'GHS', rate: 13.50, flag: 'Ã°Å¸â€¡Â¬Ã°Å¸â€¡Â­', label: 'Cedi GhanÃƒÂ©en' },
 ];
 
 export function getFlagEmoji(currencyCode: string): string {
   const flags: Record<string, string> = {
-    XOF: '🇨🇮', XAF: '🇨🇲', KES: '🇰🇪', NGN: '🇳🇬',
-    GHS: '🇬🇭', UGX: '🇺🇬', RWF: '🇷🇼', TZS: '🇹🇿',
+    XOF: 'Ã°Å¸â€¡Â¨Ã°Å¸â€¡Â®', XAF: 'Ã°Å¸â€¡Â¨Ã°Å¸â€¡Â²', KES: 'Ã°Å¸â€¡Â°Ã°Å¸â€¡Âª', NGN: 'Ã°Å¸â€¡Â³Ã°Å¸â€¡Â¬',
+    GHS: 'Ã°Å¸â€¡Â¬Ã°Å¸â€¡Â­', UGX: 'Ã°Å¸â€¡ÂºÃ°Å¸â€¡Â¬', RWF: 'Ã°Å¸â€¡Â·Ã°Å¸â€¡Â¼', TZS: 'Ã°Å¸â€¡Â¹Ã°Å¸â€¡Â¿',
   };
-  return flags[currencyCode] || '🌍';
+  return flags[currencyCode] || 'Ã°Å¸Å’Â';
 }
 
 // ==========================================
