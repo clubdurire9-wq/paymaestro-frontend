@@ -266,7 +266,9 @@ export default function BankPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <h3 className="font-bold text-lg">Confirmer le destinataire</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">L'argent sera envoyé vers ce compte :</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
+              {direction === 'IN' ? "L'argent sera déposé sur votre compte PayMaestro depuis ce compte bancaire" : "L'argent sera envoyé vers ce compte bancaire"}
+            </p>
             
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-left space-y-2 text-sm mb-4">
               <div className="flex justify-between">
