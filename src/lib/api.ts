@@ -402,7 +402,7 @@ export const api = {
     transfer: (data: any) =>
       request<any>(`${API_URL}/bank/transfer`, { method: 'POST', body: JSON.stringify(data) }),
     getTransfers: () => request<any[]>(`${API_URL}/bank/transfers`),
-    verifyAccount: (data: { iban: string; swift?: string; accountHolder?: string }) =>
+    verifyAccount: (data: { iban: string; swift?: string; accountHolder?: string; country?: string }) =>
       request<any>(`${API_URL}/bank/verify`, { method: 'POST', body: JSON.stringify(data) }),
   },
 

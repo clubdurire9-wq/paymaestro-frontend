@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { ALL_COUNTRIES } from '@/data/countries';
 
 const CURRENCY_OPTIONS: Record<string, string[]> = {
@@ -28,6 +29,7 @@ const CURRENCY_OPTIONS: Record<string, string[]> = {
 
 export default function BankPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const isGatewayAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
   const [step, setStep] = useState<'choose' | 'country' | 'form' | 'done'>('choose');
@@ -64,16 +66,17 @@ export default function BankPage() {
         iban: form.iban,
         swift: form.swift,
         accountHolder: form.accountHolder,
+        country: selectedCountry?.code || '',
       });
       setBankDetails(data);
       setVerifying(false);
       if (data.verified) {
         setShowConfirm(true);
       } else {
-        alert(data.error || 'Compte bancaire invalide');
+        toast.error(data.error || 'Compte bancaire invalide');
       }
     } catch (e: any) {
-      alert(e.message || 'Compte bancaire invalide');
+      toast.error(e?.message || 'Compte bancaire invalide');
       setVerifying(false);
     }
   };
@@ -91,7 +94,7 @@ export default function BankPage() {
       setResult(data);
       setStep('done');
     } catch (e: any) {
-      alert(e.message);
+      toast.error(e?.message || 'Erreur lors du transfert');
     }
     setLoading(false);
   };
@@ -204,9 +207,13 @@ export default function BankPage() {
                 className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="John Mohamed" />
             </div>
             <div>
-              <label className="text-xs font-semibold">IBAN</label>
+              <label className="text-xs font-semibold">Numéro de compte / IBAN</label>
               <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="FR76..." />
+                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                placeholder={selectedCountry?.code === 'CD' ? 'Ex: 12345678901234567890' : 'FR76..."'} />
+              {selectedCountry?.code === 'CD' && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Pour la RDC, entrez votre numéro de compte bancaire (10 à 20 chiffres) + le code SWIFT de la banque</p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
