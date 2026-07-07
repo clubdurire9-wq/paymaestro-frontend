@@ -210,9 +210,9 @@ export default function BankPage() {
               <label className="text-xs font-semibold">Numéro de compte / IBAN</label>
               <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
                 className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                placeholder={selectedCountry?.iso2?.toUpperCase() === 'CD' ? 'Ex: 12345678901234567890' : 'FR76..."'} />
-              {selectedCountry?.iso2?.toUpperCase() === 'CD' && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Pour la RDC, entrez votre numéro de compte bancaire (10 à 20 chiffres) + le code SWIFT de la banque</p>
+                placeholder="Ex: 1234567890 ou FR76..." />
+              {selectedCountry && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Afrique : entrez votre numéro de compte bancaire (8 à 30 chiffres) + le code SWIFT/BIC</p>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
