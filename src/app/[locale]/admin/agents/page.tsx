@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { 
   Users, Circle, MessageCircle, Send, Loader2, RefreshCw,
@@ -12,10 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { isAdminEmail } from '@/hooks/useAdmin';
 import { api } from '@/lib/api';
+import { useToast } from '@/hooks/useToast';
 
 export default function AdminAgentsPage() {
   const locale = useLocale();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  const toast = useToast();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
   const authHeader = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -46,8 +48,15 @@ export default function AdminAgentsPage() {
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
 
-  const storedUser = typeof window !== 'undefined' ? sessionStorage.getItem('pm_auth_user') : null;
-  const currentUserEmail = storedUser ? JSON.parse(storedUser)?.email : '';
+  let currentUserEmail = '';
+  if (typeof window !== 'undefined') {
+    try {
+      const storedUser = sessionStorage.getItem('pm_auth_user');
+      currentUserEmail = storedUser ? JSON.parse(storedUser)?.email ?? '' : '';
+    } catch {
+      currentUserEmail = '';
+    }
+  }
   const isAdmin = isAdminEmail(currentUserEmail);
 
   const grades = [
@@ -127,9 +136,10 @@ export default function AdminAgentsPage() {
       setAddGrade('');
       setAddSalary('');
       setCustomGrade('');
+      toast.success('Agent ajouté avec succès');
       loadPayrollAgents();
     } catch (e: any) {
-      alert(e.message || 'Erreur');
+      toast.error(e?.message || 'Erreur lors de l\'ajout de l\'agent');
     }
     setSaving(false);
   };
@@ -139,9 +149,10 @@ export default function AdminAgentsPage() {
     setRemoving(agentUserId);
     try {
       await api.admin.removeAgent(agentUserId);
+      toast.success('Agent désactivé');
       loadPayrollAgents();
     } catch (e: any) {
-      alert(e.message || 'Erreur');
+      toast.error(e?.message || 'Erreur lors de la désactivation');
     }
     setRemoving(null);
   };
@@ -163,11 +174,17 @@ export default function AdminAgentsPage() {
       }
     }
 
-    await fetch(${API_URL}/agent/chat/send-with-images, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
+    try {
+      const res = await fetch(`${API_URL}/agent/chat/send-with-images`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch (err: any) {
+      toast.error(err?.message || 'Erreur lors de l\'envoi du message');
+      return;
+    }
 
     setNewMessage('');
     setImages(null);
@@ -177,14 +194,18 @@ export default function AdminAgentsPage() {
     loadMessages();
   };
 
-  const handleImageSelect = (files: FileList) => {
+  const handleImageSelect = async (files: FileList) => {
     setImages(files);
-    const previews: string[] = [];
-    for (let i = 0; i < Math.min(files.length, 10); i++) {
-      const reader = new FileReader();
-      reader.onload = (e) => previews.push(e.target?.result as string);
-      reader.readAsDataURL(files[i]);
+    const maxFiles = Math.min(files.length, 10);
+    const promises: Promise<string>[] = [];
+    for (let i = 0; i < maxFiles; i++) {
+      promises.push(new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(files[i]);
+      }));
     }
+    const previews = await Promise.all(promises);
     setPreviewImages(previews);
   };
 
@@ -311,10 +332,16 @@ export default function AdminAgentsPage() {
                   </div>
                   <p className="text-sm">{msg.message}</p>
                   
-                  {msg.images && JSON.parse(msg.images || '[]').map((img: any, i: number) => (
-                    <img key={i} src={`data:${img.mimeType};base64,${img.data}`} className="max-w-[200px] rounded-lg mt-2 cursor-pointer hover:opacity-90"
-                      onClick={() => window.open(`data:${img.mimeType};base64,${img.data}`)} />
-                  ))}
+                  {(() => {
+                    let imgs: any[] = [];
+                    try {
+                      imgs = typeof msg.images === 'string' ? JSON.parse(msg.images) : msg.images || [];
+                    } catch { imgs = []; }
+                    return imgs.map((img: any, i: number) => (
+                      <img key={i} src={`data:${img.mimeType};base64,${img.data}`} className="max-w-[200px] rounded-lg mt-2 cursor-pointer hover:opacity-90"
+                        onClick={() => window.open(`data:${img.mimeType};base64,${img.data}`)} />
+                    ));
+                  })()}
                   
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-[10px] opacity-50">
