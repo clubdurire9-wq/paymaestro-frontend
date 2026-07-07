@@ -27,7 +27,7 @@ export default function AdminAgentsPage() {
   const [isUrgent, setIsUrgent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [unread, setUnread] = useState(0);
-  const [activeTab, setActiveTab] = useState<'monitoring' | 'chat' | 'payroll'>('monitoring');
+  const [activeTab, setActiveTab] = useState<'monitoring' | 'chat' | 'payroll' | 'email'>('monitoring');
   const [replyTo, setReplyTo] = useState<any>(null);
   const [images, setImages] = useState<FileList | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
