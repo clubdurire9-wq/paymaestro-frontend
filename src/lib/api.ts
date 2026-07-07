@@ -404,6 +404,8 @@ export const api = {
     getTransfers: () => request<any[]>(`${API_URL}/bank/transfers`),
     verifyAccount: (data: { iban: string; swift?: string; accountHolder?: string; country?: string }) =>
       request<any>(`${API_URL}/bank/verify`, { method: 'POST', body: JSON.stringify(data) }),
+    getPaymaestroAccounts: (country?: string) =>
+      request<any>(`${API_URL}/bank/paymaestro-accounts${country ? `?country=${country}` : ''}`),
   },
 
   // ==========================================

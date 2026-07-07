@@ -46,6 +46,8 @@ export default function BankPage() {
   const [bankDetails, setBankDetails] = useState<any>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [pmAccount, setPmAccount] = useState<any>(null);
+  const [reference, setReference] = useState('');
 
   const getFee = () => {
     if (direction === 'IN') return 0;
@@ -84,19 +86,40 @@ export default function BankPage() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const data = await api.bank.transfer({
-        direction, sourceType,
-        amount: parseFloat(form.amount), currency,
-        iban: form.iban, swift: form.swift,
-        accountNumber: form.accountNumber, bankName: form.bankName,
-        accountHolder: form.accountHolder, country: selectedCountry?.country || '',
-      });
-      setResult(data);
+      if (direction === 'IN') {
+        const data = await api.bank.transfer({
+          direction: 'IN',
+          amount: parseFloat(form.amount), currency,
+          iban: form.iban, bankName: form.bankName,
+          reference,
+          country: selectedCountry?.country || '',
+        });
+        setResult(data);
+      } else {
+        const data = await api.bank.transfer({
+          direction, sourceType,
+          amount: parseFloat(form.amount), currency,
+          iban: form.iban, swift: form.swift,
+          accountNumber: form.accountNumber, bankName: form.bankName,
+          accountHolder: form.accountHolder, country: selectedCountry?.country || '',
+        });
+        setResult(data);
+      }
       setStep('done');
     } catch (e: any) {
       toast.error(e?.message || 'Erreur lors du transfert');
     }
     setLoading(false);
+  };
+
+  const handleStepForm = (c: any) => {
+    setSelectedCountry(c);
+    setCurrency(c.code);
+    setStep('form');
+    setPmAccount(null);
+    if (direction === 'IN') {
+      api.bank.getPaymaestroAccounts(c.iso2).then(r => setPmAccount(r.data)).catch(() => setPmAccount({ bank: 'Non disponible', holder: 'PayMaestro', iban: '—', swift: '—' }));
+    }
   };
 
   const sources = [
@@ -163,7 +186,7 @@ export default function BankPage() {
             </h3>
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-[400px] overflow-y-auto">
               {ALL_COUNTRIES.map(c => (
-                <button key={c.code + c.country} onClick={() => { setSelectedCountry(c); setCurrency(c.code); setStep('form'); }}
+                <button key={c.code + c.country} onClick={() => handleStepForm(c)}
                   className="p-3 rounded-xl border-2 text-center hover:border-violet-300 transition-all dark:border-slate-700 dark:hover:border-violet-600">
                   <img src={`https://flagcdn.com/w40/${c.iso2}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
                   <p className="text-[9px] font-semibold mt-1 text-slate-700 dark:text-slate-300">{c.country}</p>
@@ -186,63 +209,140 @@ export default function BankPage() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold">Montant</label>
-                <input type="number" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="1000" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold">Devise</label>
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                  {currencyOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold">Nom du titulaire du compte</label>
-              <input type="text" value={form.accountHolder} onChange={(e) => setForm({...form, accountHolder: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="John Mohamed" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold">Numéro de compte / IBAN</label>
-              <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                placeholder="Ex: 1234567890 ou FR76..." />
-              {selectedCountry && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Afrique : entrez votre numéro de compte bancaire (8 à 30 chiffres) + le code SWIFT/BIC</p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold">SWIFT / BIC</label>
-                <input type="text" value={form.swift} onChange={(e) => setForm({...form, swift: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="BNPAFRPP" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold">Nom de la banque</label>
-                <input type="text" value={form.bankName} onChange={(e) => setForm({...form, bankName: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="Ecobank, UBA..." />
-              </div>
-            </div>
-
-            {form.amount && (
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl space-y-1 text-sm">
-                <div className="flex justify-between"><span>Montant</span><span className="font-bold">{form.amount} {currency}</span></div>
-                <div className="flex justify-between"><span>Pays</span><span className="font-bold">{selectedCountry?.country}</span></div>
-                {fee > 0 && <div className="flex justify-between text-red-600 dark:text-red-400"><span>Frais ({(getFee()*100).toFixed(0)}%)</span><span>-{fee.toFixed(2)} {currency}</span></div>}
-                <div className="flex justify-between text-green-600 dark:text-green-400 border-t dark:border-slate-600 pt-1"><span className="font-bold">Net</span><span className="font-bold">{net.toFixed(2)} {currency}</span></div>
+            {direction === 'IN' && !pmAccount && (
+              <div className="text-center py-6">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-violet-600" />
+                <p className="text-sm text-slate-500 mt-2">Chargement des coordonnées bancaires...</p>
               </div>
             )}
 
-            <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setStep('country')}>Retour</Button>
-              <Button fullWidth onClick={handleVerifyBank} disabled={loading || verifying || !form.iban} icon={<Shield className="w-4 h-4" />}>
-                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier le compte bancaire'}
-              </Button>
-            </div>
+            {direction === 'IN' && pmAccount && (
+              <>
+                <div className="bg-violet-50 dark:bg-violet-950/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-5 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building className="w-5 h-5 text-violet-600" />
+                    <h4 className="font-bold text-sm text-violet-800 dark:text-violet-300">Envoyez votre argent sur ce compte PayMaestro</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-slate-500 dark:text-slate-400">Banque :</span>
+                    <span className="font-bold text-right">{pmAccount.bank}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Titulaire :</span>
+                    <span className="font-bold text-right">{pmAccount.holder}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Compte :</span>
+                    <span className="font-bold text-right font-mono text-xs break-all">{pmAccount.iban}</span>
+                    <span className="text-slate-500 dark:text-slate-400">SWIFT :</span>
+                    <span className="font-bold text-right font-mono">{pmAccount.swift}</span>
+                  </div>
+                </div>
+
+                <div className="border-t dark:border-slate-600 pt-4">
+                  <h4 className="font-semibold text-sm mb-3">Déclarez votre virement</h4>
+                  <p className="text-xs text-slate-500 mb-4">Après avoir effectué le virement vers le compte ci-dessus, remplissez ce formulaire pour nous informer.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold">Montant envoyé</label>
+                    <input type="number" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="1000" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold">Devise</label>
+                    <select value={currency} onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                      {currencyOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold">Votre numéro de compte bancaire (source)</label>
+                  <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="Votre numéro de compte" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Nom de votre banque</label>
+                  <input type="text" value={form.bankName} onChange={(e) => setForm({...form, bankName: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="EquityBCDC, Ecobank..." />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Référence du virement</label>
+                  <input type="text" value={reference} onChange={(e) => setReference(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="ex: VIR20260708XXX" />
+                  <p className="text-xs text-slate-400 mt-1">Le numéro de référence apparaissant sur votre relevé bancaire</p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" fullWidth onClick={() => setStep('country')}>Retour</Button>
+                  <Button fullWidth onClick={handleSubmit} disabled={loading || !form.amount || !form.iban || !reference}
+                    icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}>
+                    {loading ? 'Traitement...' : 'Déclarer mon dépôt'}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {direction === 'OUT' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold">Montant</label>
+                    <input type="number" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="1000" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold">Devise</label>
+                    <select value={currency} onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                      {currencyOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold">Nom du titulaire du compte</label>
+                  <input type="text" value={form.accountHolder} onChange={(e) => setForm({...form, accountHolder: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="John Mohamed" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Numéro de compte / IBAN</label>
+                  <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                    placeholder="Ex: 1234567890 ou FR76..." />
+                  {selectedCountry && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Afrique : entrez votre numéro de compte (8 à 30 chiffres) + le code SWIFT/BIC</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold">SWIFT / BIC</label>
+                    <input type="text" value={form.swift} onChange={(e) => setForm({...form, swift: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="BNPAFRPP" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold">Nom de la banque</label>
+                    <input type="text" value={form.bankName} onChange={(e) => setForm({...form, bankName: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white" placeholder="Ecobank, UBA..." />
+                  </div>
+                </div>
+
+                {form.amount && (
+                  <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl space-y-1 text-sm">
+                    <div className="flex justify-between"><span>Montant</span><span className="font-bold">{form.amount} {currency}</span></div>
+                    <div className="flex justify-between"><span>Pays</span><span className="font-bold">{selectedCountry?.country}</span></div>
+                    {fee > 0 && <div className="flex justify-between text-red-600 dark:text-red-400"><span>Frais ({(getFee()*100).toFixed(0)}%)</span><span>-{fee.toFixed(2)} {currency}</span></div>}
+                    <div className="flex justify-between text-green-600 dark:text-green-400 border-t dark:border-slate-600 pt-1"><span className="font-bold">Net</span><span className="font-bold">{net.toFixed(2)} {currency}</span></div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="outline" fullWidth onClick={() => setStep('country')}>Retour</Button>
+                  <Button fullWidth onClick={handleVerifyBank} disabled={loading || verifying || !form.iban} icon={<Shield className="w-4 h-4" />}>
+                    {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier le compte bancaire'}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -251,10 +351,16 @@ export default function BankPage() {
         <Card>
           <CardContent className="p-6 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Transfert initié !</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+              {direction === 'IN' ? 'Dépôt déclaré !' : 'Transfert initié !'}
+            </h2>
             <p className="text-slate-600 dark:text-slate-300">Référence : {result.reference}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Délai estimé : 1-3 jours ouvrés</p>
-            <Button onClick={() => { setStep('choose'); setResult(null); setForm({amount:'',iban:'',swift:'',accountNumber:'',bankName:'',accountHolder:''}); }}>
+            {direction === 'IN' ? (
+              <p className="text-sm text-amber-600 dark:text-amber-400">En attente de vérification du virement — vous serez notifié dès réception des fonds</p>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">Délai estimé : 1-3 jours ouvrés</p>
+            )}
+            <Button onClick={() => { setStep('choose'); setResult(null); setReference(''); setForm({amount:'',iban:'',swift:'',accountNumber:'',bankName:'',accountHolder:''}); }}>
               Nouveau transfert
             </Button>
           </CardContent>
