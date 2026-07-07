@@ -66,7 +66,7 @@ export default function BankPage() {
         iban: form.iban,
         swift: form.swift,
         accountHolder: form.accountHolder,
-        country: selectedCountry?.code || '',
+        country: (selectedCountry?.iso2 || selectedCountry?.code || '').toUpperCase(),
       });
       setBankDetails(data);
       setVerifying(false);
@@ -210,8 +210,8 @@ export default function BankPage() {
               <label className="text-xs font-semibold">Numéro de compte / IBAN</label>
               <input type="text" value={form.iban} onChange={(e) => setForm({...form, iban: e.target.value})}
                 className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                placeholder={selectedCountry?.code === 'CD' ? 'Ex: 12345678901234567890' : 'FR76..."'} />
-              {selectedCountry?.code === 'CD' && (
+                placeholder={selectedCountry?.iso2?.toUpperCase() === 'CD' ? 'Ex: 12345678901234567890' : 'FR76..."'} />
+              {selectedCountry?.iso2?.toUpperCase() === 'CD' && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Pour la RDC, entrez votre numéro de compte bancaire (10 à 20 chiffres) + le code SWIFT de la banque</p>
               )}
             </div>
@@ -274,7 +274,7 @@ export default function BankPage() {
                 <span className="font-bold text-slate-800 dark:text-white">{bankDetails.details.accountHolder}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">IBAN :</span>
+                <span className="text-slate-500 dark:text-slate-400">Compte :</span>
                 <span className="font-bold text-slate-800 dark:text-white font-mono">{bankDetails.details.iban}</span>
               </div>
               {bankDetails.details.swift && (
