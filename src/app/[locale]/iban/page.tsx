@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Building, Copy, CheckCircle2, Loader2, Globe, Shield, Trash2, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
+import { Building, Copy, CheckCircle2, Loader2, Globe, Shield, Trash2, ToggleLeft, ToggleRight, Plus, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ToastContainer, Toast } from '@/components/ui/toast';
@@ -280,7 +280,13 @@ export default function IBANPage() {
       {/* MODALE DÉTAILS IBAN */}
       {showDetailsModal && selectedIban && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl relative">
+            <button
+              onClick={() => { setShowDetailsModal(false); setSelectedIban(null); }}
+              className="absolute top-4 right-4 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <div className="text-center mb-4">
               <Building className="w-12 h-12 text-blue-500 mx-auto mb-3" />
               <h3 className="font-bold text-lg text-slate-900 dark:text-white">Détails du virement</h3>
