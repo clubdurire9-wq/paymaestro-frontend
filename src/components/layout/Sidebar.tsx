@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowUpRight,
+  Repeat2,
   History,
   CreditCard,
   Bitcoin,
@@ -46,6 +47,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
   const navItems = [
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
     { href: `/${locale}/wallet`, label: 'Wallet', icon: Wallet },
+    { href: `/${locale}/convert`, label: 'Conversion', icon: Repeat2 },
     { href: `/${locale}/paypal`, label: 'PayPal', icon: ArrowUpRight },
     { href: `/${locale}/iban`, label: 'IBAN', icon: Building },
     { href: `/${locale}/history`, label: 'Historique', icon: History },
