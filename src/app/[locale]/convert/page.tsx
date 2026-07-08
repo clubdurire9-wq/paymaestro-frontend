@@ -1,46 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Repeat2, DollarSign, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Repeat2, DollarSign, Loader2, RefreshCw, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 const CURRENCIES = [
-  { code: 'XOF', name: 'Franc CFA (UEMOA)', countries: 'Bénin, Burkina, Côte d\'Ivoire, Guinée-Bissau, Mali, Niger, Sénégal, Togo' },
-  { code: 'XAF', name: 'Franc CFA (CEMAC)', countries: 'Cameroun, Centrafrique, Congo, Gabon, Guinée-Équatoriale, Tchad' },
-  { code: 'CDF', name: 'Franc Congolais', countries: 'RDC' },
-  { code: 'KES', name: 'Shilling Kenyan', countries: 'Kenya' },
-  { code: 'NGN', name: 'Naira Nigérian', countries: 'Nigeria' },
-  { code: 'GHS', name: 'Cedi Ghanéen', countries: 'Ghana' },
-  { code: 'UGX', name: 'Shilling Ougandais', countries: 'Ouganda' },
-  { code: 'RWF', name: 'Franc Rwandais', countries: 'Rwanda' },
-  { code: 'TZS', name: 'Shilling Tanzanien', countries: 'Tanzanie' },
-  { code: 'ZAR', name: 'Rand Sud-Africain', countries: 'Afrique du Sud' },
-  { code: 'ZMW', name: 'Kwacha Zambien', countries: 'Zambie' },
-  { code: 'EGP', name: 'Livre Égyptienne', countries: 'Égypte' },
-  { code: 'MAD', name: 'Dirham Marocain', countries: 'Maroc' },
-  { code: 'DZD', name: 'Dinar Algérien', countries: 'Algérie' },
-  { code: 'TND', name: 'Dinar Tunisien', countries: 'Tunisie' },
-  { code: 'AOA', name: 'Kwanza Angolais', countries: 'Angola' },
-  { code: 'MZN', name: 'Metical Mozambicain', countries: 'Mozambique' },
-  { code: 'MGA', name: 'Ariary Malgache', countries: 'Madagascar' },
-  { code: 'MUR', name: 'Roupie Mauricienne', countries: 'Maurice' },
-  { code: 'ETB', name: 'Birr Éthiopien', countries: 'Éthiopie' },
-  { code: 'EUR', name: 'Euro', countries: 'Europe' },
+  { code: 'EUR', name: 'Euro', countries: 'Zone Euro (France, Allemagne, Italie, Espagne...)' },
   { code: 'GBP', name: 'Livre Sterling', countries: 'Royaume-Uni' },
 ];
 
 export default function ConvertPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const router = useRouter();
+  const locale = useLocale();
 
   const [balance, setBalance] = useState<number>(0);
   const [amount, setAmount] = useState('');
-  const [targetCurrency, setTargetCurrency] = useState('XOF');
+  const [targetCurrency, setTargetCurrency] = useState('EUR');
   const [rate, setRate] = useState<number | null>(null);
   const [converted, setConverted] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,9 +89,14 @@ export default function ConvertPage() {
               {amount} USD → {converted?.toLocaleString()} {targetCurrency}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Votre wallet {targetCurrency} a été crédité.</p>
-            <Button onClick={() => { setDone(false); setAmount(''); setConverted(null); setRate(null); }}>
-              Nouvelle conversion
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => { setDone(false); setAmount(''); setConverted(null); setRate(null); }}>
+                Nouvelle conversion
+              </Button>
+              <Button variant="secondary" icon={<ArrowRight className="w-4 h-4" />} onClick={() => router.push(`/${locale}/wallet`)}>
+                Voir mon wallet
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
