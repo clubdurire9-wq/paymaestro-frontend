@@ -705,12 +705,12 @@ export default function WalletPage() {
         <p className="text-sm text-green-600 dark:text-green-400">0% de frais — Gratuit !</p>
       </button>
 
-      {/* SOLDES PAR DEVISE — 54 PAYS */}
+      {/* SOLDES PAR DEVISE — uniquement les devises avec solde > 0 */}
       <Card>
         <CardHeader><CardTitle>Soldes par devise</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[400px] overflow-y-auto">
-            {ALL_COUNTRIES.map(c => (
+            {ALL_COUNTRIES.filter(c => (balance as any)?.[c.code] > 0).map(c => (
               <div key={c.code + c.country} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
                 <img src={`https://flagcdn.com/w40/${c.countryCode === '+225' ? 'ci' : c.countryCode === '+221' ? 'sn' : c.countryCode === '+237' ? 'cm' : c.countryCode === '+233' ? 'gh' : c.countryCode === '+254' ? 'ke' : c.countryCode === '+234' ? 'ng' : c.countryCode === '+256' ? 'ug' : c.countryCode === '+250' ? 'rw' : c.countryCode === '+255' ? 'tz' : c.countryCode === '+243' ? 'cd' : c.countryCode === '+213' ? 'dz' : c.countryCode === '+20' ? 'eg' : c.countryCode === '+218' ? 'ly' : c.countryCode === '+212' ? 'ma' : c.countryCode === '+249' ? 'sd' : c.countryCode === '+216' ? 'tn' : c.countryCode === '+229' ? 'bj' : c.countryCode === '+226' ? 'bf' : c.countryCode === '+238' ? 'cv' : c.countryCode === '+220' ? 'gm' : c.countryCode === '+224' ? 'gn' : c.countryCode === '+231' ? 'lr' : c.countryCode === '+223' ? 'ml' : c.countryCode === '+222' ? 'mr' : c.countryCode === '+227' ? 'ne' : c.countryCode === '+232' ? 'sl' : c.countryCode === '+228' ? 'tg' : c.countryCode === '+244' ? 'ao' : c.countryCode === '+236' ? 'cf' : c.countryCode === '+235' ? 'td' : c.countryCode === '+242' ? 'cg' : c.countryCode === '+241' ? 'ga' : c.countryCode === '+240' ? 'gq' : c.countryCode === '+239' ? 'st' : c.countryCode === '+257' ? 'bi' : c.countryCode === '+269' ? 'km' : c.countryCode === '+253' ? 'dj' : c.countryCode === '+291' ? 'er' : c.countryCode === '+251' ? 'et' : c.countryCode === '+261' ? 'mg' : c.countryCode === '+265' ? 'mw' : c.countryCode === '+230' ? 'mu' : c.countryCode === '+258' ? 'mz' : c.countryCode === '+248' ? 'sc' : c.countryCode === '+252' ? 'so' : c.countryCode === '+211' ? 'ss' : c.countryCode === '+260' ? 'zm' : c.countryCode === '+263' ? 'zw' : c.countryCode === '+267' ? 'bw' : c.countryCode === '+268' ? 'sz' : c.countryCode === '+266' ? 'ls' : c.countryCode === '+264' ? 'na' : c.countryCode === '+27' ? 'za' : 'ci'}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{c.code}</p>
