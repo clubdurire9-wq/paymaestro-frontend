@@ -1410,12 +1410,14 @@ export default function WalletPage() {
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         tx.type === 'DEPOSIT' 
                           ? 'bg-green-100 dark:bg-green-900' 
-                          : tx.type === 'WITHDRAWAL'
+                          : tx.type === 'WITHDRAWAL' || tx.type === 'MOBILE_MONEY_SENT'
                           ? 'bg-red-100 dark:bg-red-900'
-                          : tx.type === 'CONVERSION'
+                          : tx.type === 'CONVERSION' || tx.type === 'REVERSED'
                           ? 'bg-blue-100 dark:bg-blue-900'
                           : tx.type === 'WALLET_TO_PAYPAL'
                           ? 'bg-violet-100 dark:bg-violet-900'
+                          : tx.type === 'FEE'
+                          ? 'bg-orange-100 dark:bg-orange-900'
                           : 'bg-slate-100 dark:bg-slate-700'
                       }`}>
                         {tx.type === 'DEPOSIT' && <ArrowDown className="w-5 h-5 text-green-600 dark:text-green-400" />}
@@ -1423,6 +1425,9 @@ export default function WalletPage() {
                         {tx.type === 'CONVERSION' && <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
                         {tx.type === 'WALLET_TO_PAYPAL' && <CreditCard className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
                         {tx.type === 'TRANSFER' && <Send className="w-5 h-5 text-slate-600 dark:text-slate-400" />}
+                        {tx.type === 'FEE' && <DollarSign className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+                        {tx.type === 'MOBILE_MONEY_SENT' && <ArrowUp className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                        {tx.type === 'REVERSED' && <RefreshCw className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />}
                       </div>
                       <div>
                         <p className="font-semibold text-sm dark:text-white">
@@ -1431,15 +1436,19 @@ export default function WalletPage() {
                           {tx.type === 'CONVERSION' && 'Conversion'}
                           {tx.type === 'TRANSFER' && 'Transfert'}
                           {tx.type === 'WALLET_TO_PAYPAL' && 'Wallet → PayPal'}
+                          {tx.type === 'FEE' && 'Frais'}
+                          {tx.type === 'MOBILE_MONEY_SENT' && 'Mobile Money'}
+                          {tx.type === 'REVERSED' && 'Annulé'}
+                          {!['DEPOSIT','WITHDRAWAL','CONVERSION','TRANSFER','WALLET_TO_PAYPAL','FEE','MOBILE_MONEY_SENT','REVERSED'].includes(tx.type) && (tx.type || 'Transaction')}
                         </p>
                         <p className="text-xs text-slate-400 dark:text-slate-500">
-                          {new Date(tx.created_at).toLocaleDateString('fr-FR', {
+                          {tx.created_at ? new Date(tx.created_at).toLocaleDateString('fr-FR', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
-                          })}
+                          }) : '—'}
                         </p>
                         {tx.status && (
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -1456,12 +1465,12 @@ export default function WalletPage() {
                     </div>
                     <div className="text-right">
                       <p className={`font-bold ${
-                        tx.type === 'DEPOSIT' 
+                        tx.type === 'DEPOSIT' || tx.type === 'CONVERSION' || tx.type === 'REVERSED'
                           ? 'text-green-600 dark:text-green-400' 
                           : 'text-red-600 dark:text-red-400'
                       }`}>
-                        {tx.type === 'DEPOSIT' ? '+' : '-'}
-                        {tx.amount_currency?.toLocaleString('fr-FR') || '0'} {tx.currency_code}
+                        {tx.type === 'DEPOSIT' || tx.type === 'CONVERSION' || tx.type === 'REVERSED' ? '+' : '-'}
+                        {tx.amount_currency?.toLocaleString('fr-FR') || '0'} {tx.currency_code || ''}
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">
                         ${Number(tx.amount_usd || 0).toFixed(2)} USD
