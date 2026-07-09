@@ -62,7 +62,7 @@ export const AuthContext = createContext<AuthState>(defaultAuthState);
 export function useAuth(): AuthState {
   const context = useContext(AuthContext);
   
-  if (!context) {
+  if (context === defaultAuthState) {
     throw new Error('useAuth doit être utilisé à l\'intérieur d\'un AuthProvider');
   }
   
@@ -160,7 +160,7 @@ export const MOCK_USER: AuthUser = {
 // DECODE GOOGLE JWT (client-side only)
 // ==========================================
 
-export function decodeGoogleJwt(credential: string): Record<string, any> | null {
+export function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
     const parts = credential.split('.');
     if (parts.length !== 3) {
@@ -197,17 +197,16 @@ export function decodeGoogleJwt(credential: string): Record<string, any> | null 
 
 export function isTokenExpired(token: string): boolean {
   try {
-    const payload = decodeGoogleJwt(token);
-    if (!payload || !payload.exp) return true;
+    const payload = decodeJwtPayload(token);
+    if (!payload || !payload.exp) return false;
     
-    // Ajouter une marge de 5 minutes
     const expirationTime = payload.exp * 1000;
     const currentTime = Date.now();
     const margin = 5 * 60 * 1000; // 5 minutes
     
     return currentTime >= (expirationTime - margin);
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -276,9 +275,6 @@ export async function handleGoogleAuthSuccess(
     // Sauvegarder les données
     saveTokenToStorage(token);
     saveUserToStorage(user);
-    
-    // Sauvegarder aussi en session pour plus de sécurité
-    saveUserToStorage(user);
 
     // Appeler le callback de succès
     onSuccess(user, token);
@@ -318,7 +314,7 @@ export async function handleGoogleOneTapResponse(
     }
 
     // Décoder le credential pour vérification locale
-    const decodedCredential = decodeGoogleJwt(response.credential);
+    const decodedCredential = decodeJwtPayload(response.credential);
     if (!decodedCredential) {
       throw new Error('Impossible de décoder le credential Google');
     }
@@ -358,9 +354,6 @@ export async function handleGoogleOneTapResponse(
 
     // Sauvegarder les données
     saveTokenToStorage(token);
-    saveUserToStorage(user);
-    
-    // Sauvegarder aussi en session
     saveUserToStorage(user);
 
     // Appeler le callback de succès

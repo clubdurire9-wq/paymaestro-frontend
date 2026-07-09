@@ -135,6 +135,10 @@ export default function LoginPage() {
               <Link href={`/${locale}/privacy`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
                 Politique de confidentialité
               </Link>
+              {' '}et la{' '}
+              <Link href={`/${locale}/refund`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+                Politique de remboursement
+              </Link>
             </span>
           </label>
 

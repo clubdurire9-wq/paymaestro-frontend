@@ -772,7 +772,12 @@ export const api = {
   },
 
   resetKYC: async (): Promise<KYCDetails> => {
-    return { status: 'NONE' as KYCStatus };
+    try {
+      const res = await request('/kyc/dispute', { method: 'POST' });
+      return { status: (res.data?.kycStatus || res.data?.status || 'NONE') as KYCStatus };
+    } catch {
+      return { status: 'NONE' as KYCStatus };
+    }
   },
 
   getWallets: async () => {
@@ -789,12 +794,15 @@ export const api = {
 
   deleteWallet: async (id: string) => {
     try {
-      await fetch(`${API_URL}/dashboard/wallets/${id}`, {
+      const res = await fetch(`${API_URL}/dashboard/wallets/${id}`, {
         method: 'DELETE',
         headers: { ...authHeaders() },
       });
-    } catch {}
-    return true;
+      return res.ok;
+    } catch (e) {
+      console.error('Erreur suppression wallet:', e);
+      return false;
+    }
   },
 
   setDefaultWallet: async (id: string) => {
@@ -826,8 +834,9 @@ export const api = {
   updateUserProfile: async (data: Record<string, any>) => {
     try {
       return await api.auth.updateProfile(data);
-    } catch {
-      return data;
+    } catch (e) {
+      console.error('Erreur mise à jour profil:', e);
+      return null;
     }
   },
 };
@@ -839,7 +848,7 @@ export const api = {
 export async function fetchLiveRates(): Promise<any[]> {
   try {
     const res = await api.rates.all();
-    if (res.data) {
+    if (res.data && Array.isArray(res.data)) {
       return res.data.map((r: any) => ({
         currency: r.code || r.currency,
         rate: r.rate,

@@ -240,7 +240,9 @@ export default function HomePage() {
             </Card>
           ))}
         </div>
-      </section>h
+      </section>
+
+      
 
 
 
