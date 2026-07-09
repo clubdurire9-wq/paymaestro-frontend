@@ -21,7 +21,7 @@ import { Select } from '@/components/ui/select';
 import { api, KYCStatus, KYCDetails } from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 
-const NEEDS_BACK = new Set(['NATIONAL_ID', 'DRIVING_LICENSE']);
+const NEEDS_BACK = new Set(['NATIONAL_ID']);
 
 const KYC_ATTEMPTS_KEY = 'paymaestro_kyc_attempts';
 
@@ -547,7 +547,7 @@ export default function KYCPage() {
               <HelpCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
               <div>
                 <p className="font-semibold">Recto et verso requis</p>
-                <p className="text-xs mt-1 text-amber-700">Pour la carte nationale d&apos;identité et la carte de conducteur, veuillez fournir les deux faces du document.</p>
+                <p className="text-xs mt-1 text-amber-700">Pour la carte nationale d&apos;identité, veuillez fournir les deux faces du document.</p>
               </div>
             </div>
           )}
