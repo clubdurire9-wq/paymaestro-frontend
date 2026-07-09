@@ -26,10 +26,54 @@
   * Protection mutuelle : si l'un des deux canaux a déjà complété la transaction, l'autre logue `info` et ignore — **zéro double crédit**.
 - **Bug fix :** `ReferenceError: Cannot access 'completed' before initialization` dans `mobile-money.service.js` — ordre des variables corrigé.
 
-## Prochaines étapes suggérées
+## 🔧 Session 13 — 9 Juillet 2026 : Correction de bugs critiques frontend
 
-- **Retraits Mobile Money** (wallet → mobile) via Flutterwave
-- **Paiements par carte** (Stripe/Flutterwave)
-- **Transferts PM → PM** entre utilisateurs
-- **Tableau de bord admin** avec métriques temps réel
-- **Support multi-devises** et taux de change dynamiques
+### 1. useAuth.ts — Détection d'AuthProvider manquant
+**Problème :** `!context` était toujours false car initialisé avec un objet non-null. L'erreur "useAuth doit être utilisé à l'intérieur d'un AuthProvider" ne s'affichait jamais.
+
+**Fix :** Changé en `context === defaultAuthState`.
+
+### 2. useAuth.ts — isTokenExpired sur token backend
+**Problème :** `isTokenExpired()` utilisait `decodeGoogleJwt` (nom trompeur). Le décodage échouait sur les tokens backend non-standards.
+
+**Fix :** Renommé en `decodeJwtPayload()`. Gestion d'erreur renvoyant `false` au lieu de `true`.
+
+### 3. useAuth.ts — Duplicate saveUserToStorage
+**Problème :** `saveUserToStorage()` appelé 2 fois dans `handleGoogleAuthSuccess` et `handleGoogleOneTapResponse`.
+
+**Fix :** Appels dupliqués supprimés.
+
+### 4. api.ts — deleteWallet ignorait les erreurs
+**Problème :** `deleteWallet()` attrapait toutes les erreurs sans vérifier `res.ok` et retournait toujours `true`.
+
+**Fix :** Vérification de `res.ok`, retourne `false` en cas d'échec.
+
+### 5. api.ts — updateUserProfile retournait data dans le catch
+**Problème :** En cas d'erreur, `updateUserProfile()` retournait les données d'entrée comme si tout allait bien.
+
+**Fix :** Retourne `null` en cas d'erreur.
+
+### 6. api.ts — fetchLiveRates sans vérification Array
+**Problème :** `fetchLiveRates()` invoquait `.map()` sans vérifier que `res.data` est un tableau.
+
+**Fix :** Ajout de `Array.isArray(res.data)` avant le `.map()`.
+
+### 7. api.ts — resetKYC stub
+**Problème :** `resetKYC()` était un stub qui retournait un objet statique sans appel API.
+
+**Fix :** Appel réel vers `/kyc/dispute`.
+
+### 8. page.tsx — Caractère orphelin
+**Problème :** `h` orphelin après `</section>` rendu dans le DOM.
+
+**Fix :** Supprimé.
+
+### 9. Nouvelle page — Politique de Remboursement
+**Ajout :** Page `/refund` complète avec les 8 sections de la politique de remboursement et règlement des litiges. Lien ajouté sur la page login.
+
+## Fichiers modifiés
+- `src/hooks/useAuth.ts` — Context detection, token decoding, duplicate cleanup
+- `src/lib/api.ts` — deleteWallet, updateUserProfile, fetchLiveRates, resetKYC
+- `src/app/[locale]/page.tsx` — Orphan char removed
+- `src/app/[locale]/login/page.tsx` — Refund policy link added
+- `src/app/[locale]/refund/page.tsx` — Nouvelle page
