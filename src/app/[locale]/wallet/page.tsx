@@ -776,7 +776,7 @@ export default function WalletPage() {
       <div className="flex gap-2 border-b pb-2 overflow-x-auto">
         {([
           { id: 'balance' as const, label: '💳 Historique' },
-
+          { id: 'deposit' as const, label: '⬇️ Déposer' },
           { id: 'withdraw' as const, label: '⬆️ Retirer' },
           ...(isGatewayAdmin ? [{ id: 'wallet2paypal' as const, label: '💳 Wallet→PayPal' }] : []),
         ]).map(tab => (
@@ -795,6 +795,55 @@ export default function WalletPage() {
       </div>
 
 
+
+      {/* DÉPOSER */}
+      {activeTab === 'deposit' && (
+        <div className="space-y-6">
+          {/* Dépôt Mobile Money */}
+          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800/50">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <Phone className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Dépôt Mobile Money</h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-400">Rechargez votre wallet depuis votre compte Mobile Money</p>
+                </div>
+              </div>
+              <MobileMoneyForm
+                mode="deposit"
+                loading={mobileDepositLoading}
+                message={mobileDepositMessage}
+                country={mobileCountry}
+                operator={mobileOperator}
+                phone={mobilePhone}
+                currencyType={mobileAccountCurrency}
+                onCountryChange={setMobileCountry}
+                onOperatorChange={setMobileOperator}
+                onPhoneChange={setMobilePhone}
+                onCurrencyTypeChange={setMobileAccountCurrency}
+                onSubmit={handleMobileDeposit}
+              />
+              {mobilePendingTxId && typeof window !== 'undefined' && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Paiement Flutterwave en cours...</p>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border dark:border-slate-700" style={{ height: '700px' }}>
+                    <iframe
+                      src={`https://paymaestro.vercel.app/fr/wallet/checkout/${mobilePendingTxId}`}
+                      className="w-full h-full"
+                      title="Paiement sécurisé"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    />
+                  </div>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Ne fermez pas cette page pendant le paiement.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* RETIRER VERS PORTEFEUILLE */}
       {activeTab === 'withdraw' && (
