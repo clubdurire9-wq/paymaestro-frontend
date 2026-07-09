@@ -773,8 +773,8 @@ export const api = {
 
   resetKYC: async (): Promise<KYCDetails> => {
     try {
-      const res = await request('/kyc/dispute', { method: 'POST' });
-      return { status: (res.data?.kycStatus || res.data?.status || 'NONE') as KYCStatus };
+      const res = await request<any>('/kyc/dispute', { method: 'POST' });
+      return { status: (res?.data?.kycStatus || res?.data?.status || 'NONE') as KYCStatus };
     } catch {
       return { status: 'NONE' as KYCStatus };
     }
