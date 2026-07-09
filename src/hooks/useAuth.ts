@@ -162,7 +162,7 @@ export const MOCK_USER: AuthUser = {
 
 export function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
-    const parts = credential.split('.');
+    const parts = token.split('.');
     if (parts.length !== 3) {
       throw new Error('Format JWT invalide');
     }
