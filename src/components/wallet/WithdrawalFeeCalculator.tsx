@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Calculator, ArrowUp, Loader2, Smartphone,
   AlertTriangle, CheckCircle2, RefreshCw
@@ -35,6 +35,14 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
   const [loading, setLoading] = useState(false);
 
   const [mobileCountry, setMobileCountry] = useState(ALL_COUNTRIES[0]);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (countryRef.current && !countryRef.current.contains(e.target as Node)) setCountryOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const usdAmount = roundCents(parseFloat(amount) || 0);
 
@@ -125,25 +133,35 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
             <span>Retrait via <strong>Mobile Money</strong> — frais de <strong>3%</strong></span>
           </div>
 
-          <div>
+          <div ref={countryRef} className="relative">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Pays de destination</label>
-              <select
-                value={mobileCountry.country}
-                onChange={(e) => {
-                  const c = ALL_COUNTRIES.find(c => c.country === e.target.value);
-                  if (c) setMobileCountry(c);
-                }}
-                className="w-full px-3 py-2.5 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white"
+              <button
+                type="button"
+                onClick={() => setCountryOpen(!countryOpen)}
+                className="w-full flex items-center gap-2 px-3 py-2.5 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white text-left"
               >
-                {ALL_COUNTRIES.map(c => (
-                  <option key={c.country} value={c.country}>
-                    {c.country} ({c.code})
-                  </option>
-                ))}
-              </select>
+                <img src={`https://flagcdn.com/w20/${mobileCountry.iso2}.png`} alt={mobileCountry.country} className="w-5 h-4 rounded object-cover" />
+                <span className="flex-1">{mobileCountry.country}</span>
+                <span className="text-slate-400">{countryOpen ? '▲' : '▼'}</span>
+              </button>
+              {countryOpen && (
+                <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border dark:border-slate-600 rounded-xl shadow-lg">
+                  {ALL_COUNTRIES.map(c => (
+                    <button
+                      key={c.country}
+                      type="button"
+                      onClick={() => { setMobileCountry(c); setCountryOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white text-left"
+                    >
+                      <img src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
+                      <span>{c.country}</span>
+                      <span className="ml-auto text-xs text-slate-400">{c.code}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Taux appliqué : 1 USD = {destRate} {destCurrency}
-                
               </p>
             </div>
 
