@@ -15,6 +15,7 @@ import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import { ALL_COUNTRIES, CountryData } from '@/data/countries';
 import { api } from '@/lib/api';
 import { PasswordModal } from '@/components/wallet/PasswordModal';
+import { WithdrawalFeeCalculator } from '@/components/wallet/WithdrawalFeeCalculator';
 
 interface Balance {
   USD: number;
@@ -923,6 +924,9 @@ export default function WalletPage() {
       {/* RETIRER VERS PORTEFEUILLE */}
       {activeTab === 'withdraw' && (
         <div className="space-y-6">
+
+          {/* Calculateur de frais de retrait */}
+          <WithdrawalFeeCalculator usdBalance={balance?.USD || 0} />
 
           {/* Retrait Mobile Money */}
           <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800/50">
