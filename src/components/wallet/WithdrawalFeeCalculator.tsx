@@ -1,23 +1,34 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Calculator, ArrowUp, Loader2, Landmark, Smartphone,
-  Wallet, AlertTriangle, CheckCircle2, RefreshCw, DollarSign
+  AlertTriangle, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import { ALL_COUNTRIES } from '@/data/countries';
 
-type Channel = 'mobile_money' | 'paypal' | 'bank';
+type Channel = 'mobile_money' | 'bank';
+
+interface CurrencyRate {
+  code: string;
+  rate: number;
+  symbol: string;
+  name: string;
+}
 
 const CHANNEL_FEES: Record<Channel, { label: string; feePct: number; icon: typeof Smartphone }> = {
   mobile_money: { label: 'Mobile Money', feePct: 3, icon: Smartphone },
-  paypal: { label: 'PayPal', feePct: 3, icon: Wallet },
   bank: { label: 'Banque', feePct: 2, icon: Landmark },
 };
 
 const FX_FEE_PCT = 2;
+
+function roundCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 interface WithdrawalFeeCalculatorProps {
   usdBalance: number;
@@ -27,20 +38,65 @@ interface WithdrawalFeeCalculatorProps {
 export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: WithdrawalFeeCalculatorProps) {
   const [amount, setAmount] = useState('');
   const [channel, setChannel] = useState<Channel>('mobile_money');
-  const [conversionCurrency, setConversionCurrency] = useState('EUR');
   const [showConfirm, setShowConfirm] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rates, setRates] = useState<CurrencyRate[]>([]);
+  const [ratesLoading, setRatesLoading] = useState(false);
 
-  const usdAmount = parseFloat(amount) || 0;
+  const [mobileCountry, setMobileCountry] = useState(ALL_COUNTRIES[0]);
+  const [bankCurrency, setBankCurrency] = useState('EUR');
+
+  useEffect(() => {
+    fetchRates();
+  }, []);
+
+  const fetchRates = async () => {
+    setRatesLoading(true);
+    try {
+      const allRates = await api.rates.all();
+      if (Array.isArray(allRates)) {
+        setRates(allRates.map((r: any) => ({
+          code: r.code || r.currency,
+          rate: r.rate || r.usdRate || 1,
+          symbol: r.symbol || '',
+          name: r.name || r.code || r.currency,
+        })));
+      }
+    } catch {
+      setRates([
+        { code: 'XOF', rate: 575, symbol: 'FCFA', name: 'Franc CFA' },
+        { code: 'XAF', rate: 610, symbol: 'FCFA', name: 'Franc CFA' },
+        { code: 'CDF', rate: 2800, symbol: 'FC', name: 'Franc congolais' },
+        { code: 'KES', rate: 130, symbol: 'KSh', name: 'Shilling kenyan' },
+        { code: 'NGN', rate: 1550, symbol: '₦', name: 'Naira' },
+        { code: 'GHS', rate: 13.5, symbol: 'GH₵', name: 'Cedi ghanéen' },
+        { code: 'UGX', rate: 3700, symbol: 'USh', name: 'Shilling ougandais' },
+        { code: 'TZS', rate: 2300, symbol: 'TSh', name: 'Shilling tanzanien' },
+        { code: 'RWF', rate: 1200, symbol: 'FRw', name: 'Franc rwandais' },
+        { code: 'EUR', rate: 0.92, symbol: '€', name: 'Euro' },
+        { code: 'GBP', rate: 0.79, symbol: '£', name: 'Livre sterling' },
+        { code: 'USD', rate: 1, symbol: '$', name: 'Dollar US' },
+      ]);
+    }
+    setRatesLoading(false);
+  };
+
+  const usdAmount = roundCents(parseFloat(amount) || 0);
 
   const channelConfig = CHANNEL_FEES[channel];
   const processingFeePct = channelConfig.feePct;
-  const processingFee = usdAmount * (processingFeePct / 100);
-  const fxFee = conversionCurrency !== 'USD' ? usdAmount * (FX_FEE_PCT / 100) : 0;
-  const totalFees = processingFee + fxFee;
-  const netAmount = usdAmount - totalFees;
+  const processingFee = roundCents(usdAmount * processingFeePct / 100);
+
+  const needsFx = channel === 'bank' && bankCurrency !== 'USD';
+  const fxFee = needsFx ? roundCents(usdAmount * FX_FEE_PCT / 100) : 0;
+  const totalFees = roundCents(processingFee + fxFee);
+  const netUsd = roundCents(usdAmount - totalFees);
+
+  const destCurrency = channel === 'mobile_money' ? mobileCountry.code : bankCurrency;
+  const destRate = rates.find(r => r.code === destCurrency)?.rate || 1;
+  const destAmount = roundCents(netUsd * destRate);
 
   const exceedsBalance = usdAmount > usdBalance;
   const isValid = usdAmount > 0 && !exceedsBalance;
@@ -49,22 +105,30 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
     { label: `Frais de traitement (${processingFeePct}%)`, amount: processingFee, color: 'text-red-500' },
     ...(fxFee > 0 ? [{ label: `Frais de change FX (${FX_FEE_PCT}%)`, amount: fxFee, color: 'text-amber-500' }] : []),
     { label: 'Total des frais', amount: totalFees, color: 'text-red-600 font-bold' },
-    { label: 'Montant net reçu', amount: netAmount, color: 'text-emerald-600 font-bold text-lg' },
-  ], [processingFee, fxFee, totalFees, netAmount, processingFeePct]);
+    { label: 'Montant net reçu', amount: netUsd, color: 'text-emerald-600 font-bold text-lg' },
+  ], [processingFee, fxFee, totalFees, netUsd, processingFeePct]);
 
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      const withdrawalCalls: Record<Channel, () => Promise<any>> = {
-        mobile_money: () => api.wallet.withdrawMobile({ amountUSD: usdAmount, currencyCode: 'USD', phoneNumber: '', exchangeRate: 1 }),
-        paypal: () => api.wallet.withdrawPayPal('', usdAmount),
-        bank: () => api.wallet.withdrawToWallet({ amountUSD: usdAmount, targetCurrency: conversionCurrency, exchangeRate: 1 }),
+      const calls: Record<Channel, () => Promise<any>> = {
+        mobile_money: () => api.wallet.withdrawMobile({
+          amountUSD: usdAmount,
+          currencyCode: destCurrency,
+          phoneNumber: '',
+          exchangeRate: destRate,
+        }),
+        bank: () => api.wallet.withdrawToWallet({
+          amountUSD: usdAmount,
+          targetCurrency: bankCurrency,
+          exchangeRate: destRate,
+        }),
       };
-      await withdrawalCalls[channel]();
+      await calls[channel]();
       setResultData({
         type: 'success',
         title: 'Retrait initié avec succès',
-        message: `Votre retrait de ${usdAmount.toFixed(2)} USD via ${channelConfig.label} a été pris en compte. Le montant net de ${netAmount.toFixed(2)} USD vous sera reversé sous 24 à 48h ouvrées selon votre canal.`,
+        message: `Votre retrait de ${usdAmount.toFixed(2)} USD via ${channelConfig.label} a été pris en compte. Montant net : ${destAmount.toFixed(2)} ${destCurrency}.`,
       });
       setShowConfirm(false);
       setShowResult(true);
@@ -75,8 +139,6 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
     }
     setLoading(false);
   };
-
-  const ChannelIcon = channelConfig.icon;
 
   return (
     <>
@@ -119,7 +181,7 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
 
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Canal de retrait</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {(Object.entries(CHANNEL_FEES) as [Channel, typeof CHANNEL_FEES[Channel]][]).map(([key, cfg]) => {
                 const Icon = cfg.icon;
                 return (
@@ -141,32 +203,50 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
             </div>
           </div>
 
+          {channel === 'mobile_money' && (
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Pays de destination</label>
+              <select
+                value={mobileCountry.country}
+                onChange={(e) => {
+                  const c = ALL_COUNTRIES.find(c => c.country === e.target.value);
+                  if (c) setMobileCountry(c);
+                }}
+                className="w-full px-3 py-2.5 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white"
+              >
+                {ALL_COUNTRIES.map(c => (
+                  <option key={c.country} value={c.country}>
+                    {c.country} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Taux appliqué : 1 USD = {destRate} {destCurrency}
+                {ratesLoading && ' (mise à jour...)'}
+              </p>
+            </div>
+          )}
+
           {channel === 'bank' && (
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Devise de réception</label>
               <select
-                value={conversionCurrency}
-                onChange={(e) => setConversionCurrency(e.target.value)}
+                value={bankCurrency}
+                onChange={(e) => setBankCurrency(e.target.value)}
                 className="w-full px-3 py-2.5 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white"
               >
                 <option value="USD">USD (pas de conversion)</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="XOF">XOF (FCFA)</option>
-                <option value="XAF">XAF (FCFA)</option>
-                <option value="NGN">NGN (Naira)</option>
-                <option value="KES">KES (Shilling kenyan)</option>
-                <option value="GHS">GHS (Cedi ghanéen)</option>
-                <option value="ZAR">ZAR (Rand sud-africain)</option>
-                <option value="MAD">MAD (Dirham marocain)</option>
-                <option value="TND">TND (Dinar tunisien)</option>
-                <option value="EGP">EGP (Livre égyptienne)</option>
+                {rates.filter(r => r.code !== 'USD').map(r => (
+                  <option key={r.code} value={r.code}>{r.code} - {r.name} ({r.symbol})</option>
+                ))}
               </select>
-              {conversionCurrency !== 'USD' && (
+              {bankCurrency !== 'USD' ? (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
-                  Frais de change de {FX_FEE_PCT}% appliqués
+                  Frais de change de {FX_FEE_PCT}% appliqués — taux 1 USD = {rates.find(r => r.code === bankCurrency)?.rate || '?'} {bankCurrency}
                 </p>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Aucun frais de change</p>
               )}
             </div>
           )}
@@ -182,20 +262,18 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
                   </span>
                 </div>
               ))}
-              {conversionCurrency !== 'USD' && (
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Montant estimé en {conversionCurrency} : {(netAmount * 1).toFixed(2)} {conversionCurrency}
-                  </p>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Taux de change estimé au moment du retrait</p>
-                </div>
-              )}
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                  {destAmount.toFixed(2)} {destCurrency}
+                </p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Montant estimé reçu en devise locale</p>
+              </div>
             </div>
           )}
 
           <Button
             fullWidth
-            disabled={!isValid || loading}
+            disabled={!isValid || loading || ratesLoading}
             onClick={() => setShowConfirm(true)}
             className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -252,8 +330,13 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
               <hr className="border-slate-200 dark:border-slate-700" />
               <div className="flex justify-between text-emerald-700 dark:text-emerald-400 font-bold text-base">
                 <span>Net à recevoir</span>
-                <span>{netAmount.toFixed(2)} USD</span>
+                <span>{destAmount.toFixed(2)} {destCurrency}</span>
               </div>
+              {channel === 'mobile_money' && (
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center pt-1">
+                  Taux : 1 USD = {destRate} {destCurrency}
+                </p>
+              )}
             </div>
 
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-xs text-blue-800 dark:text-blue-400 space-y-1">
