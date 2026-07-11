@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Calculator, ArrowUp, Loader2, Smartphone,
   AlertTriangle, CheckCircle2, RefreshCw
@@ -13,8 +13,8 @@ import { ALL_COUNTRIES } from '@/data/countries';
 interface CurrencyRate {
   code: string;
   rate: number;
+  flag?: string;
   symbol: string;
-  name: string;
 }
 
 function roundCents(value: number): number {
@@ -23,54 +23,18 @@ function roundCents(value: number): number {
 
 interface WithdrawalFeeCalculatorProps {
   usdBalance: number;
+  currencies: CurrencyRate[];
   onRefreshBalance?: () => void;
 }
 
-export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: WithdrawalFeeCalculatorProps) {
+export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalance }: WithdrawalFeeCalculatorProps) {
   const [amount, setAmount] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [rates, setRates] = useState<CurrencyRate[]>([]);
-  const [ratesLoading, setRatesLoading] = useState(false);
 
   const [mobileCountry, setMobileCountry] = useState(ALL_COUNTRIES[0]);
-
-  useEffect(() => {
-    fetchRates();
-  }, []);
-
-  const fetchRates = async () => {
-    setRatesLoading(true);
-    try {
-      const allRates = await api.rates.all();
-      if (Array.isArray(allRates)) {
-        setRates(allRates.map((r: any) => ({
-          code: r.code || r.currency,
-          rate: r.rate || r.usdRate || 1,
-          symbol: r.symbol || '',
-          name: r.name || r.code || r.currency,
-        })));
-      }
-    } catch {
-      setRates([
-        { code: 'XOF', rate: 575, symbol: 'FCFA', name: 'Franc CFA' },
-        { code: 'XAF', rate: 610, symbol: 'FCFA', name: 'Franc CFA' },
-        { code: 'CDF', rate: 2800, symbol: 'FC', name: 'Franc congolais' },
-        { code: 'KES', rate: 130, symbol: 'KSh', name: 'Shilling kenyan' },
-        { code: 'NGN', rate: 1550, symbol: '₦', name: 'Naira' },
-        { code: 'GHS', rate: 13.5, symbol: 'GH₵', name: 'Cedi ghanéen' },
-        { code: 'UGX', rate: 3700, symbol: 'USh', name: 'Shilling ougandais' },
-        { code: 'TZS', rate: 2300, symbol: 'TSh', name: 'Shilling tanzanien' },
-        { code: 'RWF', rate: 1200, symbol: 'FRw', name: 'Franc rwandais' },
-        { code: 'EUR', rate: 0.92, symbol: '€', name: 'Euro' },
-        { code: 'GBP', rate: 0.79, symbol: '£', name: 'Livre sterling' },
-        { code: 'USD', rate: 1, symbol: '$', name: 'Dollar US' },
-      ]);
-    }
-    setRatesLoading(false);
-  };
 
   const usdAmount = roundCents(parseFloat(amount) || 0);
 
@@ -81,7 +45,7 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
   const netUsd = roundCents(usdAmount - totalFees);
 
   const destCurrency = mobileCountry.code;
-  const destRate = rates.find(r => r.code === destCurrency)?.rate || 1;
+  const destRate = currencies.find(r => r.code === destCurrency)?.rate || 1;
   const destAmount = roundCents(netUsd * destRate);
 
   const exceedsBalance = usdAmount > usdBalance;
@@ -179,7 +143,7 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
               </select>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Taux appliqué : 1 USD = {destRate} {destCurrency}
-                {ratesLoading && ' (mise à jour...)'}
+                
               </p>
             </div>
 
@@ -205,7 +169,7 @@ export function WithdrawalFeeCalculator({ usdBalance, onRefreshBalance }: Withdr
 
           <Button
             fullWidth
-            disabled={!isValid || loading || ratesLoading}
+            disabled={!isValid || loading}
             onClick={() => setShowConfirm(true)}
             className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >

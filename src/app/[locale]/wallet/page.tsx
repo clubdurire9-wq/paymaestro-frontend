@@ -199,7 +199,7 @@ export default function WalletPage() {
     { code: 'KES', flag: '🇰🇪', rate: 130, symbol: 'KSh' },
     { code: 'NGN', flag: '🇳🇬', rate: 1550, symbol: '₦' },
     { code: 'GHS', flag: '🇬🇭', rate: 13.50, symbol: 'GH₵' },
-    { code: 'UGX', flag: '🇺🇬', rate: 3800, symbol: 'USh' },
+    { code: 'UGX', flag: '🇺🇬', rate: 3850, symbol: 'USh' },
     { code: 'RWF', flag: '🇷🇼', rate: 1300, symbol: 'FRw' },
     { code: 'TZS', flag: '🇹🇿', rate: 2500, symbol: 'TSh' },
     { code: 'ZAR', flag: '🇿🇦', rate: 18.50, symbol: 'R' },
@@ -926,7 +926,7 @@ export default function WalletPage() {
         <div className="space-y-6">
 
           {/* Calculateur de frais de retrait */}
-          <WithdrawalFeeCalculator usdBalance={balance?.USD || 0} />
+          <WithdrawalFeeCalculator usdBalance={balance?.USD || 0} currencies={currencies} />
 
           {/* Retrait Mobile Money */}
           <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800/50">
