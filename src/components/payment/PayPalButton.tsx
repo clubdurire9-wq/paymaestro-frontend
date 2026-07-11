@@ -28,9 +28,10 @@ export default function PayPalButton({
   const [sdkReady, setSdkReady] = useState(false);
   const [sdkError, setSdkError] = useState<string | null>(null);
 
-  const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'AZH1gx2_fFzDLlPG0q5-13Uj_5sDcknu9eB8UlAZ4BA9efY9Fds0lKTcPEvxq53UsvfFLis80N-3NpMl';
+  const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 
   useEffect(() => {
+    if (!PAYPAL_CLIENT_ID) { setSdkError('Configuration PayPal manquante'); return; }
     if (window.paypal) {
       setSdkReady(true);
       return;

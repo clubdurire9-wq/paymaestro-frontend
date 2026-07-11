@@ -38,19 +38,27 @@ return { isVPN: false, isProxy: false, isHosting: false, type: 'local', isp: 'Lo
 
 export function blockAccessIfVPN(result: VPNCheckResult) {
   if (result.isVPN || result.isProxy || result.isHosting) {
-    document.body.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#1a1a2e;color:#fff;">
-        <div style="text-align:center;max-width:500px;padding:40px;">
-          <h1 style="color:#e74c3c;font-size:2rem;">🚫 Accès Refusé</h1>
-          <p style="margin:20px 0;color:#999;">Connexion non sécurisée détectée.</p>
-          <p style="font-size:0.9rem;color:#666;">Type : ${result.type} (${result.isp})</p>
-          <p style="margin-top:30px;font-size:0.8rem;color:#555;">
-            L'utilisation de VPN, Proxy ou serveur hébergé est interdite sur PayMaestro.<br/>
-            Veuillez désactiver votre VPN et réessayer.
-          </p>
-        </div>
-      </div>
-    `;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#1a1a2e;color:#fff;';
+    const inner = document.createElement('div');
+    inner.style.cssText = 'text-align:center;max-width:500px;padding:40px;';
+    inner.innerHTML = `
+      <h1 style="color:#e74c3c;font-size:2rem;">🚫 Accès Refusé</h1>
+      <p style="margin:20px 0;color:#999;">Connexion non sécurisée détectée.</p>
+      <p style="margin-top:30px;font-size:0.8rem;color:#555;">
+        L'utilisation de VPN, Proxy ou serveur hébergé est interdite sur PayMaestro.<br/>
+        Veuillez désactiver votre VPN et réessayer.
+      </p>`;
+    const typeP = document.createElement('p');
+    typeP.style.cssText = 'font-size:0.9rem;color:#666;';
+    typeP.appendChild(document.createTextNode(`Type : ${result.type}`));
+    typeP.appendChild(document.createElement('br'));
+    typeP.appendChild(document.createTextNode(`${result.isp}`));
+    inner.insertBefore(typeP, inner.querySelector('p:last-child'));
+    div.appendChild(inner);
+    document.body.appendChild(div);
+    document.body.innerHTML = '';
+    document.body.appendChild(div);
     return true;
   }
   return false;

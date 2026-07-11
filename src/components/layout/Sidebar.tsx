@@ -27,7 +27,6 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { isAdminEmail } from '@/hooks/useAdmin';
 
 interface SidebarProps {
   isExpanded: boolean;
@@ -40,9 +39,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
   const locale = useLocale();
   const pathname = usePathname();
   const { user } = useAuth();
-  const isAdmin = isAdminEmail(user?.email);
-
-  const isGatewayAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
   const navItems = [
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import { setMemoryToken, getMemoryToken } from '@/lib/api';
 
 // ==========================================
 // USER TYPES
@@ -87,24 +88,11 @@ export function saveUserToStorage(user: AuthUser): void {
 }
 
 export function saveTokenToStorage(token: string): void {
-  if (typeof window !== 'undefined') {
-    try {
-      sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde du token:', error);
-    }
-  }
+  setMemoryToken(token);
 }
 
 export function getTokenFromStorage(): string | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    return sessionStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch (error) {
-    console.error('Erreur lors de la récupération du token:', error);
-    return null;
-  }
+  return getMemoryToken();
 }
 
 export function getUserFromStorage(): AuthUser | null {
@@ -134,11 +122,11 @@ export function removeUserFromStorage(): void {
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
     } catch (error) {
       console.error('Erreur lors de la suppression des données:', error);
     }
   }
+  setMemoryToken(null);
 }
 
 // ==========================================
@@ -400,6 +388,24 @@ export function getUserDisplayName(user: AuthUser | null): string {
 // ==========================================
 // AUTH STATE CHECKER
 // ==========================================
+
+export async function restoreSession(): Promise<{ user: AuthUser | null; token: string | null }> {
+  try {
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1').replace(/\/$/, '');
+    const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
+    if (!res.ok) return { user: null, token: null };
+    const data = await res.json();
+    const user = data.user || data.data?.user;
+    const token = data.token || data.data?.token;
+    if (user && token) {
+      setMemoryToken(token);
+      return { user, token };
+    }
+    return { user: null, token: null };
+  } catch {
+    return { user: null, token: null };
+  }
+}
 
 export function checkAuthState(): { user: AuthUser | null; token: string | null; isAuthenticated: boolean } {
   if (typeof window === 'undefined') {

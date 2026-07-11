@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { useAdmin, isAdminEmail } from '@/hooks/useAdmin';
+import { useAdmin } from '@/hooks/useAdmin';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

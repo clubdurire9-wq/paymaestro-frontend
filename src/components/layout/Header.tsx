@@ -17,7 +17,6 @@ import { Avatar } from '@/components/ui/avatar';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
 import { useAuth } from '@/hooks/useAuth';
-import { isAdminEmail } from '@/hooks/useAdmin';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -29,7 +28,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { user, isAuthenticated, isLoading, login, logout } = useAuth();
 
-  const isAdmin = isAdminEmail(user?.email);
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
   const handleLogin = async () => {
     setIsLoggingIn(true);

@@ -63,13 +63,24 @@ export const WithdrawSchema = {
 };
 
 // ==========================================
-// HELPERS
+// HELPERS — Token en mémoire uniquement (pas de sessionStorage)
 // ==========================================
 
+let _memoryToken: string | null = null;
+
+export function setMemoryToken(token: string | null): void {
+  _memoryToken = token;
+}
+
+export function getMemoryToken(): string | null {
+  return _memoryToken;
+}
+
 function authHeaders(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
-  const token = sessionStorage.getItem('paymaestro_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const headers: Record<string, string> = {};
+  if (_memoryToken) headers['Authorization'] = `Bearer ${_memoryToken}`;
+  headers['X-Requested-With'] = 'XMLHttpRequest';
+  return headers;
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {

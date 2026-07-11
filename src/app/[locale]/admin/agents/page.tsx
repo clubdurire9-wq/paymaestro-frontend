@@ -10,7 +10,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { isAdminEmail } from '@/hooks/useAdmin';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 
@@ -57,16 +56,21 @@ export default function AdminAgentsPage() {
   const [emailResult, setEmailResult] = useState<any>(null);
   const [searchUserFilter, setSearchUserFilter] = useState('');
 
-  let currentUserEmail = '';
-  if (typeof window !== 'undefined') {
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
     try {
       const storedUser = sessionStorage.getItem('pm_auth_user');
-      currentUserEmail = storedUser ? JSON.parse(storedUser)?.email ?? '' : '';
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        setCurrentUserRole(user?.role || null);
+      }
     } catch {
-      currentUserEmail = '';
+      setCurrentUserRole(null);
     }
-  }
-  const isAdmin = isAdminEmail(currentUserEmail);
+  }, []);
+
+  const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'AGENT';
 
   const grades = [
     'Agent Support',
