@@ -125,7 +125,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [transactions, setTransactions] = useState<WalletTx[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'balance' | 'deposit' | 'withdraw' | 'wallet2paypal'>('balance');
+  const [activeTab, setActiveTab] = useState<'balance' | 'deposit' | 'withdraw'>('balance');
   const [amount, setAmount] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('XOF');
   const [targetCurrency, setTargetCurrency] = useState('XAF');
@@ -155,12 +155,6 @@ export default function WalletPage() {
     }
     return 'Une erreur est survenue lors du dépôt. Vérifiez vos informations et réessayez. Si le problème persiste, contactez notre support.';
   }
-  const [paypalEmail, setPaypalEmail] = useState('');
-  const [paypalAmount, setPaypalAmount] = useState('');
-  const [showPaypalConfirm, setShowPaypalConfirm] = useState(false);
-  const [wallet2PaypalAmount, setWallet2PaypalAmount] = useState('');
-  const [wallet2PaypalEmail, setWallet2PaypalEmail] = useState('');
-  const [showWallet2PaypalConfirm, setShowWallet2PaypalConfirm] = useState(false);
   const [mobilePendingTxId, setMobilePendingTxId] = useState<number | null>(null);
   // Flutterwave supprimé — tout se fait en arrière-plan
 
@@ -400,18 +394,6 @@ export default function WalletPage() {
     }
   };
 
-  const handleWithdrawToPayPal = async () => {
-    if (!paypalEmail || !paypalAmount) return;
-    try {
-      await api.wallet.withdrawPayPal(paypalEmail, parseFloat(paypalAmount));
-      setPaypalEmail('');
-      setPaypalAmount('');
-      loadData();
-    } catch (error) {
-      logger.error('Erreur de retrait PayPal:', error);
-    }
-  };
-
   const handleMobileWithdrawLookup = async () => {
     if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
     setWithdrawVerifying(true);
@@ -492,18 +474,6 @@ export default function WalletPage() {
       setShowWithdrawResult(true);
     }
     setWithdrawLoading(false);
-  };
-
-  const handleWallet2PayPal = async () => {
-    if (!wallet2PaypalEmail || !wallet2PaypalAmount) return;
-    try {
-      await api.wallet.withdrawPayPal(wallet2PaypalEmail, parseFloat(wallet2PaypalAmount));
-      setWallet2PaypalEmail('');
-      setWallet2PaypalAmount('');
-      loadData();
-    } catch (error) {
-      logger.error('Erreur de transfert Wallet→PayPal:', error);
-    }
   };
 
   const getBalanceForCurrency = (currencyCode: string): number => {
@@ -596,80 +566,7 @@ export default function WalletPage() {
         </div>
       )}
 
-      {/* Modal de confirmation PayPal (Retrait) — ADMIN uniquement */}
-      {showPaypalConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
-            <span className="text-4xl">💳</span>
-            <h3 className="font-bold text-lg mt-3 text-slate-900 dark:text-white">Confirmer le retrait PayPal</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">L'argent sera envoyé à :</p>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-left space-y-2 text-sm mb-4">
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Email PayPal :</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">{paypalEmail}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Montant :</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">${parseFloat(paypalAmount).toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between text-red-600 dark:text-red-400">
-                <span>Frais (3%) :</span>
-                <span>-${(parseFloat(paypalAmount) * 0.03).toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between text-green-600 dark:text-green-400 border-t dark:border-slate-600 pt-2">
-                <span className="font-bold">Le destinataire reçoit :</span>
-                <span className="font-bold">${(parseFloat(paypalAmount) * 0.97).toFixed(2)} USD</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setShowPaypalConfirm(false)}>Annuler</Button>
-              <Button fullWidth onClick={() => { setShowPaypalConfirm(false); handleWithdrawToPayPal(); }}>Confirmer</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de confirmation Wallet→PayPal — ADMIN uniquement */}
-      {showWallet2PaypalConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
-            <CreditCard className="w-12 h-12 text-violet-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg mt-3 text-slate-900 dark:text-white">Confirmer le transfert Wallet→PayPal</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Transfert direct de votre wallet vers PayPal :</p>
-            
-            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-4 text-left space-y-2 text-sm mb-4">
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">De :</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">Votre Wallet PayMaestro</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Vers PayPal :</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">{wallet2PaypalEmail}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Montant :</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">${parseFloat(wallet2PaypalAmount).toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between text-red-600 dark:text-red-400">
-                <span>Frais (2%) :</span>
-                <span>-${(parseFloat(wallet2PaypalAmount) * 0.02).toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between text-green-600 dark:text-green-400 border-t dark:border-slate-600 pt-2">
-                <span className="font-bold">Reçu sur PayPal :</span>
-                <span className="font-bold">${(parseFloat(wallet2PaypalAmount) * 0.98).toFixed(2)} USD</span>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 mb-4">
-              ⏱️ Délai estimé : Instantané à 1 heure
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setShowWallet2PaypalConfirm(false)}>Annuler</Button>
-              <Button fullWidth onClick={() => { setShowWallet2PaypalConfirm(false); handleWallet2PayPal(); }}>Confirmer</Button>
-            </div>
+      {false && null}
           </div>
         </div>
       )}
@@ -799,7 +696,7 @@ export default function WalletPage() {
           { id: 'balance' as const, label: '💳 Historique' },
           { id: 'deposit' as const, label: '⬇️ Déposer' },
           { id: 'withdraw' as const, label: '⬆️ Retirer' },
-          { id: 'wallet2paypal' as const, label: '💳 Wallet→PayPal' },
+
         ]).map(tab => (
           <button
             key={tab.id}
@@ -820,31 +717,6 @@ export default function WalletPage() {
       {/* DÉPOSER */}
       {activeTab === 'deposit' && (
         <div className="space-y-6">
-          {/* Dépôt PayPal */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800/50">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
-                  <span className="text-xl">💳</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Dépôt PayPal</h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-400">Rechargez votre wallet depuis votre compte PayPal</p>
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Déposez de l'argent depuis PayPal vers votre wallet PayMaestro.
-                Frais : 5% — Délai : instantané.
-              </p>
-              <Button
-                onClick={() => router.push(`/${locale}/paypal`)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Déposer via PayPal
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Dépôt Mobile Money */}
           <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800/50">
             <CardContent className="p-6 space-y-4">
@@ -1199,206 +1071,7 @@ export default function WalletPage() {
             </CardContent>
           </Card>
 
-          {/* Retirer vers PayPal */}
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800/50 mt-4">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">💳</span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Retirer vers PayPal</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">Transférez votre solde vers un compte PayPal</p>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email PayPal du destinataire</label>
-                    <input
-                      type="email"
-                      value={paypalEmail}
-                      onChange={(e) => setPaypalEmail(e.target.value)}
-                      placeholder="exemple@email.com"
-                      className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl text-sm mt-1 dark:bg-slate-800 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Montant (USD)</label>
-                    <div className="flex gap-4 mt-1">
-                      <input
-                        type="number"
-                        value={paypalAmount}
-                        onChange={(e) => setPaypalAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
-                      />
-                      <Button onClick={() => setShowPaypalConfirm(true)} className="bg-blue-600 hover:bg-blue-700">
-                        <Send className="w-4 h-4 mr-2" />
-                        Envoyer
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1">
-                  <p><strong>💰 Frais :</strong> 3%</p>
-                  <p><strong>⏱️ Délai :</strong> 1-2 jours ouvrés</p>
-                  {paypalAmount && (
-                    <p className="font-bold mt-1">
-                      Le destinataire recevra : ${(parseFloat(paypalAmount) * 0.97).toFixed(2)} USD
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-        </div>
-      )}
-
-      {/* WALLET → PAYPAL */}
-      {activeTab === 'wallet2paypal' && (
-        <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-2 border-violet-200 dark:border-violet-800/50">
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-8 h-8 text-violet-600 dark:text-violet-400" />
-              <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Wallet → PayPal</h3>
-                <p className="text-sm text-violet-700 dark:text-violet-400">Transférez directement de votre wallet vers un compte PayPal</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email PayPal du destinataire</label>
-                <input
-                  type="email"
-                  value={wallet2PaypalEmail}
-                  onChange={(e) => setWallet2PaypalEmail(e.target.value)}
-                  placeholder="exemple@email.com"
-                  className="w-full px-4 py-3 border dark:border-slate-600 rounded-xl text-sm mt-1 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-violet-300 focus:border-violet-400"
-                />
-              </div>
-              
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Montant à envoyer (USD)</label>
-                <div className="flex gap-4 mt-1">
-                  <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold">$</span>
-                    <input
-                      type="number"
-                      value={wallet2PaypalAmount}
-                      onChange={(e) => setWallet2PaypalAmount(e.target.value)}
-                      placeholder="0.00"
-                      min="1"
-                      step="0.01"
-                      className="w-full pl-8 pr-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-violet-300 focus:border-violet-400"
-                    />
-                  </div>
-                  <Button 
-                    onClick={() => {
-                      if (!wallet2PaypalEmail || !wallet2PaypalAmount) return;
-                      setShowWallet2PaypalConfirm(true);
-                    }} 
-                    className="bg-violet-600 hover:bg-violet-700"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Envoyer
-                  </Button>
-                </div>
-              </div>
-
-              {/* Soldes disponibles */}
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-violet-100 dark:border-violet-800/50 space-y-2">
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Soldes disponibles</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">USD</p>
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                      ${balance?.USD?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                  <div className="text-center p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">EUR</p>
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                      €{balance?.EUR?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                  <div className="text-center p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">GBP</p>
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                      £{balance?.GBP?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations sur les frais */}
-              <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-4 text-xs text-violet-800 dark:text-violet-300 space-y-2">
-                <p><strong>💰 Frais de transfert :</strong> 2%</p>
-                <p><strong>⏱️ Délai de traitement :</strong> Instantané à 1 heure</p>
-                <p><strong>💱 Conversion automatique :</strong> USD → Devise du compte PayPal</p>
-                
-                {wallet2PaypalAmount && (
-                  <>
-                    <div className="border-t border-violet-200 pt-2 mt-2 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Montant à débiter :</span>
-                        <span className="font-bold">${parseFloat(wallet2PaypalAmount).toFixed(2)} USD</span>
-                      </div>
-                      <div className="flex justify-between text-red-600">
-                        <span>Frais (2%) :</span>
-                        <span>-${(parseFloat(wallet2PaypalAmount) * 0.02).toFixed(2)} USD</span>
-                      </div>
-                      <div className="flex justify-between text-green-600 font-bold border-t border-violet-200 pt-1">
-                        <span>Montant reçu sur PayPal :</span>
-                        <span>${(parseFloat(wallet2PaypalAmount) * 0.98).toFixed(2)} USD</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Historique des transferts Wallet→PayPal */}
-              {transactions.filter(tx => tx.type === 'WALLET_TO_PAYPAL').length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Derniers transferts Wallet→PayPal</p>
-                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {transactions
-                      .filter(tx => tx.type === 'WALLET_TO_PAYPAL')
-                      .slice(0, 5)
-                      .map(tx => (
-                        <div key={tx.id} className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-violet-100 dark:border-violet-800/50">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                              Vers PayPal
-                            </p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">
-                              {new Date(tx.created_at).toLocaleDateString('fr-FR', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                              -${Number(tx.amount_usd).toFixed(2)} USD
-                            </p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">
-                              Frais: ${Number(tx.fee_usd).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* HISTORIQUE */}
       {activeTab === 'balance' && (
