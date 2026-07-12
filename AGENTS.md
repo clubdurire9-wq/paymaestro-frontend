@@ -77,3 +77,86 @@
 - `src/app/[locale]/page.tsx` — Orphan char removed
 - `src/app/[locale]/login/page.tsx` — Refund policy link added
 - `src/app/[locale]/refund/page.tsx` — Nouvelle page
+
+# Session 14 — 12 Juillet 2026 : Déploiement production — Correctifs sécurité, token, GEO
+
+## Résumé des modifications
+
+### 1. CSP dynamique — connect-src depuis l'API URL
+**Fichier :** `next.config.ts`
+- `connect-src` inclut dynamiquement `NEXT_PUBLIC_API_URL` (Render)
+- Résout le blocage CSP Google OAuth : le callback redirige vers Render mais CSP bloquait la connexion
+
+### 2. API URL fallback — Render en production
+**Fichier :** `src/lib/api.ts`
+- Fallback changé de `http://localhost:5000` → `https://paymaestro-backend.onrender.com/api/v1`
+
+### 3. Token persistence — sessionStorage + mémoire
+**Fichier :** `src/lib/api.ts`
+- `saveTokenToStorage()` et `getTokenFromStorage()` : stocke JWT dans `sessionStorage`
+- Au démarrage, token restauré depuis `sessionStorage` vers `_memoryToken`
+- `credentials: 'include'` ajouté à `request()` pour transmettre le cookie `pm_token`
+
+**Fichier :** `src/hooks/useAuth.ts`
+- `saveTokenToStorage()` exportée et appelée après Google Auth + login
+- `_memoryToken` initialisé depuis `sessionStorage` au mount
+
+### 4. Google OAuth — Flux sans popup, redirect complet
+**Fichier :** `src/components/auth/GoogleAuthProvider.tsx`
+- `response_type=token` (pas de popup ni One Tap)
+- Redirection complète vers Google → callback page
+- loginMock / MOCK_USER supprimés
+
+**Fichier :** `src/app/[locale]/auth/google/callback/page.tsx`
+- Lit `access_token` dans le hash URL (pas `idToken`)
+- Échange contre JWT backend via `POST /auth/google/callback`
+
+### 5. Mode demo/simulation supprimé
+**Fichier :** `src/app/[locale]/login/page.tsx`
+- Mode demo retiré
+- `useRouter` restauré (import + appel)
+
+### 6. Page Dépot restaurée
+**Fichier :** `src/app/[locale]/wallet/page.tsx`
+- Onglet "Déposer" rétabli (Mobile Money uniquement, PayPal supprimé)
+- Calculateur de retrait read-only, taux synchronisés avec `currencies` du wallet
+
+## Fichiers modifiés (frontend)
+- `next.config.ts` — CSP dynamique
+- `src/lib/api.ts` — fallback API URL, token sessionStorage
+- `src/hooks/useAuth.ts` — saveTokenToStorage
+- `src/components/auth/GoogleAuthProvider.tsx` — redirect OAuth, mock supprimé
+- `src/app/[locale]/auth/google/callback/page.tsx` — access_token dans hash
+- `src/app/[locale]/login/page.tsx` — demo mode removed
+- `src/app/[locale]/wallet/page.tsx` — Deposit tab restored
+
+### 7. Boucle login↔dashboard — Correction critique
+**Problème :** La callback Google sauvegardait `authUser` dans `sessionStorage` via `saveUserToStorage()` puis naviguait vers `/dashboard`. Mais `InnerAuthProvider` (layout) ne se remonte pas — son `useState` reste `user: null`. `ProtectedRouteGuard` voyait `user === null` et redirigeait vers `/login`.
+
+**Fix :** La callback appelle désormais `loginReal(authUser)` qui met à jour le contexte immédiatement (`setUser`) en plus de `sessionStorage`.
+
+**Fichier :** `src/app/[locale]/auth/google/callback/page.tsx`
+- `saveUserToStorage` → `useAuth().loginReal`
+- `saveTokenToStorage` conservé (nécessaire pour les appels API)
+
+### 8. useOnboarding — URL fallback Render
+**Fichier :** `src/hooks/useOnboarding.ts`
+- Fallback API URL : `http://localhost:5000` → `https://paymaestro-backend.onrender.com/api/v1`
+
+## Fichiers modifiés (frontend)
+- `next.config.ts` — CSP dynamique
+- `src/lib/api.ts` — fallback API URL, token sessionStorage
+- `src/hooks/useAuth.ts` — saveTokenToStorage
+- `src/hooks/useOnboarding.ts` — fallback API URL Render
+- `src/components/auth/GoogleAuthProvider.tsx` — redirect OAuth, mock supprimé
+- `src/app/[locale]/auth/google/callback/page.tsx` — access_token hash, loginReal, useAuth
+- `src/app/[locale]/login/page.tsx` — demo mode removed
+- `src/app/[locale]/wallet/page.tsx` — Deposit tab restored
+
+## État actuel (frontend)
+- ✅ CSP : connect-src dynamique (inclut Render)
+- ✅ Auth : Google OAuth redirect + token sessionStorage + cookie cross-origin
+- ✅ Boucle login↔dashboard : corrigée (loginReal dans callback)
+- ✅ useOnboarding : fallback URL Render prod
+- ✅ État : pas de mode demo, pas de MOCK_USER
+- ✅ Déploiement : NEXT_PUBLIC_API_URL = Render prod

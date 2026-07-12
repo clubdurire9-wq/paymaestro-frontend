@@ -5,12 +5,13 @@ import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
-import { saveUserToStorage, saveTokenToStorage } from '@/hooks/useAuth';
+import { useAuth, saveTokenToStorage } from '@/hooks/useAuth';
 import { logger } from '@/lib/logger';
 
 export default function GoogleCallbackPage() {
   const locale = useLocale();
   const router = useRouter();
+  const { loginReal } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function GoogleCallbackPage() {
           };
           const jwt = res.data.token;
           if (jwt) saveTokenToStorage(jwt);
-          saveUserToStorage(authUser);
+          loginReal(authUser);
 
           // Enregistrer le code de parrainage si présent
           const refCode = sessionStorage.getItem('pm_referral_code');
