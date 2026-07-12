@@ -66,10 +66,29 @@ export const WithdrawSchema = {
 // HELPERS — Token en mémoire uniquement (pas de sessionStorage)
 // ==========================================
 
+const TOKEN_STORAGE_KEY = 'paymaestro_token';
+
 let _memoryToken: string | null = null;
+
+// Restaurer depuis sessionStorage au démarrage
+if (typeof window !== 'undefined') {
+  try {
+    const saved = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (saved) _memoryToken = saved;
+  } catch {}
+}
 
 export function setMemoryToken(token: string | null): void {
   _memoryToken = token;
+  if (typeof window !== 'undefined') {
+    try {
+      if (token) {
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+      } else {
+        sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+      }
+    } catch {}
+  }
 }
 
 export function getMemoryToken(): string | null {
@@ -102,6 +121,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
         ...authHeaders(),
         ...options?.headers,
       },
+      credentials: 'include',
     });
   } catch (e: any) {
     throw new Error('Impossible de contacter le serveur. VÃƒÂ©rifiez votre connexion.');
