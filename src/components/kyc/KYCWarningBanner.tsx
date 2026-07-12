@@ -13,7 +13,7 @@ export default function KYCWarningBanner() {
 
   const status = user.kycStatus;
   // Nombre de tentatives restantes depuis le serveur (ou 3 par défaut)
-  const remaining = typeof user.kycRemainingAttempts === 'number' ? user.kycRemainingAttempts : 3;
+  const remaining = typeof (user as any).kycRemainingAttempts === 'number' ? (user as any).kycRemainingAttempts : 3;
 
   if (status === 'APPROVED') return null;
 

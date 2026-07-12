@@ -20,7 +20,7 @@ const SENSITIVE_ROUTES = [
 ];
 
 function getRemainingKYCAttempts(user: any): number {
-  return typeof user?.kycRemainingAttempts === 'number' ? user.kycRemainingAttempts : 3;
+  return typeof (user as any)?.kycRemainingAttempts === 'number' ? (user as any).kycRemainingAttempts : 3;
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
