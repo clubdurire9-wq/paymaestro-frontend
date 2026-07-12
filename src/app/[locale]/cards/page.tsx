@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { 
-  CreditCard, Plus, Eye, EyeOff, Copy, Snowflake, 
+  CreditCard, Plus, Eye, EyeOff, Copy, Snowflake as SnowflakeIcon, 
   XCircle, Loader2, Shield, Zap, Globe, Lock,
   Wallet, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { FrozenModal } from '@/components/FrozenModal';
 import { ToastContainer, Toast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -33,6 +34,27 @@ export default function VirtualCardsPage() {
   const [rechargeTarget, setRechargeTarget] = useState<any>(null);
   const [rechargeAmount, setRechargeAmount] = useState('');
   const [recharging, setRecharging] = useState(false);
+
+  // Frozen check
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = sessionStorage.getItem('paymaestro_token');
+        if (!token) return;
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const d = await res.json();
+        if (d.success && d.data) setFrozenData(d.data);
+      } catch {}
+    })();
+  }, []);
+
+  const isCardRechargeFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'BANK');
 
   useEffect(() => { loadCards(); }, []);
 
@@ -83,6 +105,7 @@ export default function VirtualCardsPage() {
 
   const handleRecharge = async () => {
     if (!rechargeTarget || !rechargeAmount || parseFloat(rechargeAmount) <= 0) return;
+    if (isCardRechargeFrozen) { setFrozenModalOpen(true); return; }
     setRecharging(true);
     try {
       await api.cards.recharge(rechargeTarget.id, parseFloat(rechargeAmount));
@@ -260,7 +283,7 @@ export default function VirtualCardsPage() {
               {card.status === 'active' && (
                 <>
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                    <Snowflake className="w-3 h-3" /> Geler
+                    <SnowflakeIcon className="w-3 h-3" /> Geler
                   </button>
                   <button onClick={() => handleToggleShow(card)} disabled={isLoading} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                     {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -283,7 +306,7 @@ export default function VirtualCardsPage() {
               )}
               {card.status === 'frozen' && (
                 <button onClick={() => handleToggleCard(card.id, 'unfreeze')} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                  <Snowflake className="w-3 h-3" /> Dégeler
+                  <SnowflakeIcon className="w-3 h-3" /> Dégeler
                 </button>
               )}
               <button onClick={() => setCancelTarget(card)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
@@ -429,6 +452,15 @@ export default function VirtualCardsPage() {
           <Toast message={toast.message} type={toast.type as any} onClose={() => setToast(null)} />
         </ToastContainer>
       )}
+
+      {isCardRechargeFrozen && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <SnowflakeIcon className="w-5 h-5 shrink-0" />
+          Recharge de carte bloquée — compte suspendu
+        </div>
+      )}
+
+      <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
 
       {/* Modale carte créée */}
       {newCard && (

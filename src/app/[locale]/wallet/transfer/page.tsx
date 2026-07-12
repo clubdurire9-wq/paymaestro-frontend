@@ -19,7 +19,7 @@ export default function TransferPage() {
   const searchParams = useSearchParams();
   const sourceParam = searchParams.get('source');
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
@@ -73,12 +73,16 @@ export default function TransferPage() {
     setLookingUp(false);
   };
 
+  const isPmFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'INTERNAL');
+
   const handlePMTransfer = async () => {
     if (!lookupResult || !amount) return;
+    if (isPmFrozen) { setFrozenModalOpen(true); return; }
     setShowPassword(true);
   };
 
   const handlePMTransferWithPassword = async (password: string) => {
+    if (isPmFrozen) { setFrozenModalOpen(true); return; }
     setLoading(true);
     setError('');
     try {
@@ -342,6 +346,13 @@ export default function TransferPage() {
           onVerify={handlePMTransferWithPassword}
           onClose={() => setShowPassword(false)}
         />
+      )}
+
+      {isPmFrozen && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Snowflake className="w-5 h-5 shrink-0" />
+          Transfert interne bloqué — compte suspendu
+        </div>
       )}
 
       {/* Modal gel */}

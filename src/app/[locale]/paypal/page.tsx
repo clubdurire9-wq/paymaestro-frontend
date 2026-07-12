@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, Lock, Send, CreditCard, ArrowDown, ArrowUp } from 'lucide-react';
+import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, Lock, Send, CreditCard, ArrowDown, ArrowUp, Snowflake } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FrozenModal } from '@/components/FrozenModal';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,6 +27,30 @@ export default function PayPalPage() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawStep, setWithdrawStep] = useState<'form' | 'confirm' | 'processing' | 'success' | 'error'>('form');
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
+
+  // Frozen check
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = sessionStorage.getItem('paymaestro_token');
+        if (!token) return;
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const d = await res.json();
+        if (d.success && d.data) {
+          setFrozenData(d.data);
+          setFrozenModalOpen(false);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const isWithdrawFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'PAYPAL');
 
   const amountNum = parseFloat(amount) || 0;
   const depositFee = amountNum * 0.05;
@@ -54,6 +79,10 @@ export default function PayPalPage() {
 
   const handleWithdraw = async () => {
     if (!withdrawEmail || !withdrawAmountNum || withdrawAmountNum < 10) return;
+    if (isWithdrawFrozen) {
+      setFrozenModalOpen(true);
+      return;
+    }
     setWithdrawStep('processing');
     setWithdrawError(null);
     try {
@@ -237,7 +266,7 @@ export default function PayPalPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-400">Envoi du paiement...</p>
                   </div>
                 ) : (
-                  <Button onClick={handleWithdraw} variant="primary" fullWidth size="lg" disabled={!withdrawEmail || !withdrawAmountNum || withdrawAmountNum < 10}>
+                  <Button onClick={handleWithdraw} variant="primary" fullWidth size="lg" disabled={!withdrawEmail || !withdrawAmountNum || withdrawAmountNum < 10 || !!isWithdrawFrozen}>
                     <span className="flex items-center gap-2"><Send className="w-5 h-5" />Envoyer ${withdrawAmountNum.toFixed(2)} USD</span>
                   </Button>
                 )}
@@ -248,6 +277,14 @@ export default function PayPalPage() {
           )}
         </>
       )}
+      {isWithdrawFrozen && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Snowflake className="w-5 h-5 shrink-0" />
+          Retrait PayPal bloqué — compte suspendu
+        </div>
+      )}
+
+      <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
     </div>
   );
 }

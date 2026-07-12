@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { getTokenFromStorage } from '@/hooks/useAuth';
 
 const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
 
 interface ActivityState {
   isLocked: boolean;

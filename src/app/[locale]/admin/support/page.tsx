@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function AdminSupportPage() {
   const locale = useLocale();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 

@@ -116,7 +116,7 @@ export default function ChatWidget() {
     });
     formData.append('context', input || 'Problème utilisateur');
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
 
     try {
       const res = await fetch(`${API_URL}/chatbot/upload-screenshots`, {
@@ -170,7 +170,7 @@ export default function ChatWidget() {
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
       const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : null;
 
       const res = await fetch(`${API_URL}/chatbot/message`, {

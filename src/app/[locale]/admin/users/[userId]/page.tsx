@@ -101,7 +101,7 @@ export default function AdminUserDetailPage() {
     if (!confirm(`Passer cet utilisateur en "Compte ${newType === 'REGISTERED' ? 'Enregistré' : 'Starter'}" ?`)) return;
     setUpdatingBusiness(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/admin/users/business-type`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1'}/admin/users/business-type`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

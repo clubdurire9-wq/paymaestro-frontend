@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Building, ArrowRight, ArrowLeft, Send, Loader2, 
   CheckCircle2, Globe, FileText, Shield, DollarSign,
-  Wallet
+  Wallet, Snowflake
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { FrozenModal } from '@/components/FrozenModal';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -49,6 +50,27 @@ export default function BankPage() {
   const [pmAccount, setPmAccount] = useState<any>(null);
   const [reference, setReference] = useState('');
 
+  // Frozen check
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = sessionStorage.getItem('paymaestro_token');
+        if (!token) return;
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const d = await res.json();
+        if (d.success && d.data) setFrozenData(d.data);
+      } catch {}
+    })();
+  }, []);
+
+  const isOutFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'BANK');
+
   const getFee = () => {
     if (direction === 'IN') return 0;
     if (sourceType === 'WALLET') return 0.02;
@@ -62,6 +84,7 @@ export default function BankPage() {
 
   const handleVerifyBank = async () => {
     if (!form.iban) return;
+    if (direction === 'OUT' && isOutFrozen) { setFrozenModalOpen(true); return; }
     setVerifying(true);
     try {
       const data = await api.bank.verifyAccount({
@@ -84,6 +107,7 @@ export default function BankPage() {
   };
 
   const handleSubmit = async () => {
+    if (direction === 'OUT' && isOutFrozen) { setFrozenModalOpen(true); return; }
     setLoading(true);
     try {
       if (direction === 'IN') {
@@ -369,6 +393,15 @@ export default function BankPage() {
           </CardContent>
         </Card>
       )}
+
+      {direction === 'OUT' && isOutFrozen && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Snowflake className="w-5 h-5 shrink-0" />
+          Retrait bancaire bloqué — compte suspendu
+        </div>
+      )}
+
+      <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
 
       {showConfirm && bankDetails?.details && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

@@ -172,7 +172,7 @@ export function detectAntiDetectBrowser(): BrowserInconsistency {
  */
 export async function reportFraudDetection(detection: BrowserInconsistency, userEmail?: string) {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
     await fetch(`${API_URL}/security/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Bitcoin, ArrowUp, Copy, Loader2, QrCode, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Bitcoin, ArrowUp, Copy, Loader2, QrCode, CheckCircle2, TrendingUp, TrendingDown, Snowflake } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FrozenModal } from '@/components/FrozenModal';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -29,6 +30,26 @@ export default function CryptoPage() {
   const [withdrawResult, setWithdrawResult] = useState<any>(null);
   const [showCryptoConfirm, setShowCryptoConfirm] = useState(false);
 
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = sessionStorage.getItem('paymaestro_token');
+        if (!token) return;
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const d = await res.json();
+        if (d.success && d.data) setFrozenData(d.data);
+      } catch {}
+    })();
+  }, []);
+
+  const isCryptoWithdrawFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'CRYPTO');
+
   useEffect(() => {
     api.crypto.getRates()
       .then(d => { setRates(d); setLoading(false); })
@@ -49,6 +70,7 @@ export default function CryptoPage() {
 
   const handleWithdraw = async () => {
     if (!withdrawAddress || !withdrawAmount) return;
+    if (isCryptoWithdrawFrozen) { setFrozenModalOpen(true); return; }
     setWithdrawing(true);
     try {
       const d = await api.crypto.withdraw({
@@ -190,6 +212,15 @@ export default function CryptoPage() {
         <p><strong>⏱️ Délai :</strong> 10-60 min (BTC) | 3-5 min (ETH) | Instantané (USDT)</p>
         <p><strong>🔄 Après dépôt :</strong> Les fonds sont en USD dans votre wallet → vous pouvez les utiliser pour tous les services PayMaestro</p>
       </div>
+
+      {isCryptoWithdrawFrozen && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Snowflake className="w-5 h-5 shrink-0" />
+          Retrait crypto bloqué — compte suspendu
+        </div>
+      )}
+
+      <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
 
       {/* Modale de confirmation de retrait — ADMIN uniquement */}
       {showCryptoConfirm && isGatewayAdmin && (

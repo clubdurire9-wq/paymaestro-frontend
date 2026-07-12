@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/useToast';
 export default function AdminAgentsPage() {
   const locale = useLocale();
   const toast = useToast();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
   const authHeader = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 

@@ -16,7 +16,7 @@ export default function SetWalletPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('paymaestro_token') : '';
 
   const handleSubmit = async (e: React.FormEvent) => {

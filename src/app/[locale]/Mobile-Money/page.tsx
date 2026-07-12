@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, CheckCircle2, AlertTriangle, ArrowDown, ArrowUp, Phone } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertTriangle, ArrowDown, ArrowUp, Phone, Snowflake } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FrozenModal } from '@/components/FrozenModal';
 import { ALL_COUNTRIES, CountryData } from '@/data/countries';
 import { api } from '@/lib/api';
 import { PasswordModal } from '@/components/wallet/PasswordModal';
@@ -109,6 +110,26 @@ export default function MobileMoneyPage() {
   const [showWithdrawPassword, setShowWithdrawPassword] = useState(false);
   const [showWithdrawResult, setShowWithdrawResult] = useState(false);
   const [withdrawResultData, setWithdrawResultData] = useState<{ type: 'success' | 'error'; title: string; message: string; amount?: string } | null>(null);
+
+  const [frozenData, setFrozenData] = useState<any>(null);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = sessionStorage.getItem('paymaestro_token');
+        if (!token) return;
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_URL}/wallet/frozen-status`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const d = await res.json();
+        if (d.success && d.data) setFrozenData(d.data);
+      } catch {}
+    })();
+  }, []);
+
+  const isWithdrawFrozen = frozenData && (frozenData.freezeType === 'ALL' || frozenData.freezeType === 'MOBILE_MONEY');
 
   function parseDepositError(raw: string): string {
     const lower = raw.toLowerCase();
@@ -251,6 +272,7 @@ export default function MobileMoneyPage() {
 
   const handleMobileWithdrawLookup = async () => {
     if (!withdrawAmount || !withdrawPhone || !withdrawCountry) return;
+    if (isWithdrawFrozen) { setFrozenModalOpen(true); return; }
     setWithdrawVerifying(true);
     setWithdrawMessage(null);
     setWithdrawRecipientName(null);
@@ -544,7 +566,7 @@ export default function MobileMoneyPage() {
               <div className="flex items-end">
                 <Button
                   onClick={handleMobileWithdrawLookup}
-                  disabled={withdrawVerifying || !withdrawAmount || !withdrawPhone}
+                  disabled={withdrawVerifying || !withdrawAmount || !withdrawPhone || !!isWithdrawFrozen}
                   className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {withdrawVerifying ? (
@@ -736,6 +758,15 @@ export default function MobileMoneyPage() {
           </CardContent>
         </Card>
       )}
+
+      {isWithdrawFrozen && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Snowflake className="w-5 h-5 shrink-0" />
+          Retrait Mobile Money bloqué — compte suspendu
+        </div>
+      )}
+
+      <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
     </div>
   );
 }
