@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   Wallet, ArrowDown, ArrowUp, Send, RefreshCw, 
   DollarSign, Loader2, TrendingUp, TrendingDown, Building,
-  Users, Phone, CreditCard, CheckCircle2, AlertTriangle, X, Lock
+  Users, Phone, CreditCard, CheckCircle2, AlertTriangle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
