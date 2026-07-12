@@ -121,7 +121,6 @@ export default function WalletPage() {
   const t = useTranslations();
   const router = useRouter();
   const { user: authUser } = useAuth();
-  const isGatewayAdmin = authUser?.role === 'ADMIN' || authUser?.role === 'AGENT';
   const [isMounted, setIsMounted] = useState(false);
   const [balance, setBalance] = useState<Balance | null>(null);
   const [transactions, setTransactions] = useState<WalletTx[]>([]);
@@ -598,7 +597,7 @@ export default function WalletPage() {
       )}
 
       {/* Modal de confirmation PayPal (Retrait) — ADMIN uniquement */}
-      {showPaypalConfirm && isGatewayAdmin && (
+      {showPaypalConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <span className="text-4xl">💳</span>
@@ -633,7 +632,7 @@ export default function WalletPage() {
       )}
 
       {/* Modal de confirmation Wallet→PayPal — ADMIN uniquement */}
-      {showWallet2PaypalConfirm && isGatewayAdmin && (
+      {showWallet2PaypalConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CreditCard className="w-12 h-12 text-violet-500 mx-auto mb-3" />
@@ -800,7 +799,7 @@ export default function WalletPage() {
           { id: 'balance' as const, label: '💳 Historique' },
           { id: 'deposit' as const, label: '⬇️ Déposer' },
           { id: 'withdraw' as const, label: '⬆️ Retirer' },
-          ...(isGatewayAdmin ? [{ id: 'wallet2paypal' as const, label: '💳 Wallet→PayPal' }] : []),
+          { id: 'wallet2paypal' as const, label: '💳 Wallet→PayPal' },
         ]).map(tab => (
           <button
             key={tab.id}
@@ -1175,8 +1174,7 @@ export default function WalletPage() {
             </CardContent>
           </Card>
 
-          {/* Retirer vers PayPal — ADMIN uniquement */}
-          {isGatewayAdmin && (
+          {/* Retirer vers PayPal */}
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800/50 mt-4">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
@@ -1229,13 +1227,12 @@ export default function WalletPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
 
         </div>
       )}
 
-      {/* WALLET → PAYPAL — ADMIN uniquement */}
-      {activeTab === 'wallet2paypal' && isGatewayAdmin && (
+      {/* WALLET → PAYPAL */}
+      {activeTab === 'wallet2paypal' && (
         <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-2 border-violet-200 dark:border-violet-800/50">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center gap-3">
