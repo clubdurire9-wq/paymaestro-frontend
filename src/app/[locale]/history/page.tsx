@@ -24,6 +24,7 @@ import { Skeleton, SkeletonTable } from '@/components/ui/skeleton';
 import { api, Transaction, LIVE_RATES } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { generateTransactionPDF } from '@/lib/pdf-export';
+import { logger } from '@/lib/logger';
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -60,7 +61,7 @@ export default function HistoryPage() {
         setTransactions(allTxs);
         setFilteredTransactions(allTxs);
       } catch (err) {
-        console.error('Failed to load transactions:', err);
+        logger.error('Failed to load transactions:', err);
       } finally {
         setLoading(false);
       }
@@ -135,7 +136,7 @@ export default function HistoryPage() {
       const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
     } catch (e: any) {
-      console.error('❌ Erreur génération PDF:', e);
+      logger.error('❌ Erreur génération PDF:', e);
       setToast({ type: 'error', message: 'Impossible de générer le PDF. Veuillez réessayer.' });
     }
   };

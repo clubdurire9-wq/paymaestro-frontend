@@ -76,6 +76,15 @@ export function getMemoryToken(): string | null {
   return _memoryToken;
 }
 
+function sanitizeErrorMessage(msg: string): string {
+  if (!msg || typeof msg !== 'string') return 'Une erreur est survenue';
+  const safe = msg.substring(0, 200);
+  if (safe.includes('<!DOCTYPE') || safe.includes('<html') || safe.includes('Error:')) {
+    return 'Erreur interne du serveur';
+  }
+  return safe;
+}
+
 function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   if (_memoryToken) headers['Authorization'] = `Bearer ${_memoryToken}`;
@@ -102,10 +111,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     data = await res.json();
   } catch {
     const text = await res.text().catch(() => '');
-    throw new Error(text || `Erreur ${res.status} Ã¢â‚¬â€ RÃƒÂ©ponse vide du serveur`);
+    throw new Error(sanitizeErrorMessage(text || `Erreur ${res.status}  RÃƒÂ©ponse vide du serveur`));
   }
   if (!res.ok || data.success === false) {
-    throw new Error(data.error || data.message || `Erreur ${res.status}`);
+    throw new Error(sanitizeErrorMessage(data.error || data.message || `Erreur ${res.status}`));
   }
   return data.data !== undefined ? data.data : data;
 }
@@ -314,9 +323,9 @@ export const api = {
       request<any>(`${API_URL}/wallet/deposit`, { method: 'POST', body: JSON.stringify({ amountUSD, method }) }),
     depositMobile: (data: { phoneNumber: string; amountLocal: number; currencyCode: string; operator?: string }) =>
       request<any>(`${API_URL}/wallet/deposit-mobile`, { method: 'POST', body: JSON.stringify(data) }),
-    withdrawToWallet: (data: { amountUSD: number; targetCurrency: string; exchangeRate: number }) =>
+    withdrawToWallet: (data: { amountUSD: number; targetCurrency: string; exchangeRate?: number }) =>
       request<any>(`${API_URL}/wallet/withdraw-to-wallet`, { method: 'POST', body: JSON.stringify(data) }),
-    withdrawMobile: (data: { amountUSD: number; currencyCode: string; phoneNumber: string; exchangeRate: number; stepUpToken?: string; operator?: string }) =>
+    withdrawMobile: (data: { amountUSD: number; currencyCode: string; phoneNumber: string; exchangeRate?: number; stepUpToken?: string; operator?: string }) =>
       request<any>(`${API_URL}/wallet/withdraw-to-mobile`, { method: 'POST', body: JSON.stringify(data) }),
     withdrawPayPal: (paypalEmail: string, amount: number) =>
       request<any>(`${API_URL}/wallet/withdraw-paypal`, { method: 'POST', body: JSON.stringify({ paypalEmail, amount }) }),
@@ -358,7 +367,10 @@ export const api = {
     getOrderStatus: (orderId: string) => request<any>(`${API_URL}/payments/order/${orderId}`),
     getCurrencies: () => request<any[]>(`${API_URL}/payments/currencies`),
     estimate: (amountUSD: number, currencyCode: string) =>
-      request<any>(`${API_URL}/payments/estimate?amountUSD=${amountUSD}&currencyCode=${currencyCode}`),
+      request<any>(`${API_URL}/payments/estimate`, {
+        method: 'POST',
+        body: JSON.stringify({ amountUSD, currencyCode }),
+      }),
     createPayPalDeposit: (amountUSD: number, returnUrl?: string, cancelUrl?: string) =>
       request<{ paypalOrderId: string; approvalUrl: string; amountUSD: number }>(`${API_URL}/payments/create-paypal-deposit`, {
         method: 'POST',
@@ -443,7 +455,10 @@ export const api = {
   rates: {
     all: () => request<any>(`${API_URL}/rates`),
     convert: (amount: number, from?: string, to?: string) =>
-      request<any>(`${API_URL}/rates/convert?amount=${amount}&from=${from || 'USD'}&to=${to || 'XOF'}`),
+      request<any>(`${API_URL}/rates/convert`, {
+        method: 'POST',
+        body: JSON.stringify({ amount, from: from || 'USD', to: to || 'XOF' }),
+      }),
     health: () => request<any>(`${API_URL}/rates/health`),
     refresh: () => request<any>(`${API_URL}/rates/refresh`, { method: 'POST' }),
   },
@@ -811,7 +826,7 @@ export const api = {
       });
       return res.ok;
     } catch (e) {
-      console.error('Erreur suppression wallet:', e);
+      logger.error('Erreur suppression wallet:', e);
       return false;
     }
   },
@@ -846,7 +861,7 @@ export const api = {
     try {
       return await api.auth.updateProfile(data);
     } catch (e) {
-      console.error('Erreur mise à jour profil:', e);
+      logger.error('Erreur mise à jour profil:', e);
       return null;
     }
   },
@@ -949,6 +964,7 @@ export interface LiveRate {
 }
 
 import { LIVE_RATES as COUNTRIES_LIVE_RATES } from '@/data/countries';
+import { logger } from '@/lib/logger';
 
 export const LIVE_RATES: LiveRate[] = COUNTRIES_LIVE_RATES.map((r: any) => ({
   currency: r.currency,

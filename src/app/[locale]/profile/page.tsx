@@ -38,6 +38,7 @@ import { api, Wallet, Stats, WalletSchema, MobileOperator } from '@/lib/api';
 import { MOBILE_MONEY_COUNTRIES, getOperatorsByCountryCode } from '@/data/mobile-money-countries';
 import { useToast } from '@/hooks/useToast';
 import { ALL_WORLD_COUNTRIES } from '@/data/all-countries';
+import { logger } from '@/lib/logger';
 
 function CountrySelect({ value, onChange, error }: { value: string; onChange: (code: string) => void; error?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -67,7 +68,7 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
       >
         {selected ? (
           <>
-            <img src={`https://flagcdn.com/w20/${selected.code.toLowerCase()}.png`} alt={selected.name} className="w-5 h-4 rounded object-cover" />
+            <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${selected.code.toLowerCase()}.png`} alt={selected.name} className="w-5 h-4 rounded object-cover" />
             <span className="flex-1 text-left">{selected.name} ({selected.dialCode})</span>
           </>
         ) : (
@@ -87,7 +88,7 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
                 ${value === c.code ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-bold' : 'text-slate-800 dark:text-white font-semibold'}
               `}
             >
-              <img src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`} alt={c.name} className="w-5 h-4 rounded object-cover" />
+              <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`} alt={c.name} className="w-5 h-4 rounded object-cover" />
               <span className="flex-1">{c.name}</span>
               <span className="text-slate-400 text-[10px]">{c.dialCode}</span>
             </button>
@@ -201,7 +202,7 @@ export default function ProfilePage() {
         setStats(statsData);
         setWallets(walletData);
       } catch (err) {
-        console.error('Failed to load profile data:', err);
+        logger.error('Failed to load profile data:', err);
       } finally {
         setLoading(false);
       }

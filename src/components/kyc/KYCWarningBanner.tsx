@@ -5,13 +5,6 @@ import { useLocale } from 'next-intl';
 import { ShieldAlert, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-function getRemainingAttempts(): number {
-  if (typeof window === 'undefined') return 3;
-  const stored = localStorage.getItem('paymaestro_kyc_attempts');
-  const used = stored ? parseInt(stored, 10) : 0;
-  return Math.max(0, 3 - used);
-}
-
 export default function KYCWarningBanner() {
   const locale = useLocale();
   const { user } = useAuth();
@@ -19,12 +12,13 @@ export default function KYCWarningBanner() {
   if (!user) return null;
 
   const status = user.kycStatus;
+  // Nombre de tentatives restantes depuis le serveur (ou 3 par défaut)
+  const remaining = typeof user.kycRemainingAttempts === 'number' ? user.kycRemainingAttempts : 3;
 
   if (status === 'APPROVED') return null;
 
   const isPending = status === 'PENDING_AI' || status === 'PENDING_HUMAN';
   const isRejected = status === 'REJECTED';
-  const remaining = getRemainingAttempts();
 
   const bgColor = isRejected
     ? 'bg-red-600'

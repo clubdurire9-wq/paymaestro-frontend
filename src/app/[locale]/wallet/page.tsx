@@ -16,6 +16,7 @@ import { ALL_COUNTRIES, CountryData } from '@/data/countries';
 import { api } from '@/lib/api';
 import { PasswordModal } from '@/components/wallet/PasswordModal';
 import { WithdrawalFeeCalculator } from '@/components/wallet/WithdrawalFeeCalculator';
+import { logger } from '@/lib/logger';
 
 interface Balance {
   USD: number;
@@ -98,7 +99,7 @@ function CountrySelect({ value, onChange, className }: { value: CountryData; onC
   return (
     <div ref={ref} className={`relative ${className || ''}`}>
       <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-3 py-2 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white text-left">
-        <img src={`https://flagcdn.com/w20/${value.iso2}.png`} alt={value.country} className="w-5 h-4 rounded object-cover" />
+        <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${value.iso2}.png`} alt={value.country} className="w-5 h-4 rounded object-cover" />
         <span className="flex-1">{value.country}</span>
         <span className="text-slate-400">{open ? '▲' : '▼'}</span>
       </button>
@@ -106,7 +107,7 @@ function CountrySelect({ value, onChange, className }: { value: CountryData; onC
         <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border dark:border-slate-600 rounded-xl shadow-lg">
           {ALL_COUNTRIES.map(c => (
             <button key={c.country} type="button" onClick={() => { onChange(c); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white text-left">
-              <img src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
+              <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
               <span>{c.country}</span>
             </button>
           ))}
@@ -162,8 +163,7 @@ export default function WalletPage() {
   const [wallet2PaypalEmail, setWallet2PaypalEmail] = useState('');
   const [showWallet2PaypalConfirm, setShowWallet2PaypalConfirm] = useState(false);
   const [mobilePendingTxId, setMobilePendingTxId] = useState<number | null>(null);
-  const [flutterwaveCheckoutUrl, setFlutterwaveCheckoutUrl] = useState<string | null>(null);
-  const [showFlutterwaveModal, setShowFlutterwaveModal] = useState(false);
+  // Flutterwave supprimé — tout se fait en arrière-plan
 
   // Retrait Mobile Money
   const [withdrawCountry, setWithdrawCountry] = useState<CountryData | null>(null);
@@ -235,15 +235,31 @@ export default function WalletPage() {
       if (bal) setBalance(bal);
       if (txs) setTransactions(txs);
     } catch (error) {
-      console.error('Erreur de chargement:', error);
+      logger.error('Erreur de chargement:', error);
     }
     setLoading(false);
   };
 
-  // Polling OTP : vérifie le statut d'une transaction Mobile Money en attente
+  // Polling OTP : vérifie le statut d'une transaction Mobile Money en attente (backoff exponentiel)
   useEffect(() => {
     if (!mobilePendingTxId) return;
-    const interval = setInterval(async () => {
+    let delay = 2000;
+    let attempts = 0;
+    const maxAttempts = 30;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const poll = async () => {
+      if (++attempts > maxAttempts) {
+        setMobilePendingTxId(null);
+        setMobileDepositLoading(false);
+        setDepositModalData({
+          type: 'error',
+          title: 'Délai dépassé',
+          message: 'Le dépôt a pris trop de temps. Veuillez vérifier votre historique.',
+        });
+        setShowDepositModal(true);
+        return;
+      }
       try {
         const txs = await api.wallet.getTransactions();
         const tx = txs.find((t: WalletTx) => t.id === mobilePendingTxId);
@@ -259,6 +275,7 @@ export default function WalletPage() {
             });
             setShowDepositModal(true);
             loadData();
+            return;
           } else if (tx.status === 'FAILED') {
             setMobilePendingTxId(null);
             setMobileDepositLoading(false);
@@ -269,11 +286,16 @@ export default function WalletPage() {
             });
             setShowDepositModal(true);
             loadData();
+            return;
           }
         }
       } catch { /* ignore polling errors */ }
-    }, 5000);
-    return () => clearInterval(interval);
+      delay = Math.min(delay * 1.5, 10000);
+      timer = setTimeout(poll, delay);
+    };
+
+    timer = setTimeout(poll, delay);
+    return () => clearTimeout(timer);
   }, [mobilePendingTxId]);
 
   const loadUser = async () => {
@@ -281,7 +303,7 @@ export default function WalletPage() {
       const data = await api.auth.getMe();
       setUser(data);
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'utilisateur:', error);
+      logger.error('Erreur lors du chargement de l\'utilisateur:', error);
     }
   };
 
@@ -293,7 +315,7 @@ export default function WalletPage() {
       setAmount('');
       loadData();
     } catch (error) {
-      console.error('Erreur de dépôt:', error);
+      logger.error('Erreur de dépôt:', error);
     }
   };
 
@@ -311,13 +333,13 @@ export default function WalletPage() {
         operator: mobileOperator,
       });
       if (result?.needsRedirect && result?.checkoutUrl) {
-        setMobilePendingTxId(result.transactionId);
-        setFlutterwaveCheckoutUrl(result.checkoutUrl);
-        setShowFlutterwaveModal(true);
-        setMobileDepositMessage({
-          type: 'info',
-          text: `🔒 Paiement sécurisé en cours dans l'espace dédié. Finalisez la transaction, votre wallet sera crédité automatiquement.`
+        setMobileDepositLoading(false);
+        setDepositModalData({
+          type: 'error',
+          title: 'Méthode non disponible',
+          message: 'Le paiement par redirection n\'est pas disponible pour Mobile Money. Veuillez réessayer.',
         });
+        setShowDepositModal(true);
         return;
       }
       if (result?.pending) {
@@ -371,12 +393,11 @@ export default function WalletPage() {
       await api.wallet.withdrawToWallet({
         amountUSD: amt,
         targetCurrency: selectedCurrency,
-        exchangeRate: currency.rate,
       });
       setAmount('');
       loadData();
     } catch (error) {
-      console.error('Erreur de retrait:', error);
+      logger.error('Erreur de retrait:', error);
     }
   };
 
@@ -388,7 +409,7 @@ export default function WalletPage() {
       setPaypalAmount('');
       loadData();
     } catch (error) {
-      console.error('Erreur de retrait PayPal:', error);
+      logger.error('Erreur de retrait PayPal:', error);
     }
   };
 
@@ -482,7 +503,7 @@ export default function WalletPage() {
       setWallet2PaypalAmount('');
       loadData();
     } catch (error) {
-      console.error('Erreur de transfert Wallet→PayPal:', error);
+      logger.error('Erreur de transfert Wallet→PayPal:', error);
     }
   };
 
@@ -713,7 +734,7 @@ export default function WalletPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[400px] overflow-y-auto">
             {ALL_COUNTRIES.map(c => (
               <div key={c.code + c.country} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                <img src={`https://flagcdn.com/w40/${c.countryCode === '+225' ? 'ci' : c.countryCode === '+221' ? 'sn' : c.countryCode === '+237' ? 'cm' : c.countryCode === '+233' ? 'gh' : c.countryCode === '+254' ? 'ke' : c.countryCode === '+234' ? 'ng' : c.countryCode === '+256' ? 'ug' : c.countryCode === '+250' ? 'rw' : c.countryCode === '+255' ? 'tz' : c.countryCode === '+243' ? 'cd' : c.countryCode === '+213' ? 'dz' : c.countryCode === '+20' ? 'eg' : c.countryCode === '+218' ? 'ly' : c.countryCode === '+212' ? 'ma' : c.countryCode === '+249' ? 'sd' : c.countryCode === '+216' ? 'tn' : c.countryCode === '+229' ? 'bj' : c.countryCode === '+226' ? 'bf' : c.countryCode === '+238' ? 'cv' : c.countryCode === '+220' ? 'gm' : c.countryCode === '+224' ? 'gn' : c.countryCode === '+231' ? 'lr' : c.countryCode === '+223' ? 'ml' : c.countryCode === '+222' ? 'mr' : c.countryCode === '+227' ? 'ne' : c.countryCode === '+232' ? 'sl' : c.countryCode === '+228' ? 'tg' : c.countryCode === '+244' ? 'ao' : c.countryCode === '+236' ? 'cf' : c.countryCode === '+235' ? 'td' : c.countryCode === '+242' ? 'cg' : c.countryCode === '+241' ? 'ga' : c.countryCode === '+240' ? 'gq' : c.countryCode === '+239' ? 'st' : c.countryCode === '+257' ? 'bi' : c.countryCode === '+269' ? 'km' : c.countryCode === '+253' ? 'dj' : c.countryCode === '+291' ? 'er' : c.countryCode === '+251' ? 'et' : c.countryCode === '+261' ? 'mg' : c.countryCode === '+265' ? 'mw' : c.countryCode === '+230' ? 'mu' : c.countryCode === '+258' ? 'mz' : c.countryCode === '+248' ? 'sc' : c.countryCode === '+252' ? 'so' : c.countryCode === '+211' ? 'ss' : c.countryCode === '+260' ? 'zm' : c.countryCode === '+263' ? 'zw' : c.countryCode === '+267' ? 'bw' : c.countryCode === '+268' ? 'sz' : c.countryCode === '+266' ? 'ls' : c.countryCode === '+264' ? 'na' : c.countryCode === '+27' ? 'za' : 'ci'}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
+                <img crossOrigin="anonymous" src={`https://flagcdn.com/w40/${c.countryCode === '+225' ? 'ci' : c.countryCode === '+221' ? 'sn' : c.countryCode === '+237' ? 'cm' : c.countryCode === '+233' ? 'gh' : c.countryCode === '+254' ? 'ke' : c.countryCode === '+234' ? 'ng' : c.countryCode === '+256' ? 'ug' : c.countryCode === '+250' ? 'rw' : c.countryCode === '+255' ? 'tz' : c.countryCode === '+243' ? 'cd' : c.countryCode === '+213' ? 'dz' : c.countryCode === '+20' ? 'eg' : c.countryCode === '+218' ? 'ly' : c.countryCode === '+212' ? 'ma' : c.countryCode === '+249' ? 'sd' : c.countryCode === '+216' ? 'tn' : c.countryCode === '+229' ? 'bj' : c.countryCode === '+226' ? 'bf' : c.countryCode === '+238' ? 'cv' : c.countryCode === '+220' ? 'gm' : c.countryCode === '+224' ? 'gn' : c.countryCode === '+231' ? 'lr' : c.countryCode === '+223' ? 'ml' : c.countryCode === '+222' ? 'mr' : c.countryCode === '+227' ? 'ne' : c.countryCode === '+232' ? 'sl' : c.countryCode === '+228' ? 'tg' : c.countryCode === '+244' ? 'ao' : c.countryCode === '+236' ? 'cf' : c.countryCode === '+235' ? 'td' : c.countryCode === '+242' ? 'cg' : c.countryCode === '+241' ? 'ga' : c.countryCode === '+240' ? 'gq' : c.countryCode === '+239' ? 'st' : c.countryCode === '+257' ? 'bi' : c.countryCode === '+269' ? 'km' : c.countryCode === '+253' ? 'dj' : c.countryCode === '+291' ? 'er' : c.countryCode === '+251' ? 'et' : c.countryCode === '+261' ? 'mg' : c.countryCode === '+265' ? 'mw' : c.countryCode === '+230' ? 'mu' : c.countryCode === '+258' ? 'mz' : c.countryCode === '+248' ? 'sc' : c.countryCode === '+252' ? 'so' : c.countryCode === '+211' ? 'ss' : c.countryCode === '+260' ? 'zm' : c.countryCode === '+263' ? 'zw' : c.countryCode === '+267' ? 'bw' : c.countryCode === '+268' ? 'sz' : c.countryCode === '+266' ? 'ls' : c.countryCode === '+264' ? 'na' : c.countryCode === '+27' ? 'za' : 'ci'}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{c.code}</p>
                 <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
                   {(balance as any)?.[c.code]?.toLocaleString('fr-FR') || '0'}
@@ -1497,44 +1518,7 @@ export default function WalletPage() {
         </div>
       )}
 
-      {/* MODALE PAIEMENT FLUTTERWAVE (IFRAME) */}
-      {showFlutterwaveModal && flutterwaveCheckoutUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-                  <Lock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">Paiement sécurisé</span>
-              </div>
-              <button
-                onClick={() => { setShowFlutterwaveModal(false); setFlutterwaveCheckoutUrl(null); }}
-                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800/50">
-              <iframe
-                src={flutterwaveCheckoutUrl}
-                className="w-full border-0"
-                style={{ height: '520px' }}
-                title="Paiement sécurisé Flutterwave"
-                sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
-              />
-            </div>
-            <div className="px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                🔒 Connexion sécurisée via Flutterwave
-              </span>
-              <span className="text-xs text-slate-400">
-                Votre wallet sera crédité automatiquement
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* FLUTTERWAVE SUPPRIMÉ — tout en arrière-plan */}
     </div>
   );
 }

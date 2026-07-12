@@ -188,7 +188,7 @@ export default function BankPage() {
               {ALL_COUNTRIES.map(c => (
                 <button key={c.code + c.country} onClick={() => handleStepForm(c)}
                   className="p-3 rounded-xl border-2 text-center hover:border-violet-300 transition-all dark:border-slate-700 dark:hover:border-violet-600">
-                  <img src={`https://flagcdn.com/w40/${c.iso2}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
+                  <img crossOrigin="anonymous" src={`https://flagcdn.com/w40/${c.iso2}.png`} alt={c.country} className="w-8 h-6 rounded shadow-sm mx-auto object-cover" />
                   <p className="text-[9px] font-semibold mt-1 text-slate-700 dark:text-slate-300">{c.country}</p>
                 </button>
               ))}
@@ -202,7 +202,7 @@ export default function BankPage() {
         <Card>
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <img src={`https://flagcdn.com/w40/${selectedCountry?.iso2}.png`} alt={selectedCountry?.country} className="w-6 h-5 rounded shadow-sm" />
+              <img crossOrigin="anonymous" src={`https://flagcdn.com/w40/${selectedCountry?.iso2}.png`} alt={selectedCountry?.country} className="w-6 h-5 rounded shadow-sm" />
               <h3 className="font-bold text-lg">
                 {direction === 'IN' ? 'Dépôt bancaire' : `Retrait ${sourceType === 'WALLET' ? 'Wallet' : 'PayPal'} → Banque`}
                 <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">({selectedCountry?.country})</span>

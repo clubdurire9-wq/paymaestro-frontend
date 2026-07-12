@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { api, Transaction } from '@/lib/api';
 import { generateTransactionPDF } from '@/lib/pdf-export';
 import MapEmbed from '@/components/ui/MapEmbed';
+import { logger } from '@/lib/logger';
 
 type ServiceKey = 'mobile_deposit' | 'withdrawal' | 'wallet' | 'iban_deposit' | 'crypto' | 'paypal' | 'cards' | 'conversion' | 'fee';
 
@@ -110,7 +111,7 @@ export default function AdminUserDetailPage() {
       });
       setUserProfile((prev: any) => ({ ...prev, business_type: newType }));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     setUpdatingBusiness(false);
   };
@@ -126,7 +127,7 @@ export default function AdminUserDetailPage() {
         setUserActivity(activity);
         if (profile) setUserProfile(profile);
       } catch (e) {
-        console.error('Erreur chargement utilisateur:', e);
+        logger.error('Erreur chargement utilisateur:', e);
       } finally {
         setLoading(false);
       }
@@ -204,7 +205,7 @@ export default function AdminUserDetailPage() {
       const filename = `PayMaestro_Releve_${userProfile?.name || userProfile?.email}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
     } catch (e) {
-      console.error('Erreur export PDF:', e);
+      logger.error('Erreur export PDF:', e);
     }
   };
 

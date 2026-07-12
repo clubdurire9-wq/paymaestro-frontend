@@ -5,7 +5,6 @@ import {
   AuthContext,
   AuthUser,
   AuthState,
-  MOCK_USER,
   saveUserToStorage,
   saveTokenToStorage,
   getUserFromStorage,
@@ -64,13 +63,6 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     return Promise.resolve();
   }, [googleLogin]);
 
-  const loginMock = useCallback(() => {
-    const mockUser = { ...MOCK_USER, is_onboarded: false };
-    setUser(mockUser);
-    saveUserToStorage(mockUser);
-    saveTokenToStorage('mock-token-paymaestro');
-  }, []);
-
   const loginReal = useCallback((realUser: AuthUser) => {
     setUser(realUser);
     saveUserToStorage(realUser);
@@ -86,7 +78,6 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!user,
     login,
-    loginMock,
     loginReal,
     logout,
     updateUser,
@@ -138,21 +129,14 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const loginMock = useCallback(() => {
-    const mockUser = { ...MOCK_USER, is_onboarded: false };
-    setUser(mockUser);
-    saveUserToStorage(mockUser);
-    saveTokenToStorage('mock-token-paymaestro');
-  }, []);
-
   const logout = useCallback(() => {
     removeUserFromStorage();
     setUser(null);
   }, []);
 
   const login = useCallback(async () => {
-    loginMock();
-  }, [loginMock]);
+    alert('Configuration Google manquante. Contactez l\'administrateur.');
+  }, []);
 
   const loginReal = useCallback(() => {}, []);
 
@@ -161,7 +145,6 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!user,
     login,
-    loginMock,
     loginReal,
     logout,
     updateUser,

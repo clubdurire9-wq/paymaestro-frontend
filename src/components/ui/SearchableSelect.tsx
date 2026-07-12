@@ -87,7 +87,7 @@ export default function SearchableSelect({
       >
         {selected ? (
           <>
-            <img
+            <img crossOrigin="anonymous"
               src={`https://flagcdn.com/16x12/${selected.value.toLowerCase()}.png`}
               alt={selected.label}
               className="w-5 h-4 object-cover rounded-[2px] shrink-0"
@@ -129,7 +129,7 @@ export default function SearchableSelect({
                   `}
                   onClick={() => handleSelect(option)}
                 >
-                  <img
+                  <img crossOrigin="anonymous"
                     src={`https://flagcdn.com/16x12/${option.value.toLowerCase()}.png`}
                     alt={option.label}
                     className="w-5 h-4 object-cover rounded-[2px] shrink-0"

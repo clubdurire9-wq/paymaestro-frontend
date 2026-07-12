@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { saveUserToStorage, saveTokenToStorage } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export default function GoogleCallbackPage() {
   const locale = useLocale();
@@ -87,7 +88,7 @@ export default function GoogleCallbackPage() {
         // Fallback : utilisateur complet sans data.user
         setError('Réponse inattendue du serveur. Contactez le support.');
       } catch (err: any) {
-        console.error('Erreur callback Google:', err);
+        logger.error('Erreur callback Google:', err);
         setError(err?.message || 'Erreur d\'authentification Google.');
       }
     })();

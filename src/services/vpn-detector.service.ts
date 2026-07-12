@@ -42,23 +42,26 @@ export function blockAccessIfVPN(result: VPNCheckResult) {
     div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#1a1a2e;color:#fff;';
     const inner = document.createElement('div');
     inner.style.cssText = 'text-align:center;max-width:500px;padding:40px;';
-    inner.innerHTML = `
-      <h1 style="color:#e74c3c;font-size:2rem;">🚫 Accès Refusé</h1>
-      <p style="margin:20px 0;color:#999;">Connexion non sécurisée détectée.</p>
-      <p style="margin-top:30px;font-size:0.8rem;color:#555;">
-        L'utilisation de VPN, Proxy ou serveur hébergé est interdite sur PayMaestro.<br/>
-        Veuillez désactiver votre VPN et réessayer.
-      </p>`;
+    const h1 = document.createElement('h1');
+    h1.style.cssText = 'color:#e74c3c;font-size:2rem;';
+    h1.textContent = '🚫 Accès Refusé';
+    inner.appendChild(h1);
+    const p1 = document.createElement('p');
+    p1.style.cssText = 'margin:20px 0;color:#999;';
+    p1.textContent = 'Connexion non sécurisée détectée.';
+    inner.appendChild(p1);
     const typeP = document.createElement('p');
     typeP.style.cssText = 'font-size:0.9rem;color:#666;';
-    typeP.appendChild(document.createTextNode(`Type : ${result.type}`));
+    typeP.textContent = `Type : ${result.type}`;
     typeP.appendChild(document.createElement('br'));
     typeP.appendChild(document.createTextNode(`${result.isp}`));
-    inner.insertBefore(typeP, inner.querySelector('p:last-child'));
+    inner.appendChild(typeP);
+    const p2 = document.createElement('p');
+    p2.style.cssText = 'margin-top:30px;font-size:0.8rem;color:#555;';
+    p2.textContent = "L'utilisation de VPN, Proxy ou serveur hébergé est interdite sur PayMaestro. Veuillez désactiver votre VPN et réessayer.";
+    inner.appendChild(p2);
     div.appendChild(inner);
-    document.body.appendChild(div);
-    document.body.innerHTML = '';
-    document.body.appendChild(div);
+    document.body.replaceChildren(div);
     return true;
   }
   return false;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 export type OnboardingStep = 'login' | 'verify-phone' | 'kyc' | 'dashboard';
 
@@ -38,7 +39,7 @@ export function useOnboarding() {
       const data = await res.json();
       setStatus(data.data);
     } catch (err) {
-      console.error('🔍 DEBUG useOnboarding — ERREUR fetch:', err);
+      logger.error('🔍 DEBUG useOnboarding — ERREUR fetch:', err);
       setStatus({
         isAuthenticated: false,
         isPhoneVerified: false,

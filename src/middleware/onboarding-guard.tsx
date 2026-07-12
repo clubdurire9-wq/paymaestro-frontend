@@ -19,11 +19,8 @@ const SENSITIVE_ROUTES = [
   '/terms', '/white-label',
 ];
 
-function getRemainingKYCAttempts(): number {
-  if (typeof window === 'undefined') return 3;
-  const stored = localStorage.getItem('paymaestro_kyc_attempts');
-  const used = stored ? parseInt(stored, 10) : 0;
-  return Math.max(0, 3 - used);
+function getRemainingKYCAttempts(user: any): number {
+  return typeof user?.kycRemainingAttempts === 'number' ? user.kycRemainingAttempts : 3;
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
@@ -79,7 +76,7 @@ function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; r
     if (
       user &&
       status.kycStatus === 'REJECTED' &&
-      getRemainingKYCAttempts() === 0 &&
+      getRemainingKYCAttempts(user) === 0 &&
       SENSITIVE_ROUTES.some(r => route.startsWith(r))
     ) {
       router.replace(`/${locale}/kyc`);

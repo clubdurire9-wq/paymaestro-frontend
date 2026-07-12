@@ -1,4 +1,5 @@
 // src/services/anti-detect.service.ts
+import { logger } from '@/lib/logger';
 
 interface BrowserInconsistency {
   detected: boolean;
@@ -186,6 +187,6 @@ export async function reportFraudDetection(detection: BrowserInconsistency, user
       }),
     });
   } catch (error) {
-    console.error('Erreur signalement fraude:', error);
+    logger.error('Erreur signalement fraude:', error);
   }
 }

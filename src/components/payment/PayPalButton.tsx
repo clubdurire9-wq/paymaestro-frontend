@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, XCircle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 declare global {
   interface Window {
@@ -29,6 +30,7 @@ export default function PayPalButton({
   const [sdkError, setSdkError] = useState<string | null>(null);
 
   const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
+  const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'XOF', 'XAF', 'NGN', 'GHS', 'KES'];
 
   useEffect(() => {
     if (!PAYPAL_CLIENT_ID) { setSdkError('Configuration PayPal manquante'); return; }
@@ -36,8 +38,9 @@ export default function PayPalButton({
       setSdkReady(true);
       return;
     }
+    const safeCurrency = SUPPORTED_CURRENCIES.includes(currency) ? currency : 'USD';
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${currency}&intent=capture`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&currency=${safeCurrency}&intent=capture`;
     script.async = true;
     script.onload = () => setSdkReady(true);
     script.onerror = () => setSdkError('Impossible de charger PayPal.');
@@ -47,7 +50,7 @@ export default function PayPalButton({
 
   useEffect(() => {
     if (!sdkReady || !paypalRef.current || !window.paypal) return;
-    paypalRef.current.innerHTML = '';
+    paypalRef.current.replaceChildren();
 
     window.paypal.Buttons({
       style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay', tagline: false },
@@ -58,7 +61,7 @@ export default function PayPalButton({
       onApprove: (data: any, actions: any) =>
         actions.order.capture().then((details: any) => onSuccess(details)),
       onCancel: () => onCancel(),
-      onError: (err: any) => { console.error('PayPal error:', err); onError(err); },
+      onError: (err: any) => { logger.error('PayPal error:', err); onError(err); },
     }).render(paypalRef.current);
   }, [sdkReady, amount, currency, onSuccess, onError, onCancel]);
 

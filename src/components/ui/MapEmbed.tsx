@@ -34,7 +34,8 @@ export default function MapEmbed({ lat, lon, country, city, className = '' }: Ma
         style={{ border: 0, minHeight: '200px' }}
         allowFullScreen
         loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
+        referrerPolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin"
       />
       <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
         {city && `${city}, `}{country || ''}

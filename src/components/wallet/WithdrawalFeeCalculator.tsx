@@ -109,7 +109,7 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
                 onClick={() => setCountryOpen(!countryOpen)}
                 className="w-full flex items-center gap-2 px-3 py-2.5 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white text-left"
               >
-                <img src={`https://flagcdn.com/w20/${mobileCountry.iso2}.png`} alt={mobileCountry.country} className="w-5 h-4 rounded object-cover" />
+                <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${mobileCountry.iso2}.png`} alt={mobileCountry.country} className="w-5 h-4 rounded object-cover" />
                 <span className="flex-1">{mobileCountry.country}</span>
                 <span className="text-slate-400">{countryOpen ? '▲' : '▼'}</span>
               </button>
@@ -122,7 +122,7 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
                       onClick={() => { setMobileCountry(c); setCountryOpen(false); }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white text-left"
                     >
-                      <img src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
+                      <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
                       <span>{c.country}</span>
                       <span className="ml-auto text-xs text-slate-400">{c.code}</span>
                     </button>

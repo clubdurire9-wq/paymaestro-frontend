@@ -26,10 +26,17 @@ export default function AdminSupportPage() {
     if (selectedTicket) loadMessages(selectedTicket.id);
   }, [selectedTicket]);
 
-  // Rafraîchir les tickets toutes les 5 secondes
+  // Rafraîchir les tickets avec backoff exponentiel
   useEffect(() => {
-    const interval = setInterval(loadTickets, 5000);
-    return () => clearInterval(interval);
+    let delay = 2000;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = () => {
+      loadTickets();
+      delay = Math.min(delay * 1.3, 15000);
+      timer = setTimeout(poll, delay);
+    };
+    timer = setTimeout(poll, delay);
+    return () => clearTimeout(timer);
   }, []);
 
   const loadTickets = async () => {

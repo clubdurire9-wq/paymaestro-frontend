@@ -36,6 +36,7 @@ interface Stats {
   monthlyStats?: { month: string; volumeUSD: number }[];
 }
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
@@ -66,7 +67,7 @@ export default function DashboardPage() {
         setStats(statsData);
         setTransactions(allTxs.slice(0, 5));
       } catch (err) {
-        console.error('Error loading dashboard data:', err);
+        logger.error('Error loading dashboard data:', err);
       } finally {
         setLoading(false);
       }
@@ -362,7 +363,7 @@ export default function DashboardPage() {
               {LIVE_RATES.map((rate) => (
                 <div key={rate.currency} className="flex justify-between items-center py-2.5">
                   <div className="flex items-center gap-2">
-                    <img src={`https://flagcdn.com/w40/${rate.iso2}.png`} alt={rate.currency} className="w-6 h-4 rounded shadow-sm object-cover" />
+                    <img crossOrigin="anonymous" src={`https://flagcdn.com/w40/${rate.iso2}.png`} alt={rate.currency} className="w-6 h-4 rounded shadow-sm object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{rate.currency}</p>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 max-w-[120px] truncate">{rate.name}</p>

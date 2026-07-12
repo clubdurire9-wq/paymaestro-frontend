@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { api, Transaction } from '@/lib/api';
 import { generateTransactionPDF } from '@/lib/pdf-export';
 import MapEmbed from '@/components/ui/MapEmbed';
+import { logger } from '@/lib/logger';
 
 export default function AdminLivePage() {
   const locale = useLocale();
@@ -73,11 +74,17 @@ export default function AdminLivePage() {
 
   useEffect(() => {
     loadData();
-    let interval: any;
+    let delay = 2000;
+    let timer: ReturnType<typeof setTimeout>;
     if (autoRefresh) {
-      interval = setInterval(loadData, 5000);
+      const poll = () => {
+        loadData();
+        delay = Math.min(delay * 1.3, 15000);
+        timer = setTimeout(poll, delay);
+      };
+      timer = setTimeout(poll, delay);
     }
-    return () => clearInterval(interval);
+    return () => clearTimeout(timer);
   }, [autoRefresh, loadData]);
 
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -141,7 +148,7 @@ export default function AdminLivePage() {
       const filename = `PayMaestro_Releve_${userProfile?.name || userProfile?.email}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
     } catch (e) {
-      console.error('❌ Erreur export PDF admin:', e);
+      logger.error('❌ Erreur export PDF admin:', e);
     }
   };
 

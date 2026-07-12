@@ -1,8 +1,15 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Loader2, Paperclip, Image, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
+
+function sanitizeDataUri(uri: string): string | null {
+  if (!uri || typeof uri !== 'string') return null;
+  if (uri.startsWith('data:image/')) return uri;
+  return null;
+}
 
 interface Message {
   role: 'user' | 'bot';
@@ -62,11 +69,14 @@ export default function ChatWidget() {
 
   // Gérer la sélection d'images (avec accumulation)
   const handleImageSelect = (files: FileList) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     const newFiles: File[] = [];
     const newPreviews: string[] = [];
 
     for (let i = 0; i < Math.min(files.length, 10); i++) {
       const file = files[i];
+
+      if (!allowedMimeTypes.includes(file.type) || file.size > 5 * 1024 * 1024) continue;
       
       // Vérifier si on ne dépasse pas 10 au total
       if (allFiles.length + newFiles.length >= 10) break;
@@ -75,7 +85,10 @@ export default function ChatWidget() {
       
       const reader = new FileReader();
       reader.onload = (e) => {
-        newPreviews.push(e.target?.result as string);
+        const result = e.target?.result as string;
+        if (result && result.startsWith('data:image/')) {
+          newPreviews.push(result);
+        }
         // Mettre à jour quand tous les fichiers sont lus
         if (newPreviews.length === newFiles.length) {
           setAllFiles(prev => [...prev, ...newFiles].slice(0, 10));
@@ -134,7 +147,7 @@ export default function ChatWidget() {
         ]);
       }
     } catch (error) {
-      console.error('Erreur upload images:', error);
+      logger.error('Erreur upload images:', error);
     }
 
     setAllFiles([]);
@@ -246,15 +259,19 @@ export default function ChatWidget() {
                   {/* Afficher les images dans le message */}
                   {msg.images && msg.images.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {msg.images.map((img, j) => (
-                        <img
-                          key={j}
-                          src={img.data}
-                          alt={img.filename}
-                          className="w-16 h-16 object-contain rounded-lg cursor-pointer hover:opacity-90"
-                          onClick={() => window.open(img.data)}
-                        />
-                      ))}
+                      {msg.images.map((img, j) => {
+                        const safeSrc = sanitizeDataUri(img.data);
+                        if (!safeSrc) return null;
+                        return (
+                          <img
+                            key={j}
+                            src={safeSrc}
+                            alt={img.filename.replace(/[<>"']/g, '')}
+                            className="w-16 h-16 object-contain rounded-lg cursor-pointer hover:opacity-90"
+                            onClick={() => safeSrc && window.open(safeSrc, '_blank', 'noopener,noreferrer')}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                   <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-violet-200' : 'text-gray-400 dark:text-slate-400'}`}>

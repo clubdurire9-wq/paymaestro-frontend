@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToastContainer, Toast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 export default function VirtualCardsPage() {
   const locale = useLocale();
@@ -44,7 +45,7 @@ export default function VirtualCardsPage() {
     try {
       const d = await api.cards.list();
       setCards(d || []);
-    } catch (e) { console.error(e); }
+    } catch (e) { logger.error(e); }
     setLoading(false);
   };
 
@@ -66,7 +67,7 @@ export default function VirtualCardsPage() {
     try {
       await api.cards.toggle(cardId, action as 'freeze' | 'unfreeze');
       loadCards();
-    } catch (e) { console.error(e); }
+    } catch (e) { logger.error(e); }
   };
 
   const handleCancelCard = async (cardId: number) => {

@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Shield, Zap, Globe2, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { Shield, Zap, Globe2, CheckCircle2, Loader2 } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
 
 const features = [
   { icon: Zap, label: 'Transfert en moins de 5 min' },
@@ -17,11 +17,8 @@ const features = [
 
 export default function LoginPage() {
   const locale = useLocale();
-  const { login, loginMock } = useAuth();
-  const router = useRouter();
+  const { login } = useAuth();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
-  const isDev = process.env.NODE_ENV === 'development';
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Déjà connecté → rediriger vers dashboard
@@ -70,30 +67,9 @@ export default function LoginPage() {
 
       router.push(`/${locale}/dashboard`);
     } catch (error) {
-      console.error('Erreur Google login:', error);
+      logger.error('Erreur Google login:', error);
       setIsGoogleLoading(false);
     }
-  };
-
-  // Mode démo — connexion instantanée avec utilisateur vérifié (DEV SEULEMENT)
-  const handleDemoLogin = () => {
-    setIsDemoLoading(true);
-
-    // Utilisateur démo avec TOUT vérifié
-    const demoUser = {
-      email: 'demo@paymaestro.com',
-      name: 'Démo PayMaestro',
-      isPhoneVerified: true,
-      kycStatus: 'APPROVED',
-      isBanned: false,
-      role: 'USER',
-    };
-
-    sessionStorage.setItem('pm_auth_user', JSON.stringify(demoUser));
-    sessionStorage.setItem('paymaestro_token', 'demo-token-full-access');
-
-    loginMock();
-    router.push(`/${locale}/dashboard`);
   };
 
   return (
@@ -145,7 +121,7 @@ export default function LoginPage() {
           {/* Vrai bouton Google OAuth */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isGoogleLoading || isDemoLoading || !acceptedTerms}
+            disabled={isGoogleLoading || !acceptedTerms}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 rounded-2xl text-base font-semibold hover:bg-slate-100 active:scale-[0.98] transition-all duration-200 shadow-md shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
@@ -166,31 +142,6 @@ export default function LoginPage() {
               Veuillez accepter les conditions pour continuer
             </p>
           )}
-
-          {/* Mode démo — UNIQUEMENT en développement */}
-          {isDev && (
-            <>
-              <div className="flex items-center gap-3 my-6">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-xs text-slate-500 font-medium">ou</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              <button
-                onClick={handleDemoLogin}
-                disabled={isGoogleLoading || isDemoLoading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600/20 border border-violet-500/30 text-violet-300 rounded-2xl text-sm font-medium hover:bg-violet-600/30 hover:border-violet-400/40 active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
-              >
-                {isDemoLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="w-4 h-4" />
-                )}
-                Essayer en mode démo
-              </button>
-            </>
-          )}
-
 
         </div>
 

@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import { setMemoryToken, getMemoryToken } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 // ==========================================
 // USER TYPES
@@ -33,7 +34,6 @@ export interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => Promise<void>;
-  loginMock: () => void;
   loginReal: (user: AuthUser) => void;
   logout: () => void;
   updateUser: (data: Partial<AuthUser>) => void;
@@ -48,7 +48,6 @@ export const defaultAuthState: AuthState = {
   isLoading: true,
   isAuthenticated: false,
   login: async () => {},
-  loginMock: () => {},
   loginReal: () => {},
   logout: () => {},
   updateUser: () => {},
@@ -82,7 +81,7 @@ export function saveUserToStorage(user: AuthUser): void {
     try {
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
+      logger.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
     }
   }
 }
@@ -105,14 +104,14 @@ export function getUserFromStorage(): AuthUser | null {
     const user = JSON.parse(raw) as AuthUser;
     
     if (!user.id || !user.email) {
-      console.warn('Données utilisateur invalides dans le stockage');
+      logger.warn('Données utilisateur invalides dans le stockage');
       removeUserFromStorage();
       return null;
     }
     
     return user;
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+    logger.error('Erreur lors de la récupération de l\'utilisateur:', error);
     removeUserFromStorage();
     return null;
   }
@@ -123,26 +122,11 @@ export function removeUserFromStorage(): void {
     try {
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
     } catch (error) {
-      console.error('Erreur lors de la suppression des données:', error);
+      logger.error('Erreur lors de la suppression des données:', error);
     }
   }
   setMemoryToken(null);
 }
-
-// ==========================================
-// MOCK USER (for demo without real Google OAuth)
-// ==========================================
-
-export const MOCK_USER: AuthUser = {
-  id: 'mock-user-001',
-  name: 'Utilisateur Démo',
-  email: 'demo@paymaestro.com',
-  avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=120',
-  googleId: 'mock-google-id',
-  joinedAt: new Date('2026-01-15').toISOString(),
-  kycStatus: 'NONE',
-  is_onboarded: false,
-};
 
 // ==========================================
 // DECODE GOOGLE JWT (client-side only)
@@ -168,13 +152,13 @@ export function decodeJwtPayload(token: string): Record<string, any> | null {
     
     // Vérifier l'expiration
     if (payload.exp && payload.exp * 1000 < Date.now()) {
-      console.warn('Token JWT expiré');
+      logger.warn('Token JWT expiré');
       return null;
     }
     
     return payload;
   } catch (error) {
-    console.error('Erreur lors du décodage du JWT:', error);
+    logger.error('Erreur lors du décodage du JWT:', error);
     return null;
   }
 }
@@ -268,7 +252,7 @@ export async function handleGoogleAuthSuccess(
     onSuccess(user, token);
     
   } catch (error) {
-    console.error('Erreur lors de l\'authentification Google:', error);
+    logger.error('Erreur lors de l\'authentification Google:', error);
     const errorMessage = error instanceof Error ? error.message : 'Une erreur inattendue est survenue';
     
     if (onError) {
@@ -348,7 +332,7 @@ export async function handleGoogleOneTapResponse(
     onSuccess(user, token);
     
   } catch (error) {
-    console.error('Erreur Google One Tap:', error);
+    logger.error('Erreur Google One Tap:', error);
     const errorMessage = error instanceof Error ? error.message : 'Une erreur inattendue est survenue';
     
     if (onError) {
@@ -417,7 +401,7 @@ export function checkAuthState(): { user: AuthUser | null; token: string | null;
   
   // Vérifier si le token est expiré
   if (token && isTokenExpired(token)) {
-    console.warn('Token expiré, déconnexion...');
+    logger.warn('Token expiré, déconnexion...');
     removeUserFromStorage();
     return { user: null, token: null, isAuthenticated: false };
   }
