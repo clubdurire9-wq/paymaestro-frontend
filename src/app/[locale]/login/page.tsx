@@ -6,6 +6,7 @@ import { Shield, Zap, Globe2, CheckCircle2, Loader2 } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 
 const features = [
@@ -18,6 +19,7 @@ const features = [
 export default function LoginPage() {
   const locale = useLocale();
   const { login } = useAuth();
+  const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
