@@ -17,6 +17,7 @@ export interface AuthUser {
   googleId?: string;
   joinedAt: string;
   kycStatus?: 'NONE' | 'PENDING_AI' | 'PENDING_HUMAN' | 'APPROVED' | 'REJECTED';
+  kycRemainingAttempts?: number;
   // Onboarding fields
   is_onboarded?: boolean;
   phone?: string;
