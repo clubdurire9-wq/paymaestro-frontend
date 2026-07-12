@@ -4,6 +4,9 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
+const apiOrigin = new URL(apiUrl).origin;
+
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.paypal.com https://*.paypal.com https://www.google.com https://*.google.com https://accounts.google.com https://*.accounts.google.com https://www.googletagmanager.com https://*.googletagmanager.com",
@@ -11,7 +14,7 @@ const csp = [
   "img-src 'self' data: blob: https://flagcdn.com https://*.flagcdn.com https://www.google.com https://*.google.com https://maps.google.com",
   "font-src 'self' https://fonts.gstatic.com",
   "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.google.com https://*.google.com",
-  "connect-src 'self' https://*.paypal.com https://accounts.google.com https://*.googleapis.com https://flagcdn.com",
+  `connect-src 'self' ${apiOrigin} https://*.paypal.com https://accounts.google.com https://*.googleapis.com https://flagcdn.com`,
   "form-action 'self'",
   "base-uri 'self'",
   "object-src 'none'",
