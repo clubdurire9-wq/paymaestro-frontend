@@ -58,6 +58,7 @@ export default function GoogleCallbackPage() {
             id: u.id || 'google-user',
             name: u.name || u.email?.split('@')[0] || '',
             email: u.email,
+            role: u.role || 'USER',
             avatar: u.avatar || u.picture || undefined,
             googleId: u.googleId || undefined,
             joinedAt: u.joinedAt || new Date().toISOString(),
