@@ -8,11 +8,11 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { useRouter } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 const CURRENCIES = [
-  { code: 'EUR', name: 'Euro', countries: 'Zone Euro (France, Allemagne, Italie, Espagne...)' },
-  { code: 'GBP', name: 'Livre Sterling', countries: 'Royaume-Uni' },
+  { code: 'EUR', name: 'Euro', countries: 'Eurozone (France, Germany, Italy, Spain...)' },
+  { code: 'GBP', name: 'Pound Sterling', countries: 'United Kingdom' },
 ];
 
 export default function ConvertPage() {
@@ -20,6 +20,7 @@ export default function ConvertPage() {
   const toast = useToast();
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations('convert');
 
   const [balance, setBalance] = useState<number>(0);
   const [amount, setAmount] = useState('');
@@ -68,7 +69,7 @@ export default function ConvertPage() {
       setDone(true);
       setBalance(prev => Math.max(0, prev - parseFloat(amount)));
     } catch (e: any) {
-      toast.error(e?.message || 'Erreur lors de la conversion');
+      toast.error(e?.message || t('conversionError'));
     }
     setLoading(false);
   };
@@ -77,24 +78,24 @@ export default function ConvertPage() {
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
         <Repeat2 className="w-8 h-8 text-violet-600" />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Conversion Multi-Devises</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
       </div>
 
       {done ? (
         <Card>
           <CardContent className="p-6 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Conversion réussie !</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('conversionSuccess')}</h2>
             <p className="text-slate-600 dark:text-slate-300">
               {amount} USD → {converted?.toLocaleString()} {targetCurrency}
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Votre wallet {targetCurrency} a été crédité.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t('walletCredited', { currency: targetCurrency })}</p>
             <div className="flex gap-3 justify-center">
               <Button onClick={() => { setDone(false); setAmount(''); setConverted(null); setRate(null); }}>
-                Nouvelle conversion
+                {t('newConversion')}
               </Button>
               <Button variant="secondary" icon={<ArrowRight className="w-4 h-4" />} onClick={() => router.push(`/${locale}/wallet`)}>
-                Voir mon wallet
+                {t('viewWallet')}
               </Button>
             </div>
           </CardContent>
@@ -105,7 +106,7 @@ export default function ConvertPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="w-5 h-5 text-green-500" />
-                Solde disponible
+                {t('availableBalance')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -116,17 +117,17 @@ export default function ConvertPage() {
           <Card>
             <CardContent className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-semibold">Montant (USD)</label>
+                <label className="text-xs font-semibold">{t('amountUSD')}</label>
                 <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                   placeholder="100" max={balance} />
                 {parseFloat(amount || '0') > balance && (
-                  <p className="text-xs text-red-500 mt-1">Solde insuffisant</p>
+                  <p className="text-xs text-red-500 mt-1">{t('insufficientBalance')}</p>
                 )}
               </div>
 
               <div>
-                <label className="text-xs font-semibold">Devise de destination</label>
+                <label className="text-xs font-semibold">{t('targetCurrency')}</label>
                 <select value={targetCurrency} onChange={(e) => setTargetCurrency(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg text-sm mt-1 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
@@ -139,30 +140,30 @@ export default function ConvertPage() {
               {rateLoading && (
                 <div className="flex items-center gap-2 text-sm text-slate-500 py-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Récupération du taux...
+                  {t('fetchingRate')}
                 </div>
               )}
 
               {rate && !rateLoading && (
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Taux de change</span>
+                    <span>{t('exchangeRate')}</span>
                     <span className="font-bold">1 USD = {rate.toFixed(4)} {targetCurrency}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Montant converti</span>
+                    <span>{t('convertedAmount')}</span>
                     <span className="font-bold text-green-600 dark:text-green-400">{converted?.toLocaleString() || '—'} {targetCurrency}</span>
                   </div>
                   <div className="flex justify-between text-red-600 dark:text-red-400">
-                    <span>Frais (2%)</span>
+                    <span>{t('fee')}</span>
                     <span>-{fee.toFixed(2)} USD</span>
                   </div>
                   <div className="flex justify-between text-slate-500">
-                    <span>Net débité</span>
+                    <span>{t('netDebited')}</span>
                     <span>{netUSD.toFixed(2)} USD</span>
                   </div>
                   <div className="flex justify-between border-t dark:border-slate-600 pt-1">
-                    <span className="font-bold">Vous recevez</span>
+                    <span className="font-bold">{t('youReceive')}</span>
                     <span className="font-bold text-green-600 dark:text-green-400 text-base">{converted?.toLocaleString() || '—'} {targetCurrency}</span>
                   </div>
                 </div>
@@ -170,7 +171,7 @@ export default function ConvertPage() {
 
               <Button fullWidth onClick={handleConvert} disabled={loading || !isValid}
                 icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}>
-                {loading ? 'Conversion...' : `Convertir en ${targetCurrency}`}
+                {loading ? t('converting') : t('convertTo', { currency: targetCurrency })}
               </Button>
             </CardContent>
           </Card>

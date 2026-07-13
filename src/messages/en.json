@@ -383,6 +383,26 @@
       "What documents for KYC?"
     ]
   },
+  "convert": {
+    "title": "Multi-Currency Conversion",
+    "conversionSuccess": "Conversion successful!",
+    "walletCredited": "Your {currency} wallet has been credited.",
+    "newConversion": "New conversion",
+    "viewWallet": "View my wallet",
+    "availableBalance": "Available balance",
+    "amountUSD": "Amount (USD)",
+    "insufficientBalance": "Insufficient balance",
+    "targetCurrency": "Target currency",
+    "fetchingRate": "Fetching rate...",
+    "exchangeRate": "Exchange rate",
+    "convertedAmount": "Converted amount",
+    "fee": "Fee (2%)",
+    "netDebited": "Net debited",
+    "youReceive": "You receive",
+    "converting": "Converting...",
+    "convertTo": "Convert to {currency}",
+    "conversionError": "Conversion error"
+  },
   "admin": {
     "title": "Administration",
     "sidebar": {

@@ -429,6 +429,26 @@
     "depositTitle": "Déposer des {crypto}",
     "withdrawTitle": "Retirer vers un wallet crypto"
   },
+  "convert": {
+    "title": "Conversion Multi-Devises",
+    "conversionSuccess": "Conversion r\u00e9ussie !",
+    "walletCredited": "Votre wallet {currency} a \u00e9t\u00e9 cr\u00e9dit\u00e9.",
+    "newConversion": "Nouvelle conversion",
+    "viewWallet": "Voir mon wallet",
+    "availableBalance": "Solde disponible",
+    "amountUSD": "Montant (USD)",
+    "insufficientBalance": "Solde insuffisant",
+    "targetCurrency": "Devise de destination",
+    "fetchingRate": "R\u00e9cup\u00e9ration du taux...",
+    "exchangeRate": "Taux de change",
+    "convertedAmount": "Montant converti",
+    "fee": "Frais (2%)",
+    "netDebited": "Net d\u00e9bit\u00e9",
+    "youReceive": "Vous recevez",
+    "converting": "Conversion...",
+    "convertTo": "Convertir en {currency}",
+    "conversionError": "Erreur lors de la conversion"
+  },
   "admin": {
     "title": "Administration",
     "sidebar": {
