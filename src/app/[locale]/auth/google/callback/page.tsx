@@ -21,12 +21,12 @@ export default function GoogleCallbackPage() {
     const errorParam = params.get('error');
 
     if (errorParam) {
-      setError('Connexion Google annulée ou refusée.');
+      setError('Google login cancelled or denied.');
       return;
     }
 
     if (!accessToken) {
-      setError('Aucun token d\'accès reçu de Google.');
+      setError('No access token received from Google.');
       return;
     }
 
@@ -88,10 +88,10 @@ export default function GoogleCallbackPage() {
         }
 
         // Fallback : utilisateur complet sans data.user
-        setError('Réponse inattendue du serveur. Contactez le support.');
+        setError('Unexpected server response. Contact support.');
       } catch (err: any) {
         logger.error('Erreur callback Google:', err);
-        setError(err?.message || 'Erreur d\'authentification Google.');
+        setError(err?.message || 'Google authentication error.');
       }
     })();
   }, [locale, router]);
@@ -101,13 +101,13 @@ export default function GoogleCallbackPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-2">Échec de la connexion</h1>
+          <h1 className="text-xl font-bold text-white mb-2">Connection Failed</h1>
           <p className="text-slate-400 text-sm mb-6">{error}</p>
           <a
             href={`/${locale}/login`}
             className="inline-block px-6 py-3 bg-violet-600 text-white rounded-2xl text-sm font-semibold hover:bg-violet-500 transition"
           >
-            Retour à la connexion
+            Back to login
           </a>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function GoogleCallbackPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
       <div className="text-center">
         <Loader2 className="w-10 h-10 animate-spin text-violet-500 mx-auto mb-4" />
-        <p className="text-slate-400 text-sm">Vérification de votre compte Google...</p>
+        <p className="text-slate-400 text-sm">Verifying your Google account...</p>
       </div>
     </div>
   );

@@ -62,6 +62,12 @@
     "countries": {
       "title": "Available in 12 African countries",
       "subtitle": "And more coming soon..."
+    },
+    "featuresList": {
+      "transferFast": "Transfer in less than 5 min",
+      "secureTransactions": "100% secure transactions",
+      "africanCountries": "54 African countries supported",
+      "realTimeRates": "Real-time exchange rates"
     }
   },
   "auth": {
@@ -75,7 +81,50 @@
     "verifyCode": "Verify Code",
     "codeSent": "Code sent to {phone}",
     "invalidCode": "Invalid code",
-    "phoneVerified": "Phone verified!"
+    "phoneVerified": "Phone verified!",
+    "pageTitle": "Login to access your dashboard",
+    "welcomeBack": "Welcome back!",
+    "loginDescription": "Sign in with Google to access your PayMaestro dashboard.",
+    "acceptTerms": "I accept the",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "refundPolicy": "Refund Policy",
+    "andText": "and",
+    "verifying": "Verifying...",
+    "continueWithGoogle": "Continue with Google",
+    "acceptTermsToContinue": "Please accept the terms to continue",
+    "passwordVerification": "Password Verification",
+    "loggedInAs": "Logged in as",
+    "password": "Password",
+    "enterPassword": "Enter your password",
+    "verify": "Verify",
+    "forgotPassword": "Forgot password?",
+    "back": "Back",
+    "resetPassword": "Reset Password",
+    "resetCodeSent": "A code will be sent to your email",
+    "setNewPasswordDesc": "Set your new password",
+    "codeSentTo": "Code sent to {email}",
+    "sendCode": "Send Code",
+    "resetCodeLabel": "Reset Code",
+    "verifyCode": "Verify Code",
+    "resend": "Resend",
+    "didNotReceiveCode": "Did not receive the code?",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "repeatPassword": "Repeat password",
+    "resetPasswordButton": "Reset Password",
+    "backToLogin": "Back to login",
+    "twoFactorTitle": "Two-Factor Authentication",
+    "twoFactorOTPSent": "A 6-digit code has been sent to your email",
+    "twoFactorAppCode": "Enter the code from your authenticator app",
+    "newLocationTitle": "New location detected",
+    "newLocationDesc": "We detected a login from an unknown location. Please confirm it is you.",
+    "confirmLocation": "Confirm my location",
+    "loginSuccess": "Login successful",
+    "passwordResetSuccess": "Password reset successful",
+    "passwordRequirements": "Min. 8 chars, 1 upper, 1 lower, 1 number, 1 special",
+    "passwordMismatch": "Passwords do not match",
+    "newPasswordRequired": "New password required"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -104,7 +153,8 @@
       "newWithdraw": "New Withdrawal",
       "viewHistory": "History",
       "verifyKYC": "Verify Identity"
-    }
+    },
+    "withdrawIn5": "Withdraw your funds in 5 minutes"
   },
   "withdraw": {
     "title": "New Withdrawal",
@@ -223,6 +273,17 @@
       "title": "Document Not Validated",
       "message": "Reason: {reason}",
       "retry": "Try with another document"
+    },
+    "banner": {
+      "rejected": "Account blocked",
+      "pendingTitle": "Verification in progress",
+      "unverified": "Unverified account",
+      "rejectedMessage": "You cannot use PayMaestro services because your file was not approved. You have {remaining} attempt(s) left out of 3.",
+      "exhaustedMessage": "You have exhausted all verification attempts. Your account is permanently blocked.",
+      "pendingMessage": "Your KYC verification is being processed. You will be notified once approved.",
+      "unverifiedMessage": "Incomplete or unverified profile: Make sure your profile information matches your ID documents.",
+      "contestDecision": "Contest decision",
+      "verifyNow": "Verify now"
     }
   },
   "profile": {
@@ -288,7 +349,10 @@
       "ban": "Ban",
       "unban": "Unban",
       "banReason": "Ban Reason"
-    }
+    },
+    "frozenAccounts": "Frozen accounts",
+    "accountFrozen": "Account frozen",
+    "accountUnfrozen": "Account unfrozen"
   },
   "wallet": {
     "title": "My Wallet",
@@ -310,7 +374,30 @@
     "to": "To",
     "convert": "Convert",
     "conversionFee": "Conversion fee: 2%.",
-    "noTransactions": "No transactions"
+    "noTransactions": "No transactions",
+    "quickAccess": "Quick access",
+    "depositMobileMoney": "Deposit via Mobile Money",
+    "withdrawMobileMoney": "Withdraw to Mobile Money",
+    "depositWithdrawPayPal": "Deposit / Withdraw via PayPal",
+    "withdrawFunds": "Withdraw funds",
+    "passwordTitle": "Password",
+    "passwordDesc": "Enter your password to confirm this operation.",
+    "passwordPlaceholder": "Your password",
+    "passwordCancel": "Cancel",
+    "passwordConfirm": "Confirm",
+    "calculatorTitle": "Withdrawal Calculator",
+    "calculatorBalance": "Available balance",
+    "calculatorWithdrawAmount": "Withdrawal amount (USD)",
+    "calculatorExceedsBalance": "Amount exceeds your available balance",
+    "calculatorMobileMoneyInfo": "Withdrawal via Mobile Money - {percent}% fee",
+    "calculatorDestination": "Destination country",
+    "calculatorAppliedRate": "Applied rate: 1 USD = {rate} {currency}",
+    "calculatorFeeBreakdown": "Fee breakdown",
+    "calculatorProcessingFee": "Processing fee ({percent}%)",
+    "calculatorTotalFees": "Total fees",
+    "calculatorNetAmount": "Net amount received",
+    "calculatorEstimatedAmount": "Estimated amount received in local currency",
+    "calculatorVerifyAmount": "Please check the entered amount"
   },
   "notifications": {
     "title": "Notifications",
@@ -320,5 +407,114 @@
     "kycApproved": "✅ Your identity has been verified!",
     "kycRejected": "⚠️ Your document was not validated",
     "newFeature": "🚀 New feature available!"
+  },
+  "bank": {
+    "account": "Account:",
+    "verified": "Verified account - Low risk"
+  },
+  "crypto": {
+    "depositTitle": "Deposit {crypto}",
+    "withdrawTitle": "Withdraw to crypto wallet"
+  },
+  "developer": {
+    "starterAccount": "Starter Account",
+    "registeredAccount": "Registered Account",
+    "upgradePrompt": "Upgrade from {starter} to {registered}",
+    "registeredRequired": "A Registered Account is required to make outgoing transfers."
+  },
+  "errors": {
+    "pleaseEnterPassword": "Please enter your password",
+    "invalidPassword": "Incorrect password",
+    "invalid2FACode": "Invalid 2FA code",
+    "invalidBankAccount": "Invalid bank account",
+    "connectionError": "Connection error. Please try again.",
+    "generics": "Something went wrong. Please try again.",
+    "pdfGenerationFailed": "Unable to generate PDF. Please try again.",
+    "fillAllFields": "Please fill all required fields.",
+    "transferFailed": "Transfer failed. Please try again.",
+    "pleaseAcceptTerms": "Please accept the terms to continue"
+  },
+  "freeze": {
+    "accountBlocked": "Account temporarily blocked",
+    "securityReason": "For security reasons, your account has been suspended. Please contact support for more information.",
+    "reason": "Reason",
+    "restrictionType": "Restriction type",
+    "blockedBy": "Blocked by",
+    "date": "Block date",
+    "operationsSuspended": "Operations suspended",
+    "operationsDesc": "Transfers, withdrawals and money sends are temporarily disabled. You can still view your balance and history.",
+    "understood": "I understand",
+    "type": {
+      "ALL": "Block all",
+      "MOBILE_MONEY": "Mobile Money",
+      "BANK": "Bank / Stripe",
+      "PAYPAL": "PayPal",
+      "CRYPTO": "Crypto",
+      "INTERNAL": "PM-PM"
+    }
+  },
+  "lock": {
+    "title": "Session locked",
+    "description": "For your security, your session has been locked after 15 minutes of inactivity.",
+    "password": "Your password",
+    "placeholder": "Enter your password",
+    "unlock": "Unlock"
+  },
+  "mobileMoney": {
+    "title": "Mobile Money",
+    "subtitle": "Manage your Mobile Money transfers",
+    "depositTab": "Deposit (Wallet+)",
+    "withdrawTab": "Withdraw (Wallet-)",
+    "depositTitle": "Mobile Money Deposit",
+    "depositDesc": "Top up your wallet from your Mobile Money account",
+    "withdrawTitle": "Mobile Money Withdrawal",
+    "withdrawDesc": "Withdraw funds to your Mobile Money account",
+    "country": "Country",
+    "operator": "Operator",
+    "phoneNumber": "Your number",
+    "withdrawPhone": "Your Mobile Money number",
+    "amountCurrency": "Amount in {currency}",
+    "amountUSD": "Amount (USD)",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "processing": "Processing...",
+    "verifying": "Verifying...",
+    "pendingOTP": "Awaiting confirmation...",
+    "otpSent": "An OTP push has been sent to your phone. Please enter your PIN to complete the payment.",
+    "autoCredit": "Once confirmed, your wallet will be credited automatically.",
+    "cancelAndRetry": "Cancel and retry",
+    "depositSuccess": "Deposit successful!",
+    "depositFailed": "Deposit failed",
+    "withdrawSuccess": "Withdrawal successful!",
+    "withdrawFailed": "Withdrawal failed",
+    "goToWallet": "Go to wallet",
+    "retry": "Retry",
+    "fees": "Fees:",
+    "feeDetail": "Fee ({percent}% of amount)",
+    "processingTime": "Processing:",
+    "otpPush": "You will receive an OTP push on your phone",
+    "creditInfo": "The amount will be credited in USD to your wallet after PIN validation.",
+    "delayExceeded": "Time exceeded",
+    "delayMessage": "The deposit took too long. Please check your history.",
+    "withdrawFrozen": "Mobile Money withdrawal blocked - account suspended",
+    "confirmTitle": "Confirm withdrawal",
+    "recipient": "Recipient",
+    "phone": "Phone",
+    "unverified": "Unverified",
+    "amount": "Amount",
+    "feeAmount": "Fee (3%)",
+    "youReceive": "You receive",
+    "cancel": "Cancel",
+    "confirmWithdraw": "Confirm withdrawal",
+    "estimatedReceive": "You will receive {amount} {currency} on your Mobile Money",
+    "phoneError": "The phone number seems incorrect. Please check and try again.",
+    "insufficientBalance": "Your balance is insufficient for this operation.",
+    "serviceUnavailable": "A temporary technical interruption occurred. Please try again shortly.",
+    "depositGeneralError": "An error occurred during deposit. Check your information and try again.",
+    "nameNotVerified": "Name not verified by operator. Double-check the number before confirming.",
+    "verificationUnavailable": "Verification unavailable. Double-check the number before confirming.",
+    "depositRequestSent": "Request sent! Check your phone {phone} to confirm payment via {operator}. An OTP push has been sent to you.",
+    "notAvailable": "Redirect payment is not available for Mobile Money. Please try again.",
+    "creditedMessage": "{amount} {currency} has been credited to your wallet."
   }
 }

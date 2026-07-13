@@ -222,7 +222,7 @@ export default function KYCPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Vérification d&apos;identité</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Identity Verification</h1>
           <p className="text-sm text-slate-500 mt-1">
             Vérifiez votre identité pour débloquer les limites de retraits de fonds.
           </p>
@@ -361,7 +361,7 @@ export default function KYCPage() {
                 <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold">Limites levées</p>
-                  <p className="mt-0.5 text-emerald-700">Vous pouvez désormais retirer jusqu&apos;à $2000 USD par transaction.</p>
+                  <p className="mt-0.5 text-emerald-700">You can now withdraw up to $2000 USD per transaction.</p>
                 </div>
               </div>
             </Card>
@@ -483,7 +483,7 @@ export default function KYCPage() {
                   <div>
                     <h3 className="text-xl font-bold text-slate-800">Tentatives épuisées</h3>
                     <p className="text-sm text-slate-500 mt-3 leading-relaxed max-w-md mx-auto">
-                      Vous avez épuisé vos 3 tentatives de vérification. Votre compte est définitivement bloqué et vous ne pouvez plus utiliser les services de PayMaestro.
+                      You have exhausted your 3 verification attempts. Your account is permanently blocked and you can no longer use PayMaestro services.
                     </p>
                   </div>
                   <div className="p-4 bg-red-50 border border-red-200 rounded-2xl max-w-sm mx-auto text-left flex gap-3 text-sm text-red-700">
@@ -547,7 +547,7 @@ export default function KYCPage() {
               <HelpCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
               <div>
                 <p className="font-semibold">Recto et verso requis</p>
-                <p className="text-xs mt-1 text-amber-700">Pour la carte nationale d&apos;identité et la carte d&apos;électeur, veuillez fournir les deux faces du document.</p>
+                <p className="text-xs mt-1 text-amber-700">For National ID Card and Voter Card, please provide both sides of the document.</p>
               </div>
             </div>
           )}

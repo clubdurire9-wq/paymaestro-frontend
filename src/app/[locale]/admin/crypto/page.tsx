@@ -110,7 +110,7 @@ export default function AdminCryptoPage() {
                   </div>
                   <div>
                     <p className="font-bold text-slate-800">
-                      {tx.direction === 'IN' ? 'Dépôt' : 'Retrait'} {tx.currency}
+                      {tx.direction === 'IN' ? 'Deposit' : 'Withdrawal'} {tx.currency}
                     </p>
                     <p className="text-xs text-slate-500">{tx.user_name} ({tx.user_email})</p>
                     <div className="flex gap-2 mt-1">

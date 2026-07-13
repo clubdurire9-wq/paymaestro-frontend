@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { 
   DollarSign, TrendingUp, ArrowUp, ArrowDown,
   Send, Loader2, Wallet, Phone, Building, FileText, FileDown,
@@ -73,7 +73,7 @@ export default function AdminFinancePage() {
     setWithdrawing(true);
     try {
       await api.finance.withdraw({ amount, destination: withdrawDest, destinationType: withdrawType });
-      success(`Retrait de ${amount}$ effectué`);
+      success(`Withdrawal of ${amount}$ completed`);
       setShowWithdraw(false);
       setWithdrawAmount('');
       setWithdrawDest('');
@@ -112,9 +112,9 @@ export default function AdminFinancePage() {
           doc.line(margin, pageH - 18, pageW - margin, pageH - 18);
           doc.setFontSize(7);
           doc.setTextColor('#94a3b8');
-          doc.text('PayMaestro — Rapport financier confidentiel', margin, pageH - 10);
+          doc.text('PayMaestro — Confidential financial report', margin, pageH - 10);
           doc.text(`Page ${i} / ${pages}`, pageW - margin, pageH - 10, { align: 'right' });
-          doc.text(`Généré le ${new Date().toLocaleString('fr-FR')}`, pageW - margin, pageH - 5, { align: 'right' });
+           doc.text(`Generated on ${new Date().toLocaleString('fr-FR')}`, pageW - margin, pageH - 5, { align: 'right' });
         }
         doc.setPage(pages);
       };
@@ -152,7 +152,7 @@ export default function AdminFinancePage() {
       doc.text('PayMaestro', margin, 22);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(11);
-      doc.text('Rapport financier', margin, 33);
+        doc.text('Financial report', margin, 33);
       doc.setFontSize(8);
       doc.text(new Date(d.generatedAt).toLocaleDateString('fr-FR', {
         day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -174,7 +174,7 @@ export default function AdminFinancePage() {
       doc.setFontSize(8);
       doc.setTextColor(gray);
       doc.setFont(undefined, 'normal');
-      doc.text('Indicateurs clés', margin, y);
+      doc.text('Key indicators', margin, y);
 
       const cards = [
         { label: "Aujourd'hui", value: formatEuro(s.today), color: green, bg: '#ecfdf5' },
@@ -211,14 +211,14 @@ export default function AdminFinancePage() {
       // ========================================
       // BREAKDOWN TABLE
       // ========================================
-      y = addSectionTitle('Répartition des commissions', y);
+      y = addSectionTitle('Commission breakdown', y);
 
-      const breakdownData = (s.breakdown || []).map((b: any) => [b.type || 'Autres', formatEuro(b.total)]);
+      const breakdownData = (s.breakdown || []).map((b: any) => [b.type || 'Other', formatEuro(b.total)]);
       if (breakdownData.length === 0) {
         doc.setFontSize(9);
         doc.setTextColor(gray);
         doc.setFont(undefined, 'normal');
-        doc.text('Aucune commission enregistrée', margin, y + 6);
+        doc.text('No commissions recorded', margin, y + 6);
         y += 16;
       } else {
         autoTable(doc, {
@@ -230,8 +230,8 @@ export default function AdminFinancePage() {
           bodyStyles: { fontSize: 8, textColor: dark },
           alternateRowStyles: { fillColor: '#f8fafc' },
           columns: [
-            { header: 'Type de commission', dataKey: 'type' },
-            { header: 'Montant', dataKey: 'amount' },
+            { header: 'Commission type', dataKey: 'type' },
+            { header: 'Amount', dataKey: 'amount' },
           ],
           body: breakdownData.map((row: string[]) => ({
             type: row[0],
@@ -250,12 +250,12 @@ export default function AdminFinancePage() {
       // MONTHLY HISTORY TABLE + BAR CHART
       // ========================================
       if (y > 210) { doc.addPage(); y = 30; }
-      y = addSectionTitle('Historique mensuel (12 mois)', y);
+      y = addSectionTitle('Monthly history (12 months)', y);
 
       if (h.length === 0) {
         doc.setFontSize(9);
         doc.setTextColor(gray);
-        doc.text('Aucun historique disponible', margin, y + 6);
+        doc.text('No history available', margin, y + 6);
       } else {
         // --- BAR CHART ---
         const chartTop = y + 2;
@@ -317,9 +317,9 @@ export default function AdminFinancePage() {
           bodyStyles: { fontSize: 8, textColor: dark },
           alternateRowStyles: { fillColor: '#f8fafc' },
           columns: [
-            { header: 'Mois', dataKey: 'month' },
+            { header: 'Month', dataKey: 'month' },
             { header: 'Transactions', dataKey: 'tx' },
-            { header: 'Revenu', dataKey: 'revenue' },
+            { header: 'Revenue', dataKey: 'revenue' },
           ],
           body: historyRows.map((row: any[]) => ({
             month: row[0],
@@ -341,12 +341,12 @@ export default function AdminFinancePage() {
       doc.setFontSize(9);
       doc.setTextColor(violet);
       doc.setFont(undefined, 'bold');
-      doc.text('RÉSULTAT NET', margin + 4, y + 9);
+      doc.text('NET RESULT', margin + 4, y + 9);
 
       doc.setFontSize(8);
       doc.setTextColor(gray);
       doc.setFont(undefined, 'normal');
-      doc.text('Total des commissions perçues sur la période', margin + 4, y + 18);
+      doc.text('Total commissions collected over the period', margin + 4, y + 18);
 
       doc.setFontSize(16);
       doc.setTextColor(violet);
@@ -379,7 +379,7 @@ export default function AdminFinancePage() {
         <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
         <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">Erreur de chargement</p>
         <p className="text-sm text-slate-400 mt-1 mb-6">{error}</p>
-        <Button onClick={loadData} icon={<RefreshCw className="w-4 h-4" />}>Réessayer</Button>
+        <Button onClick={loadData} icon={<RefreshCw className="w-4 h-4" />}>Retry</Button>
       </div>
     </div>
   );
@@ -391,17 +391,17 @@ export default function AdminFinancePage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <DollarSign className="w-8 h-8 text-emerald-500" />
-            Finances PayMaestro
+            PayMaestro Finances
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Revenus, commissions et retraits</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Revenue, commissions and withdrawals</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowWithdraw(true)} icon={<Send className="w-4 h-4" />}>
-            Retirer des fonds
+            Withdraw funds
           </Button>
           <Button variant="outline" onClick={handleExportPDF} disabled={exporting} icon={<FileDown className="w-4 h-4" />}>
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-            {exporting ? 'Génération...' : 'Export PDF'}
+            {exporting ? 'Generating...' : 'Export PDF'}
           </Button>
         </div>
       </div>
@@ -433,12 +433,12 @@ export default function AdminFinancePage() {
         {/* Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>Répartition des commissions</CardTitle>
+            <CardTitle>Commission Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             {(!stats?.breakdown || stats.breakdown.length === 0) ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-slate-400">Aucune commission enregistrée</p>
+                <p className="text-sm text-slate-400">No commissions recorded</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -449,7 +449,7 @@ export default function AdminFinancePage() {
                         <DollarSign className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{b.type || 'Autres'}</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{b.type || 'Other'}</p>
                       </div>
                     </div>
                     <p className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(b.total)}$</p>
@@ -470,13 +470,13 @@ export default function AdminFinancePage() {
         {/* Monthly history */}
         <Card>
           <CardHeader>
-            <CardTitle>Historique mensuel (12 mois)</CardTitle>
+            <CardTitle>Monthly history (12 months)</CardTitle>
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
               <div className="py-8 text-center">
                 <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-400">Aucun historique</p>
+                <p className="text-sm text-slate-400">No history</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
@@ -511,7 +511,7 @@ export default function AdminFinancePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !withdrawing && setShowWithdraw(false)}>
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Retirer des fonds</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Withdraw funds</h2>
               <button onClick={() => setShowWithdraw(false)} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <X className="w-5 h-5 text-slate-400" />
               </button>
@@ -564,7 +564,7 @@ export default function AdminFinancePage() {
               {/* Destination */}
               <div>
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  {withdrawType === 'BANK' ? 'IBAN / Numéro de compte' : 'Numéro Mobile Money'}
+                  {withdrawType === 'BANK' ? 'IBAN / Account number' : 'Mobile Money number'}
                 </label>
                 <input
                   type="text"
@@ -580,7 +580,7 @@ export default function AdminFinancePage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <History className="w-4 h-4 text-slate-400" />
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Retraits récents</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent withdrawals</p>
                   </div>
                   <div className="space-y-1 max-h-[120px] overflow-y-auto">
                     {payouts.slice(0, 5).map((p: any) => (
@@ -596,7 +596,7 @@ export default function AdminFinancePage() {
               {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" fullWidth onClick={() => setShowWithdraw(false)} disabled={withdrawing}>
-                  Annuler
+                  Cancel
                 </Button>
                 <Button
                   fullWidth
@@ -604,7 +604,7 @@ export default function AdminFinancePage() {
                   disabled={withdrawing || !withdrawAmount || !withdrawDest}
                   icon={withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 >
-                  {withdrawing ? 'Traitement...' : `Retirer ${withdrawAmount ? formatCurrency(withdrawAmount) : '0'}$`}
+                  {withdrawing ? 'Processing...' : `Withdraw ${withdrawAmount ? formatCurrency(withdrawAmount) : '0'}$`}
                 </Button>
               </div>
             </div>

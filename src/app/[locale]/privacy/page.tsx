@@ -10,52 +10,52 @@ export default function PrivacyPage() {
   const sections = [
     {
       icon: Database,
-      title: '1. Données collectées',
-      content: 'Nous collectons les informations suivantes : email (via Google OAuth), nom et prénom, numéro de téléphone Mobile Money, pièce d\'identité (pour KYC), historique des transactions, adresse IP et données de navigation.',
+      title: '1. Data Collected',
+      content: 'We collect the following information: email (via Google OAuth), first and last name, Mobile Money phone number, ID document (for KYC), transaction history, IP address and browsing data.',
     },
     {
       icon: Eye,
-      title: '2. Utilisation des données',
-      content: 'Vos données sont utilisées pour : traiter vos transactions, vérifier votre identité (KYC), prévenir la fraude, améliorer nos services, vous contacter en cas de problème, respecter nos obligations légales.',
+      title: '2. Use of Data',
+      content: 'Your data is used to: process your transactions, verify your identity (KYC), prevent fraud, improve our services, contact you in case of issues, and comply with our legal obligations.',
     },
     {
       icon: Lock,
-      title: '3. Stockage et sécurité',
-      content: 'Vos données sont stockées sur des serveurs sécurisés avec cryptage AES-256. Les mots de passe sont hashés avec bcrypt. Les connexions sont sécurisées par SSL/TLS. Nous effectuons des audits de sécurité réguliers.',
+      title: '3. Storage and Security',
+      content: 'Your data is stored on secure servers with AES-256 encryption. Passwords are hashed with bcrypt. Connections are secured by SSL/TLS. We perform regular security audits.',
     },
     {
       icon: Globe,
-      title: '4. Transfert international',
-      content: 'Vos données peuvent être transférées et stockées dans différents pays où nous opérons. Ces transferts sont effectués conformément aux lois applicables sur la protection des données.',
+      title: '4. International Transfer',
+      content: 'Your data may be transferred and stored in different countries where we operate. These transfers are carried out in accordance with applicable data protection laws.',
     },
     {
       icon: Shield,
-      title: '5. Partage avec des tiers',
-      content: 'Nous partageons vos données uniquement avec : Flutterwave (pour les transferts Mobile Money), PayPal (pour les retraits), Google (pour l\'authentification OAuth). Ces partenaires sont tenus de respecter la confidentialité de vos données.',
+      title: '5. Sharing with Third Parties',
+      content: 'We only share your data with: Flutterwave (for Mobile Money transfers), PayPal (for withdrawals), Google (for OAuth authentication). These partners are required to maintain the confidentiality of your data.',
     },
     {
       icon: Trash2,
-      title: '6. Conservation et suppression',
-      content: 'Vos données sont conservées pendant la durée de votre compte plus 5 ans (obligation légale). Vous pouvez demander la suppression de votre compte à tout moment. Les données de transaction sont anonymisées après 10 ans.',
+      title: '6. Retention and Deletion',
+      content: 'Your data is retained for the duration of your account plus 5 years (legal obligation). You can request the deletion of your account at any time. Transaction data is anonymized after 10 years.',
     },
     {
       icon: Lock,
-      title: '7. Vos droits',
-      content: 'Vous avez le droit d\'accéder, de rectifier et de supprimer vos données. Vous pouvez également vous opposer au traitement et demander la portabilité. Contactez support@paymaestro.com pour exercer ces droits.',
+      title: '7. Your Rights',
+      content: 'You have the right to access, rectify and delete your data. You can also object to processing and request portability. Contact support@paymaestro.com to exercise these rights.',
     },
   ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Politique de Confidentialité</h1>
-        <p className="text-slate-500 dark:text-slate-400">Dernière mise à jour : Juin 2026</p>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Privacy Policy</h1>
+        <p className="text-slate-500 dark:text-slate-400">Last updated: June 2026</p>
       </div>
 
       <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/50 rounded-2xl p-6 mb-8 text-center">
         <Shield className="w-8 h-8 text-violet-600 dark:text-violet-300 mx-auto mb-2" />
         <p className="text-sm text-violet-800 dark:text-violet-300 font-medium">
-          Chez PayMaestro, la protection de vos données est notre priorité. Nous nous engageons à traiter vos informations personnelles avec le plus grand soin.
+          At PayMaestro, protecting your data is our priority. We are committed to handling your personal information with the utmost care.
         </p>
       </div>
 
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
       </div>
 
       <div className="mt-8 text-center text-sm text-slate-400 dark:text-slate-500">
-        <p>Pour toute question sur notre politique de confidentialité : support@paymaestro.com</p>
+        <p>For any questions about our privacy policy: support@paymaestro.com</p>
       </div>
     </div>
   );

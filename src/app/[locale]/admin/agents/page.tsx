@@ -73,7 +73,7 @@ export default function AdminAgentsPage() {
   const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'AGENT';
 
   const grades = [
-    'Agent Support',
+    'Support Agent',
     'Agent Senior',
     'Team Lead',
     'Manager',

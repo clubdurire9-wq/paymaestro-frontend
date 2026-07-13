@@ -96,7 +96,7 @@ export function getMemoryToken(): string | null {
 }
 
 function sanitizeErrorMessage(msg: string): string {
-  if (!msg || typeof msg !== 'string') return 'Une erreur est survenue';
+  if (!msg || typeof msg !== 'string') return 'An error occurred';
   const safe = msg.substring(0, 200);
   if (safe.includes('<!DOCTYPE') || safe.includes('<html') || safe.includes('Error:')) {
     return 'Erreur interne du serveur';

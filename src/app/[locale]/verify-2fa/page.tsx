@@ -44,8 +44,8 @@ export default function Verify2FAPage() {
       <Card className="max-w-md w-full shadow-xl rounded-3xl">
         <CardContent className="p-8 text-center space-y-6">
           <Shield className="w-16 h-16 text-violet-600 mx-auto" />
-          <h1 className="text-2xl font-bold">Vérification 2FA</h1>
-          <p className="text-sm text-slate-500">Entrez le code de votre application d'authentification</p>
+          <h1 className="text-2xl font-bold">2FA Verification</h1>
+          <p className="text-sm text-slate-500">Enter the code from your authenticator app</p>
           
           <input
             type="text"
@@ -60,7 +60,7 @@ export default function Verify2FAPage() {
           {error && <p className="text-red-600 text-sm">{error}</p>}
           
           <Button onClick={handleVerify} fullWidth disabled={loading || code.length !== 6}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
           </Button>
         </CardContent>
       </Card>

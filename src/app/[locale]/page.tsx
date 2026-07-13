@@ -58,27 +58,27 @@ export default function HomePage() {
 
   // Services — TOUT passe par le Wallet
   const availableServices = [
-    { icon: Wallet, title: 'PayPal → Wallet', desc: 'Déposez depuis PayPal sur votre wallet.', fee: '5%', href: '/wallet', color: 'from-violet-600 to-indigo-600', bg: 'bg-violet-50', text: 'text-violet-600' },
-    { icon: Phone, title: 'Mobile Money → Wallet', desc: 'Rechargez depuis Orange, MTN, Airtel...', fee: '3%', href: '/wallet', color: 'from-amber-500 to-orange-600', bg: 'bg-amber-50', text: 'text-amber-600' },
-    { icon: Building, title: 'Banque → Wallet', desc: 'Virement SEPA/SWIFT vers votre IBAN.', fee: '2%', href: '/iban', color: 'from-blue-600 to-cyan-600', bg: 'bg-blue-50', text: 'text-blue-600' },
-    { icon: Bitcoin, title: 'Crypto → Wallet', desc: 'BTC, USDT, ETH directement sur wallet.', fee: '2%', href: '/crypto', color: 'from-orange-500 to-yellow-600', bg: 'bg-orange-50', text: 'text-orange-600' },
-    { icon: ArrowLeftRight, title: 'Stripe/IBAN → Wallet', desc: 'Virement SEPA, Stripe vers votre wallet.', fee: '2%', href: '/iban', color: 'from-cyan-600 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600' },
-    { icon: Users, title: 'PM → Wallet (Gratuit)', desc: 'Recevez depuis un autre utilisateur PayMaestro.', fee: '0%', href: '/wallet', color: 'from-green-600 to-emerald-600', bg: 'bg-green-50', text: 'text-green-600' },
-    { icon: ArrowLeftRight, title: 'Wallet → Mobile Money', desc: 'Retirez vers Orange, MTN, Airtel...', fee: '3%', href: '/wallet', color: 'from-emerald-600 to-green-600', bg: 'bg-emerald-50', text: 'text-emerald-600' },
-    { icon: Globe, title: 'Wallet → Banque', desc: 'Retirez vers un compte bancaire international.', fee: '2-5%', href: '/bank', color: 'from-cyan-600 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600', adminOnly: true },
-    { icon: Wallet, title: 'Wallet → PayPal', desc: 'Retirez de votre wallet vers PayPal.', fee: '3%', href: '/wallet', color: 'from-violet-600 to-indigo-600', bg: 'bg-violet-50', text: 'text-violet-600', adminOnly: true },
-    { icon: Bitcoin, title: 'Wallet → Crypto', desc: 'Achetez BTC, USDT, ETH depuis votre wallet.', fee: '2%', href: '/crypto', color: 'from-orange-500 to-yellow-600', bg: 'bg-orange-50', text: 'text-orange-600', adminOnly: true },
-    { icon: CreditCard, title: 'Wallet → Carte Virtuelle', desc: 'Visa/Mastercard liée à votre wallet.', fee: '1%+2%FX', href: '/cards', color: 'from-purple-600 to-pink-600', bg: 'bg-purple-50', text: 'text-purple-600' },
-    { icon: Users, title: 'Wallet → PM (Gratuit)', desc: 'Transférez gratuitement à un autre utilisateur.', fee: '0%', href: '/wallet/transfer?source=pm', color: 'from-green-600 to-emerald-600', bg: 'bg-green-50', text: 'text-green-600' },
+    { icon: Wallet, title: 'PayPal → Wallet', desc: 'Deposit from PayPal to your wallet.', fee: '5%', href: '/wallet', color: 'from-violet-600 to-indigo-600', bg: 'bg-violet-50', text: 'text-violet-600' },
+    { icon: Phone, title: 'Mobile Money → Wallet', desc: 'Top up from Orange, MTN, Airtel...', fee: '3%', href: '/wallet', color: 'from-amber-500 to-orange-600', bg: 'bg-amber-50', text: 'text-amber-600' },
+    { icon: Building, title: 'Bank → Wallet', desc: 'SEPA/SWIFT transfer to your IBAN.', fee: '2%', href: '/iban', color: 'from-blue-600 to-cyan-600', bg: 'bg-blue-50', text: 'text-blue-600' },
+    { icon: Bitcoin, title: 'Crypto → Wallet', desc: 'BTC, USDT, ETH directly to wallet.', fee: '2%', href: '/crypto', color: 'from-orange-500 to-yellow-600', bg: 'bg-orange-50', text: 'text-orange-600' },
+    { icon: ArrowLeftRight, title: 'Stripe/IBAN → Wallet', desc: 'SEPA transfer, Stripe to your wallet.', fee: '2%', href: '/iban', color: 'from-cyan-600 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600' },
+    { icon: Users, title: 'PM → Wallet (Free)', desc: 'Receive from another PayMaestro user.', fee: '0%', href: '/wallet', color: 'from-green-600 to-emerald-600', bg: 'bg-green-50', text: 'text-green-600' },
+    { icon: ArrowLeftRight, title: 'Wallet → Mobile Money', desc: 'Withdraw to Orange, MTN, Airtel...', fee: '3%', href: '/wallet', color: 'from-emerald-600 to-green-600', bg: 'bg-emerald-50', text: 'text-emerald-600' },
+    { icon: Globe, title: 'Wallet → Bank', desc: 'Withdraw to an international bank account.', fee: '2-5%', href: '/bank', color: 'from-cyan-600 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600', adminOnly: true },
+    { icon: Wallet, title: 'Wallet → PayPal', desc: 'Withdraw from your wallet to PayPal.', fee: '3%', href: '/wallet', color: 'from-violet-600 to-indigo-600', bg: 'bg-violet-50', text: 'text-violet-600', adminOnly: true },
+    { icon: Bitcoin, title: 'Wallet → Crypto', desc: 'Buy BTC, USDT, ETH from your wallet.', fee: '2%', href: '/crypto', color: 'from-orange-500 to-yellow-600', bg: 'bg-orange-50', text: 'text-orange-600', adminOnly: true },
+    { icon: CreditCard, title: 'Wallet → Virtual Card', desc: 'Visa/Mastercard linked to your wallet.', fee: '1%+2%FX', href: '/cards', color: 'from-purple-600 to-pink-600', bg: 'bg-purple-50', text: 'text-purple-600' },
+    { icon: Users, title: 'Wallet → PM (Free)', desc: 'Transfer for free to another user.', fee: '0%', href: '/wallet/transfer?source=pm', color: 'from-green-600 to-emerald-600', bg: 'bg-green-50', text: 'text-green-600' },
   ];
 
   const services = isGatewayAdmin ? availableServices : availableServices.filter(s => !s.adminOnly);
 
   const features = [
-    { icon: Globe, title: '54 Pays Africains', desc: 'Présent dans tous les pays d\'Afrique. Envoyez et recevez partout.' },
-    { icon: ShieldCheck, title: 'Sécurité Bancaire', desc: 'Protection de vos fonds conforme aux standards internationaux.' },
-    { icon: Percent, title: 'Taux Transparents', desc: 'Frais affichés avant chaque transaction. Aucun frais caché.' },
-    { icon: MessageSquare, title: 'Support Humain', desc: 'Des conseillers disponibles pour vous assister à tout moment.' },
+    { icon: Globe, title: '54 African Countries', desc: 'Present in all African countries. Send and receive everywhere.' },
+    { icon: ShieldCheck, title: 'Bank-Grade Security', desc: 'Fund protection compliant with international standards.' },
+    { icon: Percent, title: 'Transparent Rates', desc: 'Fees displayed before every transaction. No hidden fees.' },
+    { icon: MessageSquare, title: 'Human Support', desc: 'Advisors available to assist you at any time.' },
   ];
 
   return (
@@ -88,22 +88,22 @@ export default function HomePage() {
       {/* ============================================ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-7 space-y-6">
-          <Badge variant="info" className="px-3 py-1 text-xs">⚡ La plateforme financière panafricaine</Badge>
+          <Badge variant="info" className="px-3 py-1 text-xs">⚡ The pan-African financial platform</Badge>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-            L'argent sans frontières,{' '}
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">pour toute l'Afrique.</span>
+            Money without borders,{' '}
+            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">for all of Africa.</span>
           </h1>
           <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
-            Stockez, envoyez et retirez vos fonds vers Mobile Money, comptes bancaires et plus encore dans 54 pays africains. <strong>Tout passe par votre wallet sécurisé.</strong>
+            Store, send and withdraw your funds to Mobile Money, bank accounts and more in 54 African countries. <strong>Everything goes through your secure wallet.</strong>
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href={`/${locale}/wallet`}><Button size="lg">{t('heroCTA')} <ArrowRight className="w-5 h-5 ml-2" /></Button></Link>
-            <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">Voir nos tarifs</Button></Link>
+            <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">See our rates</Button></Link>
           </div>
           <div className="flex items-center gap-6 pt-4 text-xs text-slate-400 dark:text-slate-500">
-            <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /><span>Sécurité bancaire</span></div>
-            <div className="flex items-center gap-1.5"><Globe className="w-4 h-4 text-emerald-500" /><span>54 pays africains</span></div>
-            <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-emerald-500" /><span>Taux en temps réel</span></div>
+            <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /><span>Bank security</span></div>
+            <div className="flex items-center gap-1.5"><Globe className="w-4 h-4 text-emerald-500" /><span>54 African countries</span></div>
+            <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-emerald-500" /><span>Real-time rates</span></div>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export default function HomePage() {
           <Card className="relative overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-700 shadow-2xl bg-white dark:bg-slate-800">
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Calculateur Wallet</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Wallet Calculator</h3>
                 {ratesLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500" />}
               </div>
               <div className="space-y-2">
@@ -136,11 +136,11 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl border border-slate-100 dark:border-slate-600 space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
-                <div className="flex justify-between"><span>Frais de dépôt (5%)</span><span className="font-semibold text-red-500">-${platformFee.toFixed(2)} USD</span></div>
+                <div className="flex justify-between"><span>Deposit fee (5%)</span><span className="font-semibold text-red-500">-${platformFee.toFixed(2)} USD</span></div>
                 <div className="flex justify-between"><span>Taux de change</span><span className="font-semibold text-slate-700 dark:text-slate-300">1 USD = {exchangeRate} {currency}{estimateData?.exchangeRate?.source === 'live' && <span className="ml-1 text-green-500">●</span>}</span></div>
-                <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2.5 text-sm"><span className="font-bold text-slate-800 dark:text-slate-200">Sur votre wallet</span><span className="font-extrabold text-violet-600">${netUSD.toFixed(2)} USD</span></div>
+                <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2.5 text-sm"><span className="font-bold text-slate-800 dark:text-slate-200">On your wallet</span><span className="font-extrabold text-violet-600">${netUSD.toFixed(2)} USD</span></div>
               </div>
-              <Link href={`/${locale}/wallet`}><Button variant="primary" fullWidth size="lg">Ouvrir mon Wallet</Button></Link>
+              <Link href={`/${locale}/wallet`}><Button variant="primary" fullWidth size="lg">Open my Wallet</Button></Link>
             </CardContent>
           </Card>
         </div>
@@ -151,17 +151,17 @@ export default function HomePage() {
       {/* ============================================ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-4">
-          <Badge variant="info" className="px-3 py-1 text-xs">Flux sécurisé</Badge>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Tout passe par votre Wallet</h2>
+          <Badge variant="info" className="px-3 py-1 text-xs">Secure flow</Badge>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Everything goes through your Wallet</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
-            Déposez, stockez, retirez. Votre argent est tracé et sécurisé à chaque étape.
+            Deposit, store, withdraw. Your money is tracked and secured at every step.
           </p>
         </div>
 
         {/* Entrées → Wallet */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-            <ArrowLeftRight className="w-4 h-4" /> Entrées (Dépôts)
+            <ArrowLeftRight className="w-4 h-4" /> Entries (Deposits)
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             {services.slice(0, 6).map((service) => (
@@ -186,9 +186,9 @@ export default function HomePage() {
           <Card className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl shadow-xl border-0 max-w-md w-full">
             <CardContent className="p-6 text-center space-y-2">
               <Wallet className="w-10 h-10 mx-auto" />
-              <h3 className="text-xl font-bold">💰 Wallet PayMaestro</h3>
-              <p className="text-sm text-emerald-100">Sécurisé • Tracé • Gelable • Multi-devises</p>
-              <Link href={`/${locale}/wallet`}><Button variant="secondary" size="sm">Accéder au Wallet</Button></Link>
+              <h3 className="text-xl font-bold">💰 PayMaestro Wallet</h3>
+              <p className="text-sm text-emerald-100">Secure • Tracked • Freezable • Multi-currency</p>
+              <Link href={`/${locale}/wallet`}><Button variant="secondary" size="sm">Access Wallet</Button></Link>
             </CardContent>
           </Card>
         </div>
@@ -196,7 +196,7 @@ export default function HomePage() {
         {/* Wallet → Sorties */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">
-            <Send className="w-4 h-4" /> Sorties (Retraits)
+            <Send className="w-4 h-4" /> Exits (Withdrawals)
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             {services.slice(6).map((service) => (
@@ -222,9 +222,9 @@ export default function HomePage() {
       {/* ============================================ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Pourquoi choisir PayMaestro</h2>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Why choose PayMaestro</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
-            La plateforme conçue pour les créateurs, entrepreneurs et familles africaines.
+            The platform built for African creators, entrepreneurs and families.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -254,8 +254,8 @@ export default function HomePage() {
       {/* ============================================ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Disponible dans 54 pays africains</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Et nous continuons d'étendre notre couverture</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Available in 54 African countries</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">And we keep expanding our coverage</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
           {countries.map((c: any) => (
@@ -271,11 +271,11 @@ export default function HomePage() {
       {/* CTA FINAL */}
       {/* ============================================ */}
       <section className="max-w-3xl mx-auto px-4 text-center space-y-6">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Prêt à commencer ?</h2>
-        <p className="text-slate-500 dark:text-slate-400">Rejoignez des milliers d'utilisateurs qui font confiance à PayMaestro.</p>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Ready to get started?</h2>
+        <p className="text-slate-500 dark:text-slate-400">Join thousands of users who trust PayMaestro.</p>
         <div className="flex gap-4 justify-center">
-          <Link href={`/${locale}/login`}><Button size="lg">Se connecter</Button></Link>
-          <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">Voir les tarifs</Button></Link>
+          <Link href={`/${locale}/login`}><Button size="lg">Log in</Button></Link>
+          <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">See our rates</Button></Link>
         </div>
       </section>
     </div>

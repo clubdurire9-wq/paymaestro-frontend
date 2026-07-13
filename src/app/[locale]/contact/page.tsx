@@ -85,11 +85,11 @@ export default function ContactPage() {
         ticket_id: res.ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: 'Patientez quelques minutes, un agent va prendre en charge votre demande.',
+        message: 'Please wait a few minutes, an agent will handle your request.',
         created_at: new Date().toISOString(),
       }]);
     } catch (err: any) {
-      setError(err?.message || 'Erreur lors de l\'envoi. Réessayez plus tard.');
+      setError(err?.message || 'Error sending message. Try again later.');
     } finally {
       setSending(false);
     }
@@ -152,7 +152,7 @@ export default function ContactPage() {
         ticket_id: ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: 'Erreur lors de l\'envoi. Réessayez.',
+        message: 'Error sending message. Try again.',
         created_at: new Date().toISOString(),
       }]);
     } finally {
@@ -184,14 +184,14 @@ export default function ContactPage() {
               )}
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              {isResolved ? 'Ticket résolu' : 'Support en direct'}
+              {isResolved ? 'Ticket resolved' : 'Live Support'}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {isResolved
-                ? 'Ce ticket est fermé. Merci de nous avoir contactés.'
+                ? 'This ticket is closed. Thank you for contacting us.'
                 : agentName
-                  ? `Vous discutez avec ${agentName}`
-                  : `Ticket #${ticketId} — En attente d\'un agent...`}
+                  ? `You are chatting with ${agentName}`
+                  : `Ticket #${ticketId} — Waiting for an agent...`}
             </p>
           </div>
 
@@ -257,7 +257,7 @@ export default function ContactPage() {
                 {!isResolved && !agentName && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-300">
                     <Clock className="w-4 h-4 shrink-0" />
-                    Un agent va bientôt vous rejoindre...
+                    An agent will join you shortly...
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -327,7 +327,7 @@ export default function ContactPage() {
               ) : (
                 <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Ce ticket est fermé. Si vous avez besoin d'aide, créez un nouveau ticket.
+                    This ticket is closed. If you need help, create a new ticket.
                   </p>
                 </div>
               )}
@@ -335,7 +335,7 @@ export default function ContactPage() {
           </Card>
 
           <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
-            Ticket #{ticketId} · {ticketStatus === 'OPEN' ? 'En attente' : ticketStatus === 'IN_PROGRESS' ? 'En cours' : 'Résolu'}
+            Ticket #{ticketId} · {ticketStatus === 'OPEN' ? 'Pending' : ticketStatus === 'IN_PROGRESS' ? 'In progress' : 'Resolved'}
           </p>
         </div>
 
@@ -371,9 +371,9 @@ export default function ContactPage() {
           <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-4">
             <HeadphonesIcon className="w-8 h-8 text-violet-600 dark:text-violet-400" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Contacter le Support</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Contact Support</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-            Une question, un problème ? Décrivez-nous tout et un agent vous répond en direct.
+            A question or issue? Tell us everything and an agent will answer you live.
           </p>
         </div>
 
@@ -395,15 +395,15 @@ export default function ContactPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Sujet <span className="text-slate-400 dark:text-slate-500">(optionnel)</span></label>
-                <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ex: Problème de retrait" />
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Subject <span className="text-slate-400 dark:text-slate-500">(optional)</span></label>
+                <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. Withdrawal issue" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Message <span className="text-red-500">*</span></label>
                 <textarea
                   value={message}
                   onChange={e => setMessage(e.target.value)}
-                  placeholder="Décrivez votre demande en quelques lignes..."
+                  placeholder="Describe your request in a few lines..."
                   required rows={4}
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-colors resize-none"
                 />
@@ -415,7 +415,7 @@ export default function ContactPage() {
                 </div>
               )}
               <Button type="submit" disabled={sending || !email.trim() || !message.trim()} className="w-full">
-                {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Envoi en cours...</> : 'Envoyer'}
+                {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sending...</> : 'Send'}
               </Button>
             </form>
           </CardContent>

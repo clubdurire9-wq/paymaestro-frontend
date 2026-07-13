@@ -56,9 +56,9 @@ export default function AdminRefundsPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-        <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">Erreur de chargement</p>
+        <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">Loading Error</p>
         <p className="text-sm text-slate-400 mt-1 mb-6">{error}</p>
-        <Button onClick={loadRefunds} icon={<RefreshCw className="w-4 h-4" />}>Réessayer</Button>
+        <Button onClick={loadRefunds} icon={<RefreshCw className="w-4 h-4" />}>Retry</Button>
       </div>
     </div>
   );
@@ -77,17 +77,17 @@ export default function AdminRefundsPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <RotateCcw className="w-6 h-6 text-orange-500" />
-              Remboursements
+              Refunds
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              {refunds.length} remboursement(s) — Total : {formatCurrency(totalRefunded)}$
+              {refunds.length} refund(s) — Total: {formatCurrency(totalRefunded)}$
             </p>
           </div>
         </div>
         <Button variant="outline" onClick={loadRefunds} disabled={loading} icon={
           loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />
         }>
-          Actualiser
+          Refresh
         </Button>
       </div>
 
@@ -95,19 +95,19 @@ export default function AdminRefundsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-orange-500">
           <CardContent className="pt-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total remboursé</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Refunded</p>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{formatCurrency(totalRefunded)}$</h3>
           </CardContent>
         </Card>
         <Card className="border-l-4 border-l-violet-500">
           <CardContent className="pt-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Remboursements</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Refunds</p>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{refunds.length}</h3>
           </CardContent>
         </Card>
         <Card className="border-l-4 border-l-emerald-500">
           <CardContent className="pt-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Complets</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Full</p>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
               {refunds.filter(r => r.notes && !r.notes.includes('PARTIEL')).length}
             </h3>
@@ -115,7 +115,7 @@ export default function AdminRefundsPage() {
         </Card>
         <Card className="border-l-4 border-l-amber-500">
           <CardContent className="pt-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Partiels</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Partial</p>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
               {refunds.filter(r => r.notes && r.notes.includes('PARTIEL')).length}
             </h3>
@@ -131,7 +131,7 @@ export default function AdminRefundsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Rechercher par ID, email, utilisateur ou notes..."
+                placeholder="Search by ID, email, user or notes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') setSearchTerm(e.currentTarget.value.trim()); }}
@@ -139,7 +139,7 @@ export default function AdminRefundsPage() {
               />
             </div>
             <Button onClick={() => setSearchTerm(searchTerm.trim())} icon={<Search className="w-4 h-4" />}>
-              <span className="hidden sm:inline">Rechercher</span>
+              <span className="hidden sm:inline">Search</span>
             </Button>
             {searchTerm && (
               <Button variant="ghost" onClick={() => setSearchTerm('')}>
@@ -160,10 +160,10 @@ export default function AdminRefundsPage() {
           <CardContent className="py-16 text-center">
             <RotateCcw className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="font-semibold text-slate-600 dark:text-slate-400">
-              {searchTerm ? 'Aucun remboursement ne correspond' : 'Aucun remboursement'}
+              {searchTerm ? 'No matching refunds' : 'No refunds'}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {searchTerm ? 'Essayez un autre terme de recherche' : 'Les remboursements effectués apparaîtront ici'}
+              {searchTerm ? 'Try another search term' : 'Completed refunds will appear here'}
             </p>
           </CardContent>
         </Card>
@@ -176,10 +176,10 @@ export default function AdminRefundsPage() {
                   <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 dark:border-slate-700 dark:bg-slate-800/50 text-xs uppercase font-semibold">
                     <th className="py-3 px-5">ID</th>
                     <th className="py-3 px-5">Date</th>
-                    <th className="py-3 px-5">Utilisateur</th>
-                    <th className="py-3 px-5">Montant</th>
+                    <th className="py-3 px-5">User</th>
+                    <th className="py-3 px-5">Amount</th>
                     <th className="py-3 px-5">Type</th>
-                    <th className="py-3 px-5">Statut</th>
+                    <th className="py-3 px-5">Status</th>
                     <th className="py-3 px-5">Notes</th>
                   </tr>
                 </thead>
@@ -206,7 +206,7 @@ export default function AdminRefundsPage() {
                       </td>
                       <td className="py-3 px-5">
                         <Badge variant={r.notes?.includes('PARTIEL') ? 'warning' : 'error'}>
-                          {r.notes?.includes('PARTIEL') ? 'Partiel' : 'Total'}
+                          {r.notes?.includes('PARTIEL') ? 'Partial' : 'Total'}
                         </Badge>
                       </td>
                       <td className="py-3 px-5">

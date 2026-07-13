@@ -126,10 +126,10 @@ export default function AdminDisputesPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <AlertTriangle className="w-6 h-6 text-amber-500" />
-              Litiges & Corrections
+              Disputes & Corrections
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Compensez un retrait échoué ou redirigez un transfert vers le bon destinataire
+              Compensate a failed withdrawal or redirect a transfer to the right recipient
             </p>
           </div>
         </div>
@@ -169,10 +169,10 @@ export default function AdminDisputesPage() {
                 <Send className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Rediriger un transfert PM→PM</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Redirect a PM→PM Transfer</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  L&apos;utilisateur a envoyé au mauvais email. Récupérez l&apos;argent du mauvais destinataire
-                  et créditez le bon compte.
+                  The user sent to the wrong email. Recover the funds from the wrong recipient
+                  and credit the correct account.
                 </p>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function AdminDisputesPage() {
                 {/* Transaction ID with lookup */}
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    ID de la transaction PM→PM
+                    PM→PM Transaction ID
                   </label>
                   <div className="relative">
                     <input
@@ -280,48 +280,48 @@ export default function AdminDisputesPage() {
                   )}
                   {pmCorrectUser?.notFound && (
                     <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> Aucun compte trouvé avec cet email
+                      <AlertTriangle className="w-3 h-3" /> No account found with this email
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Raison
+                    Reason
                   </label>
                   <select
                     value={pmReason}
                     onChange={(e) => setPmReason(e.target.value)}
                     className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   >
-                    <option value="">Sélectionnez...</option>
-                    <option value="Email erroné de la part de l'utilisateur">Email erroné de la part de l&apos;utilisateur</option>
-                    <option value="Faute de frappe dans l'email">Faute de frappe dans l&apos;email</option>
-                    <option value="Utilisateur a mal recopié l'email">Utilisateur a mal recopié l&apos;email</option>
-                    <option value="Confusion entre deux comptes">Confusion entre deux comptes</option>
+                    <option value="">Select...</option>
+                    <option value="Wrong email from user">Wrong email from user</option>
+                    <option value="Typo in email">Typo in email</option>
+                    <option value="User mis-copied the email">User mis-copied the email</option>
+                    <option value="Confusion between two accounts">Confusion between two accounts</option>
                   </select>
                   <input
                     type="text"
                     value={pmReason}
                     onChange={(e) => setPmReason(e.target.value)}
-                    placeholder="Ou tapez une raison personnalisée..."
+                    placeholder="Or type a custom reason..."
                     className="w-full px-4 py-2.5 mt-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   />
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
                   <span>
-                    Action tracée dans la blockchain d&apos;audit avec votre identité
+                    Action traced in the audit blockchain with your identity
                     (<strong className="text-slate-700 dark:text-slate-300">{'{'}email, ID, IP{'}'}</strong>).
-                    Votre geste admin est horodaté et infalsifiable.
+                    Your admin action is timestamped and tamper-proof.
                   </span>
                 </div>
                 <Button
                   onClick={handleRedirectPm}
                   disabled={pmLoading || !pmTxLookup?.recipient || !pmCorrectUser?.id || pmCorrectUser?.id === pmTxLookup?.recipient?.id || !pmReason.trim()}
                   title={
-                    !pmTxLookup?.recipient ? 'Vérifiez d\'abord la transaction' :
-                    !pmCorrectUser?.id ? 'Vérifiez d\'abord le destinataire' :
-                    pmCorrectUser?.id === pmTxLookup?.recipient?.id ? 'Le destinataire est identique à l\'actuel' :
+                    !pmTxLookup?.recipient ? 'Verify the transaction first' :
+                    !pmCorrectUser?.id ? 'Verify the recipient first' :
+                    pmCorrectUser?.id === pmTxLookup?.recipient?.id ? 'The recipient is the same as the current one' :
                     ''
                   }
                   icon={pmLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -421,36 +421,36 @@ export default function AdminDisputesPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Raison
+                    Reason
                   </label>
                   <select
                     value={crReason}
                     onChange={(e) => setCrReason(e.target.value)}
                     className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   >
-                    <option value="">Sélectionnez...</option>
-                    <option value="Dépôt crypto non reçu (capture écran fournie)">Dépôt crypto non reçu (capture écran fournie)</option>
-                    <option value="Dépôt PayPal non reçu (capture écran fournie)">Dépôt PayPal non reçu (capture écran fournie)</option>
-                    <option value="Dépôt IBAN non reçu (capture écran fournie)">Dépôt IBAN non reçu (capture écran fournie)</option>
-                    <option value="Retrait Mobile Money non reçu">Retrait Mobile Money non reçu</option>
-                    <option value="Timeout du fournisseur de paiement">Timeout du fournisseur de paiement</option>
-                    <option value="Fonds bloqués chez le fournisseur">Fonds bloqués chez le fournisseur</option>
-                    <option value="Litige client résolu en sa faveur">Litige client résolu en sa faveur</option>
+                    <option value="">Select...</option>
+                    <option value="Crypto deposit not received (screenshot provided)">Crypto deposit not received (screenshot provided)</option>
+                    <option value="PayPal deposit not received (screenshot provided)">PayPal deposit not received (screenshot provided)</option>
+                    <option value="IBAN deposit not received (screenshot provided)">IBAN deposit not received (screenshot provided)</option>
+                    <option value="Mobile Money withdrawal not received">Mobile Money withdrawal not received</option>
+                    <option value="Payment provider timeout">Payment provider timeout</option>
+                    <option value="Funds blocked at provider">Funds blocked at provider</option>
+                    <option value="Customer dispute resolved in their favor">Customer dispute resolved in their favor</option>
                   </select>
                   <input
                     type="text"
                     value={crReason}
                     onChange={(e) => setCrReason(e.target.value)}
-                    placeholder="Ou tapez une raison personnalisée..."
+                    placeholder="Or type a custom reason..."
                     className="w-full px-4 py-2.5 mt-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                   />
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
                   <span>
-                    Cette action sera enregistrée dans la blockchain d&apos;audit avec votre identité
-                    d&apos;admin (<strong className="text-slate-700 dark:text-slate-300">email, ID, IP</strong>).
-                    Toute modification est tracée et vérifiable.
+                    This action will be recorded in the audit blockchain with your admin
+                    identity (<strong className="text-slate-700 dark:text-slate-300">email, ID, IP</strong>).
+                    Any modification is traced and verifiable.
                   </span>
                 </div>
                 <Button

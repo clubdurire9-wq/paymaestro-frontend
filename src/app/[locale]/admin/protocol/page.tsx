@@ -22,176 +22,176 @@ export default function AdminProtocolPage() {
   ];
 
   const mobileQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT de la transaction (en dollars et en devise locale) ?", why: "Un hacker ne connaît pas le montant précis", trap: "Demander les DEUX montants : USD et local" },
-    { q: "Quel numéro de téléphone avez-vous utilisé pour ce retrait ?", why: "Comparer avec les logs", trap: "Le hacker peut avoir un numéro différent" },
-    { q: "À quelle date et heure PRÉCISE avez-vous fait ce transfert ?", why: "Vérifier dans l'historique", trap: "Demander l'heure exacte (±30 min toléré)" },
-    { q: "Quel opérateur avez-vous sélectionné (Orange, MTN, Airtel...) ?", why: "Confirmer le choix technique", trap: "Beaucoup oublient l'opérateur" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT transaction amount (in dollars and local currency)?", why: "A hacker doesn't know the precise amount", trap: "Ask for BOTH amounts: USD and local" },
+    { q: "What phone number did you use for this withdrawal?", why: "Compare with logs", trap: "The hacker may have a different number" },
+    { q: "On what EXACT date and time did you make this transfer?", why: "Check in history", trap: "Ask for exact time (±30 min tolerated)" },
+    { q: "Which operator did you select (Orange, MTN, Airtel...)?", why: "Confirm the technical choice", trap: "Many forget the operator" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const bankQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT du virement bancaire ?", why: "Un hacker ne connaît pas le montant précis", trap: "Demander le montant en USD et la devise de destination" },
-    { q: "Quel est l'IBAN complet du compte destinataire ?", why: "Vérifier que le compte existe bien", trap: "Un hacker ne connaît pas l'IBAN exact" },
-    { q: "Quel est le nom du titulaire du compte bancaire ?", why: "Confirmer l'identité du destinataire", trap: "Le nom doit correspondre aux logs" },
-    { q: "Dans quel pays se trouve la banque destinataire ?", why: "Vérifier la cohérence géographique", trap: "Croiser avec l'IBAN (code pays)" },
-    { q: "Quel est le SWIFT/BIC de la banque ?", why: "Confirmer les détails techniques", trap: "Peu de gens connaissent leur SWIFT par cœur" },
-    { q: "À quelle date et heure avez-vous initié ce virement ?", why: "Vérifier dans l'historique", trap: "Demander l'heure exacte" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT bank transfer amount?", why: "A hacker doesn't know the precise amount", trap: "Ask for the amount in USD and destination currency" },
+    { q: "What is the full IBAN of the recipient account?", why: "Verify the account exists", trap: "A hacker won't know the exact IBAN" },
+    { q: "What is the name of the bank account holder?", why: "Confirm the recipient's identity", trap: "The name must match the logs" },
+    { q: "In which country is the recipient bank located?", why: "Verify geographical consistency", trap: "Cross-check with IBAN (country code)" },
+    { q: "What is the bank's SWIFT/BIC code?", why: "Confirm technical details", trap: "Few people know their SWIFT by heart" },
+    { q: "On what date and time did you initiate this transfer?", why: "Check in history", trap: "Ask for exact time" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const paypalQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT du retrait PayPal ?", why: "Un hacker ne connaît pas le montant précis", trap: "Demander le montant en USD" },
-    { q: "Quel est l'email PayPal associé à votre compte ?", why: "Confirmer que le compte PayPal lui appartient", trap: "Un hacker peut donner un faux email" },
-    { q: "À quelle date avez-vous fait ce retrait ?", why: "Vérifier dans l'historique", trap: "Demander la date précise" },
-    { q: "Quel était le solde de votre compte PayPal avant le retrait ?", why: "Seul le vrai propriétaire connaît cette info", trap: "Information très personnelle" },
-    { q: "Avez-vous reçu une confirmation de PayPal pour cette transaction ?", why: "Vérifier l'email PayPal de confirmation", trap: "Demander de transférer l'email PayPal" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT PayPal withdrawal amount?", why: "A hacker doesn't know the precise amount", trap: "Ask for the amount in USD" },
+    { q: "What is the PayPal email associated with your account?", why: "Confirm the PayPal account belongs to them", trap: "A hacker may provide a fake email" },
+    { q: "On what date did you make this withdrawal?", why: "Check in history", trap: "Ask for the precise date" },
+    { q: "What was your PayPal account balance before the withdrawal?", why: "Only the real owner knows this info", trap: "Very personal information" },
+    { q: "Did you receive a PayPal confirmation for this transaction?", why: "Verify the PayPal confirmation email", trap: "Ask to forward the PayPal email" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const stripeQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT du paiement reçu sur votre IBAN ?", why: "Un hacker ne connaît pas le montant précis", trap: "Demander le montant en euros" },
-    { q: "Qui vous a envoyé ce paiement ? (Nom du client)", why: "Vérifier l'origine du virement", trap: "Un hacker ne connaît pas l'expéditeur" },
-    { q: "Quel est votre IBAN Stripe ?", why: "Vérifier que l'IBAN lui appartient", trap: "Demander les 8 derniers caractères" },
-    { q: "Depuis combien de temps avez-vous votre IBAN Stripe ?", why: "Vérifier la cohérence", trap: "Si < 24h → suspect" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT payment amount received on your IBAN?", why: "A hacker doesn't know the precise amount", trap: "Ask for the amount in euros" },
+    { q: "Who sent you this payment? (Client name)", why: "Verify the origin of the transfer", trap: "A hacker won't know the sender" },
+    { q: "What is your Stripe IBAN?", why: "Verify the IBAN belongs to them", trap: "Ask for the last 8 characters" },
+    { q: "How long have you had your Stripe IBAN?", why: "Verify consistency", trap: "If < 24h → suspicious" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const pm2pmQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT envoyé ?", why: "Vérifier la transaction", trap: "Demander le montant précis" },
-    { q: "Quel est l'email du destinataire ?", why: "Vérifier que vous connaissez le destinataire", trap: "Un hacker peut inventer un email" },
-    { q: "Quel est le nom complet du destinataire ?", why: "Vérifier que vous connaissez la personne", trap: "Croiser avec le profil" },
-    { q: "Depuis combien de temps connaissez-vous ce destinataire ?", why: "Détecter les transferts suspects", trap: "Si < 24h → suspect" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT amount sent?", why: "Verify the transaction", trap: "Ask for the precise amount" },
+    { q: "What is the recipient's email?", why: "Verify you know the recipient", trap: "A hacker can make up an email" },
+    { q: "What is the recipient's full name?", why: "Verify you know the person", trap: "Cross-check with the profile" },
+    { q: "How long have you known this recipient?", why: "Detect suspicious transfers", trap: "If < 24h → suspicious" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const bank2walletQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel montant avez-vous déposé par virement bancaire ?", why: "Vérifier le montant exact", trap: "Demander le montant et la devise" },
-    { q: "Depuis quelle banque avez-vous fait le virement ?", why: "Vérifier l'origine des fonds", trap: "Croiser avec l'IBAN expéditeur" },
-    { q: "Quand avez-vous effectué ce virement ?", why: "Vérifier la date", trap: "Demander la date précise" },
-    { q: "Quel est votre IBAN Stripe ?", why: "Vérifier que l'IBAN lui appartient", trap: "Demander les 8 derniers caractères" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What amount did you deposit by bank transfer?", why: "Verify the exact amount", trap: "Ask for the amount and currency" },
+    { q: "From which bank did you make the transfer?", why: "Verify the source of funds", trap: "Cross-check with sender's IBAN" },
+    { q: "When did you make this transfer?", why: "Verify the date", trap: "Ask for the precise date" },
+    { q: "What is your Stripe IBAN?", why: "Verify the IBAN belongs to them", trap: "Ask for the last 8 characters" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const mobile2walletQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel est le montant EXACT que vous avez déposé (en devise locale) ?", why: "Vérifier le montant du dépôt", trap: "Demander le montant en devise locale et l'équivalent USD" },
-    { q: "Quel numéro de téléphone avez-vous utilisé pour ce dépôt ?", why: "Comparer avec les logs", trap: "Le hacker peut avoir un numéro différent" },
-    { q: "Quel opérateur avez-vous utilisé (Orange, MTN, Airtel...) ?", why: "Confirmer le choix technique", trap: "Beaucoup oublient l'opérateur" },
-    { q: "Quel est le nom associé à votre compte Mobile Money ?", why: "Vérifier que le compte lui appartient", trap: "Croiser avec Flutterwave lookup" },
-    { q: "À quelle date et heure avez-vous fait ce dépôt ?", why: "Vérifier dans l'historique", trap: "Demander l'heure exacte (±30 min toléré)" },
-    { q: "Quel était le solde de votre wallet AVANT ce dépôt ?", why: "Seul le vrai propriétaire connaît cette info", trap: "Information très personnelle" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", why: "Vérifier la localisation", trap: "Comparer avec la géolocalisation de l'IP", geoCheck: true },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What is the EXACT amount you deposited (in local currency)?", why: "Verify the deposit amount", trap: "Ask for the amount in local currency and USD equivalent" },
+    { q: "What phone number did you use for this deposit?", why: "Compare with logs", trap: "The hacker may have a different number" },
+    { q: "Which operator did you use (Orange, MTN, Airtel...)?", why: "Confirm the technical choice", trap: "Many forget the operator" },
+    { q: "What is the name associated with your Mobile Money account?", why: "Verify the account belongs to them", trap: "Cross-check with Flutterwave lookup" },
+    { q: "On what date and time did you make this deposit?", why: "Check in history", trap: "Ask for exact time (±30 min tolerated)" },
+    { q: "What was your wallet balance BEFORE this deposit?", why: "Only the real owner knows this info", trap: "Very personal information" },
+    { q: "From which COUNTRY and CITY do you usually connect?", why: "Verify location", trap: "Compare with IP geolocation", geoCheck: true },
   ];
 
   const cryptoQuestions = [
-    { q: "Quel est votre email connecté ?", why: "Vérifier que c'est bien son compte", trap: "Un hacker ne connaîtra pas l'email exact" },
-    { q: "Quel montant EXACT avez-vous déposé/retiré en crypto ?", why: "Vérifier la transaction", trap: "Demander le montant en crypto ET en USD" },
-    { q: "Quelle crypto avez-vous utilisée (BTC, USDT, ETH) ?", why: "Confirmer la devise", trap: "Beaucoup confondent USDT et BTC" },
-    { q: "Sur quel réseau avez-vous fait la transaction (TRC20, BEP20, ERC20) ?", why: "Vérifier le réseau utilisé", trap: "Peu de gens connaissent le réseau" },
-    { q: "Quelle est votre adresse de destination ?", why: "Vérifier que l'adresse lui appartient", trap: "Demander les 8 premiers et derniers caractères" },
-    { q: "Depuis quel wallet/app avez-vous envoyé la crypto ?", why: "Vérifier l'origine", trap: "Croiser avec les logs" },
+    { q: "What is your connected email?", why: "Verify it's their account", trap: "A hacker won't know the exact email" },
+    { q: "What EXACT amount did you deposit/withdraw in crypto?", why: "Verify the transaction", trap: "Ask for the amount in crypto AND in USD" },
+    { q: "Which crypto did you use (BTC, USDT, ETH)?", why: "Confirm the currency", trap: "Many confuse USDT and BTC" },
+    { q: "On which network did you make the transaction (TRC20, BEP20, ERC20)?", why: "Verify the network used", trap: "Few people know the network" },
+    { q: "What is your destination address?", why: "Verify the address belongs to them", trap: "Ask for the first 8 and last 8 characters" },
+    { q: "From which wallet/app did you send the crypto?", why: "Verify the origin", trap: "Cross-check with logs" },
   ];
 
   const mobileTraps = [
-    { q: "Pouvez-vous me dire le nom COMPLET du destinataire que vous avez saisi par erreur ?", trap: "Un hacker ne connaît pas le nom sur le compte Mobile Money", flag: "Si réponse = 'Je ne sais pas' → légitime. Si réponse précise → suspect" },
-    { q: "Combien de transferts avez-vous effectués AU TOTAL sur PayMaestro ?", trap: "Un hacker ne connaît pas l'historique complet", flag: "Vérifier dans les stats du user" },
-    { q: "Quel était le montant de votre AVANT-DERNIER transfert ?", trap: "Seul le vrai propriétaire connaît son historique", flag: "Si réponse = 'Je ne me souviens pas' → OK. Si réponse précise et fausse → danger" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", trap: "Vérifier l'IP/la localisation dans les logs", flag: "Si pays différent → ALERTE ROUGE" },
-    { q: "Quel est le NOM complet associé à votre compte Mobile Money ?", trap: "Le vrai propriétaire connaît le nom enregistré chez l'opérateur", flag: "Vérifier via Flutterwave lookup" },
-    { q: "À quand remonte votre DERNIÈRE CONNEXION avant ce transfert ?", trap: "Croiser avec les logs de connexion", flag: "Si incohérence → bloquer" },
+    { q: "Can you tell me the FULL name of the recipient you entered by mistake?", trap: "A hacker doesn't know the name on the Mobile Money account", flag: "If answer = 'I don't know' → legitimate. If precise answer → suspicious" },
+    { q: "How many transfers have you made in TOTAL on PayMaestro?", trap: "A hacker doesn't know the full history", flag: "Check in user stats" },
+    { q: "What was the amount of your SECOND-LAST transfer?", trap: "Only the real owner knows their history", flag: "If answer = 'I don't remember' → OK. If precise and wrong answer → danger" },
+    { q: "From which COUNTRY and CITY do you usually connect?", trap: "Check IP/location in logs", flag: "If different country → RED ALERT" },
+    { q: "What is the FULL name associated with your Mobile Money account?", trap: "The real owner knows the name registered with the operator", flag: "Verify via Flutterwave lookup" },
+    { q: "When was your LAST LOGIN before this transfer?", trap: "Cross-check with login logs", flag: "If inconsistency → block" },
   ];
 
   const bankTraps = [
-    { q: "Depuis combien de temps avez-vous ce compte bancaire ?", trap: "Un hacker ne connaît pas l'ancienneté du compte", flag: "Si < 1 mois → suspect" },
-    { q: "Quel est le nom de votre banque et l'adresse de l'agence ?", trap: "Peu de gens connaissent l'adresse exacte", flag: "Vérifier via SWIFT lookup" },
-    { q: "Avez-vous déjà fait un virement bancaire sur PayMaestro avant ?", trap: "Vérifier l'historique bancaire du user", flag: "Si première fois + montant élevé → suspect" },
-    { q: "Quel est le solde approximatif de votre compte bancaire ?", trap: "Information très personnelle", flag: "Si réponse trop précise → suspect. Si 'je ne sais pas' → OK" },
+    { q: "How long have you had this bank account?", trap: "A hacker doesn't know the account age", flag: "If < 1 month → suspicious" },
+    { q: "What is the name of your bank and branch address?", trap: "Few people know the exact address", flag: "Verify via SWIFT lookup" },
+    { q: "Have you ever made a bank transfer on PayMaestro before?", trap: "Check user's bank history", flag: "If first time + high amount → suspicious" },
+    { q: "What is the approximate balance of your bank account?", trap: "Very personal information", flag: "If too precise → suspicious. If 'I don't know' → OK" },
   ];
 
   const paypalTraps = [
-    { q: "Depuis combien de temps avez-vous ce compte PayPal ?", trap: "Un hacker ne connaît pas l'ancienneté", flag: "Si < 1 mois → suspect" },
-    { q: "Quel est le pays associé à votre compte PayPal ?", trap: "Vérifier la cohérence avec la localisation", flag: "Si pays différent de l'IP → ALERTE" },
-    { q: "Avez-vous déjà reçu un remboursement PayPal sur PayMaestro ?", trap: "Vérifier l'historique des litiges", flag: "Si litiges fréquents → suspect" },
-    { q: "Pouvez-vous me montrer la confirmation PayPal de cette transaction ?", trap: "Seul le vrai propriétaire a accès à l'email PayPal", flag: "Si refus → suspect" },
+    { q: "How long have you had this PayPal account?", trap: "A hacker doesn't know the account age", flag: "If < 1 month → suspicious" },
+    { q: "What country is associated with your PayPal account?", trap: "Verify consistency with location", flag: "If country differs from IP → ALERT" },
+    { q: "Have you ever received a PayPal refund on PayMaestro?", trap: "Check dispute history", flag: "If frequent disputes → suspicious" },
+    { q: "Can you show me the PayPal confirmation for this transaction?", trap: "Only the real owner has access to the PayPal email", flag: "If refusal → suspicious" },
   ];
 
   const stripeTraps = [
-    { q: "Quel était le solde de votre wallet avant ce paiement ?", trap: "Seul le vrai propriétaire connaît cette info", flag: "Si réponse précise et fausse → danger" },
-    { q: "Combien de paiements avez-vous reçus via votre IBAN Stripe ?", trap: "Un hacker ne connaît pas l'historique", flag: "Vérifier dans les logs" },
-    { q: "Avez-vous déjà partagé votre IBAN avec quelqu'un d'autre ?", trap: "Détecter un partage frauduleux", flag: "Si oui → escalader" },
+    { q: "What was your wallet balance before this payment?", trap: "Only the real owner knows this info", flag: "If precise and wrong answer → danger" },
+    { q: "How many payments have you received via your Stripe IBAN?", trap: "A hacker doesn't know the history", flag: "Check in logs" },
+    { q: "Have you ever shared your IBAN with someone else?", trap: "Detect fraudulent sharing", flag: "If yes → escalate" },
   ];
 
   const pm2pmTraps = [
-    { q: "Quel est le prénom du destinataire ?", trap: "Un hacker ne connaît pas les détails personnels", flag: "Si hésitation → suspect" },
-    { q: "Quand avez-vous effectué votre dernier transfert PM→PM ?", trap: "Vérifier la cohérence avec l'historique", flag: "Si incohérence → ALERTE" },
-    { q: "Quelle est la raison de ce transfert ?", trap: "Détecter les motifs frauduleux", flag: "Si raison vague ou suspecte → escalader" },
-    { q: "Le destinataire vous a-t-il déjà envoyé de l'argent auparavant ?", trap: "Vérifier la relation entre les deux comptes", flag: "Si transferts croisés fréquents → suspect" },
+    { q: "What is the recipient's first name?", trap: "A hacker doesn't know personal details", flag: "If hesitation → suspicious" },
+    { q: "When did you make your last PM→PM transfer?", trap: "Verify consistency with history", flag: "If inconsistency → ALERT" },
+    { q: "What is the reason for this transfer?", trap: "Detect fraudulent motives", flag: "If vague or suspicious reason → escalate" },
+    { q: "Has the recipient sent you money before?", trap: "Verify relationship between the two accounts", flag: "If frequent cross-transfers → suspicious" },
   ];
 
   const bank2walletTraps = [
-    { q: "Quel était le solde de votre compte bancaire avant le virement ?", trap: "Information très personnelle", flag: "Si réponse trop précise → suspect" },
-    { q: "Avez-vous déjà fait un dépôt bancaire sur PayMaestro avant ?", trap: "Vérifier l'historique", flag: "Si première fois + montant élevé → vérifier" },
-    { q: "Pourquoi utilisez-vous un dépôt bancaire plutôt qu'un autre moyen ?", trap: "Détecter les justifications frauduleuses", flag: "Si réponse évasive → suspect" },
+    { q: "What was your bank account balance before the transfer?", trap: "Very personal information", flag: "If too precise → suspicious" },
+    { q: "Have you ever made a bank deposit on PayMaestro before?", trap: "Check history", flag: "If first time + high amount → verify" },
+    { q: "Why are you using a bank deposit instead of another method?", trap: "Detect fraudulent justifications", flag: "If evasive answer → suspicious" },
   ];
 
   const mobile2walletTraps = [
-    { q: "Combien de dépôts Mobile Money avez-vous effectués AU TOTAL ?", trap: "Un hacker ne connaît pas l'historique complet", flag: "Vérifier dans les stats du user" },
-    { q: "Depuis quel PAYS et quelle VILLE vous connectez-vous habituellement ?", trap: "Vérifier l'IP/la localisation dans les logs", flag: "Si pays différent → ALERTE ROUGE" },
-    { q: "Avez-vous déjà fait un dépôt Mobile Money sur un autre compte PayMaestro ?", trap: "Détecter les comptes multiples", flag: "Si oui → suspect" },
-    { q: "Quel était le solde de votre compte Mobile Money avant ce dépôt ?", trap: "Information très personnelle", flag: "Si réponse trop précise → suspect. Si 'je ne sais pas' → OK" },
-    { q: "Pourquoi déposez-vous via Mobile Money plutôt que PayPal ou banque ?", trap: "Détecter les justifications frauduleuses", flag: "Si réponse évasive → suspect" },
-    { q: "À quand remonte votre DERNIÈRE CONNEXION avant ce dépôt ?", trap: "Croiser avec les logs de connexion", flag: "Si incohérence → bloquer" },
+    { q: "How many Mobile Money deposits have you made in TOTAL?", trap: "A hacker doesn't know the full history", flag: "Check in user stats" },
+    { q: "From which COUNTRY and CITY do you usually connect?", trap: "Check IP/location in logs", flag: "If different country → RED ALERT" },
+    { q: "Have you ever made a Mobile Money deposit to another PayMaestro account?", trap: "Detect multiple accounts", flag: "If yes → suspicious" },
+    { q: "What was your Mobile Money account balance before this deposit?", trap: "Very personal information", flag: "If too precise → suspicious. If 'I don't know' → OK" },
+    { q: "Why are you depositing via Mobile Money rather than PayPal or bank?", trap: "Detect fraudulent justifications", flag: "If evasive answer → suspicious" },
+    { q: "When was your LAST LOGIN before this deposit?", trap: "Cross-check with login logs", flag: "If inconsistency → block" },
   ];
 
   const cryptoTraps = [
-    { q: "Combien de transactions crypto avez-vous faites sur PayMaestro ?", trap: "Un hacker ne connaît pas l'historique", flag: "Vérifier dans les stats" },
-    { q: "Quel est le TX Hash de votre transaction ?", trap: "Seul le vrai propriétaire peut le voir sur la blockchain", flag: "Si incapable de fournir → suspect" },
-    { q: "Depuis combien de temps utilisez-vous les cryptos ?", trap: "Détecter les novices qui se font pirater", flag: "Si < 1 mois → risque élevé" },
+    { q: "How many crypto transactions have you made on PayMaestro?", trap: "A hacker doesn't know the history", flag: "Check in stats" },
+    { q: "What is the TX Hash of your transaction?", trap: "Only the real owner can see it on the blockchain", flag: "If unable to provide → suspicious" },
+    { q: "How long have you been using crypto?", trap: "Detect novices who get hacked", flag: "If < 1 month → high risk" },
   ];
 
   const currentQuestions = activeTab === 'mobile' ? mobileQuestions : activeTab === 'bank' ? bankQuestions : activeTab === 'paypal' ? paypalQuestions : activeTab === 'stripe' ? stripeQuestions : activeTab === 'pm2pm' ? pm2pmQuestions : activeTab === 'bank2wallet' ? bank2walletQuestions : activeTab === 'mobile2wallet' ? mobile2walletQuestions : cryptoQuestions;
   const currentTraps = activeTab === 'mobile' ? mobileTraps : activeTab === 'bank' ? bankTraps : activeTab === 'paypal' ? paypalTraps : activeTab === 'stripe' ? stripeTraps : activeTab === 'pm2pm' ? pm2pmTraps : activeTab === 'bank2wallet' ? bank2walletTraps : activeTab === 'mobile2wallet' ? mobile2walletTraps : cryptoTraps;
 
   const defaultRefundOptions = [
-    { option: 'Option 1', title: 'Recharger le Wallet USD', desc: 'L\'argent est remis sur le portefeuille PayMaestro. Immédiat.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer sur le bon numéro/compte', desc: 'Transfert vers le vrai numéro/compte.', icon: '📱' },
-    { option: 'Option 3', title: 'Rembourser sur autre méthode', desc: 'Méthode alternative de remboursement.', icon: '💳' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Money is returned to the PayMaestro wallet. Instant.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend to correct number/account', desc: 'Transfer to the real number/account.', icon: '📱' },
+    { option: 'Option 3', title: 'Refund via other method', desc: 'Alternative refund method.', icon: '💳' },
   ];
 
   const stripeRefundOptions = [
-    { option: 'Option 1', title: 'Recharger le Wallet USD', desc: 'L\'argent est remis sur le portefeuille PayMaestro. Immédiat.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer sur le Mobile Money', desc: 'Transfert Mobile Money vers le numéro du bénéficiaire.', icon: '📱' },
-    { option: 'Option 3', title: 'Rembourser sur le compte bancaire', desc: 'Virement SEPA vers l\'IBAN du bénéficiaire.', icon: '🏦' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Money is returned to the PayMaestro wallet. Instant.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend to Mobile Money', desc: 'Mobile Money transfer to the beneficiary\'s number.', icon: '📱' },
+    { option: 'Option 3', title: 'Refund to bank account', desc: 'SEPA transfer to the beneficiary\'s IBAN.', icon: '🏦' },
   ];
 
   const pm2pmRefundOptions = [
-    { option: 'Option 1', title: 'Recharger le Wallet USD', desc: 'L\'argent est remis sur le portefeuille PayMaestro. Immédiat.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer au destinataire', desc: 'Transfert PM→PM vers le destinataire correct.', icon: '🔄' },
-    { option: 'Option 3', title: 'Rembourser sur Mobile Money', desc: 'Transfert Mobile Money comme alternative.', icon: '📱' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Money is returned to the PayMaestro wallet. Instant.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend to recipient', desc: 'PM→PM transfer to the correct recipient.', icon: '🔄' },
+    { option: 'Option 3', title: 'Refund to Mobile Money', desc: 'Mobile Money transfer as alternative.', icon: '📱' },
   ];
 
   const bank2walletRefundOptions = [
-    { option: 'Option 1', title: 'Créditer le Wallet USD', desc: 'L\'argent est remis sur le portefeuille. Immédiat.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer sur le compte bancaire', desc: 'Virement SEPA vers l\'IBAN du bénéficiaire.', icon: '🏦' },
-    { option: 'Option 3', title: 'Contacter la banque', desc: 'Médiation avec la banque émettrice.', icon: '📧' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Money is returned to the wallet. Instant.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend to bank account', desc: 'SEPA transfer to the beneficiary\'s IBAN.', icon: '🏦' },
+    { option: 'Option 3', title: 'Contact the bank', desc: 'Mediation with the issuing bank.', icon: '📧' },
   ];
 
   const mobile2walletRefundOptions = [
-    { option: 'Option 1', title: 'Recharger le Wallet USD', desc: 'L\'argent est remis sur le portefeuille PayMaestro. Immédiat.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer sur le Mobile Money', desc: 'Transfert vers le numéro Mobile Money du bénéficiaire.', icon: '📱' },
-    { option: 'Option 3', title: 'Rembourser via autre méthode', desc: 'PayPal, Banque ou Stripe selon préférence.', icon: '💳' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Money is returned to the PayMaestro wallet. Instant.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend to Mobile Money', desc: 'Transfer to the beneficiary\'s Mobile Money number.', icon: '📱' },
+    { option: 'Option 3', title: 'Refund via other method', desc: 'PayPal, Bank or Stripe as preferred.', icon: '💳' },
   ];
 
   const cryptoRefundOptions = [
-    { option: 'Option 1', title: 'Recharger le Wallet USD', desc: 'Remboursement immédiat sur le portefeuille.', icon: '🏦' },
-    { option: 'Option 2', title: 'Renvoyer la crypto', desc: 'Renvoi vers la même adresse ou une nouvelle adresse.', icon: '🪙' },
-    { option: 'Option 3', title: 'Rembourser via autre méthode', desc: 'Mobile Money, Banque ou PayPal.', icon: '💳' },
+    { option: 'Option 1', title: 'Credit the USD Wallet', desc: 'Immediate refund to the wallet.', icon: '🏦' },
+    { option: 'Option 2', title: 'Resend the crypto', desc: 'Resend to the same address or a new address.', icon: '🪙' },
+    { option: 'Option 3', title: 'Refund via other method', desc: 'Mobile Money, Bank or PayPal.', icon: '💳' },
   ];
 
   const refundOptions = activeTab === 'stripe' ? stripeRefundOptions : activeTab === 'pm2pm' ? pm2pmRefundOptions : activeTab === 'bank2wallet' ? bank2walletRefundOptions : activeTab === 'mobile2wallet' ? mobile2walletRefundOptions : activeTab === 'crypto' ? cryptoRefundOptions : defaultRefundOptions;
@@ -212,9 +212,9 @@ export default function AdminProtocolPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       <div className="flex items-center gap-3">
         <Shield className="w-8 h-8 text-red-600" />
-        <h1 className="text-3xl font-bold text-slate-900">Protocole de Remboursement</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Refund Protocol</h1>
       </div>
-      <p className="text-slate-500 -mt-4">Procédure officielle à suivre pour toute demande de remboursement.</p>
+      <p className="text-slate-500 -mt-4">Official procedure to follow for any refund request.</p>
 
       {/* ONGLETS */}
       <div className="flex gap-2 bg-slate-100 p-1 rounded-xl overflow-x-auto">
@@ -236,15 +236,15 @@ export default function AdminProtocolPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">
             <AlertTriangle className="w-5 h-5" />
-            Étape 1 : Questions de Vérification d'Identité ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Banque' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Banque→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'})
+            Step 1: Identity Verification Questions ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Bank' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Bank→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'})
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentQuestions.map((item: any, i: number) => (
             <div key={i} className="bg-red-50 p-4 rounded-xl">
               <p className="font-semibold text-red-900">{i + 1}. {item.q}</p>
-              <p className="text-xs text-red-600 mt-1">🎯 Objectif : {item.why}</p>
-              <p className="text-xs text-red-500 mt-0.5">⚠️ Piège : {item.trap}</p>
+              <p className="text-xs text-red-600 mt-1">🎯 Purpose: {item.why}</p>
+              <p className="text-xs text-red-500 mt-0.5">⚠️ Trap: {item.trap}</p>
               {item.geoCheck && claimData?.userGeo && (
                 <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
                   <p>📍 Localisation réelle : {claimData.userGeo.geo?.city}, {claimData.userGeo.geo?.country}</p>
@@ -253,7 +253,7 @@ export default function AdminProtocolPage() {
               )}
               {showAnswers && !item.geoCheck && (
                 <div className="mt-2 p-2 bg-red-100 rounded text-xs text-red-800">
-                  ✅ Réponse attendue : <em>Vérifier dans les logs</em>
+                  ✅ Expected answer: <em>Check in logs</em>
                 </div>
               )}
             </div>
@@ -266,15 +266,15 @@ export default function AdminProtocolPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-orange-700">
             <HelpCircle className="w-5 h-5" />
-            Étape 2 : Questions Pièges (Détection de fraude)
+            Step 2: Trap Questions (Fraud Detection)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentTraps.map((item: any, i: number) => (
             <div key={i} className="bg-orange-50 p-4 rounded-xl">
               <p className="font-semibold text-orange-900">🔶 {currentQuestions.length + i + 1}. {item.q}</p>
-              <p className="text-xs text-orange-600 mt-1">⚠️ Piège : {item.trap}</p>
-              <p className="text-xs text-orange-500 mt-0.5">🚩 Drapeau : {item.flag}</p>
+              <p className="text-xs text-orange-600 mt-1">⚠️ Trap: {item.trap}</p>
+              <p className="text-xs text-orange-500 mt-0.5">🚩 Flag: {item.flag}</p>
             </div>
           ))}
         </CardContent>
@@ -285,21 +285,21 @@ export default function AdminProtocolPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-700">
             <FileText className="w-5 h-5" />
-            Étape 3 : Vérification Technique
+            Step 3: Technical Verification
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
-              { check: "Email correspondant", desc: "L'email du user doit matcher celui du compte" },
-              { check: "Montant identique", desc: "Même montant que déclaré par le user" },
-              { check: "Date/heure cohérente", desc: "Dans les logs (±30 min toléré)" },
-              { check: "Pas de remboursement précédent", desc: "Statut ≠ REMBOURSED pour cette transaction" },
-              { check: "Historique cohérent", desc: "Pas de transferts multiples vers le même destinataire" },
-              { check: "Localisation cohérente", desc: "Même pays/ville que d'habitude" },
-              { check: "Nombre de réclamations", desc: "≤ 2 réclamations par an = OK. ≥ 3 = suspect" },
-              { check: "Ancienneté du compte", desc: "Compte > 1 mois = fiable. < 1 semaine = dangereux" },
-              { check: activeTab === 'bank' ? "IBAN valide" : activeTab === 'paypal' ? "Email PayPal vérifié" : activeTab === 'stripe' ? "IBAN Stripe valide" : activeTab === 'pm2pm' ? "Relation vérifiée" : activeTab === 'bank2wallet' ? "Origine du virement vérifiée" : activeTab === 'mobile2wallet' ? "Numéro Mobile Money vérifié" : activeTab === 'crypto' ? "Adresse crypto vérifiée" : "Numéro vérifié", desc: activeTab === 'bank' ? "Format IBAN correct et pays cohérent" : activeTab === 'paypal' ? "Email PayPal confirmé par le user" : activeTab === 'stripe' ? "Format IBAN valide et vérifié via Stripe" : activeTab === 'pm2pm' ? "Vérifier l'historique des transactions entre les 2 comptes" : activeTab === 'bank2wallet' ? "Vérifier l'IBAN expéditeur et la banque émettrice" : activeTab === 'mobile2wallet' ? "Numéro vérifié via Flutterwave lookup" : activeTab === 'crypto' ? "Adresse vérifiée sur la blockchain" : "Numéro vérifié via Flutterwave" },
+              { check: "Email match", desc: "User's email must match the account" },
+              { check: "Identical amount", desc: "Same amount as declared by the user" },
+              { check: "Consistent date/time", desc: "In logs (±30 min tolerated)" },
+              { check: "No previous refund", desc: "Status ≠ REFUNDED for this transaction" },
+              { check: "Consistent history", desc: "No multiple transfers to the same recipient" },
+              { check: "Consistent location", desc: "Same country/city as usual" },
+              { check: "Number of claims", desc: "≤ 2 claims per year = OK. ≥ 3 = suspicious" },
+              { check: "Account age", desc: "Account > 1 month = reliable. < 1 week = dangerous" },
+              { check: activeTab === 'bank' ? "Valid IBAN" : activeTab === 'paypal' ? "PayPal email verified" : activeTab === 'stripe' ? "Valid Stripe IBAN" : activeTab === 'pm2pm' ? "Relationship verified" : activeTab === 'bank2wallet' ? "Transfer origin verified" : activeTab === 'mobile2wallet' ? "Mobile Money number verified" : activeTab === 'crypto' ? "Crypto address verified" : "Number verified", desc: activeTab === 'bank' ? "Correct IBAN format and consistent country" : activeTab === 'paypal' ? "PayPal email confirmed by user" : activeTab === 'stripe' ? "Valid IBAN format verified via Stripe" : activeTab === 'pm2pm' ? "Check transaction history between the 2 accounts" : activeTab === 'bank2wallet' ? "Check sender IBAN and issuing bank" : activeTab === 'mobile2wallet' ? "Number verified via Flutterwave lookup" : activeTab === 'crypto' ? "Address verified on blockchain" : "Number verified via Flutterwave" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2 p-3 bg-blue-50 rounded-xl">
                 <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -317,16 +317,16 @@ export default function AdminProtocolPage() {
       <Card className="border-l-4 border-l-green-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-700">
-            🟢 Étape 4 : Score de Confiance (Décision)
+            🟢 Step 4: Trust Score (Decision)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[
-              { score: '≥ 8/10', action: '✅ REMBOURSER IMMÉDIATEMENT', color: 'bg-green-100 text-green-800' },
-              { score: '5-7/10', action: '⚠️ DEMANDER UNE PIÈCE D\'IDENTITÉ SUPPLÉMENTAIRE', color: 'bg-yellow-100 text-yellow-800' },
-              { score: '3-4/10', action: '🔴 ESCALADER AU SUPERVISEUR', color: 'bg-orange-100 text-orange-800' },
-              { score: '< 3/10', action: '🚫 REFUSER — FRAUDE PROBABLE', color: 'bg-red-100 text-red-800' },
+              { score: '≥ 8/10', action: '✅ REFUND IMMEDIATELY', color: 'bg-green-100 text-green-800' },
+              { score: '5-7/10', action: '⚠️ REQUEST ADDITIONAL ID', color: 'bg-yellow-100 text-yellow-800' },
+              { score: '3-4/10', action: '🔴 ESCALATE TO SUPERVISOR', color: 'bg-orange-100 text-orange-800' },
+              { score: '< 3/10', action: '🚫 REFUSE — PROBABLE FRAUD', color: 'bg-red-100 text-red-800' },
             ].map((item, i) => (
               <div key={i} className={`p-3 rounded-xl ${item.color} flex justify-between items-center`}>
                 <span className="font-semibold">{item.score}</span>
@@ -336,12 +336,12 @@ export default function AdminProtocolPage() {
           </div>
 
           <div className="mt-4 p-4 bg-slate-50 rounded-xl">
-            <p className="text-sm font-semibold mb-2">📊 Calcul du score ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Banque' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Banque→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'}) :</p>
+            <p className="text-sm font-semibold mb-2">📊 Score calculation ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Bank' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Bank→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'}) :</p>
             <p className="text-xs text-slate-600">
-              • Questions d'identité ({currentQuestions.length} questions) = {Math.round(currentQuestions.length * 1)} points<br />
-              • Questions pièges ({currentTraps.length} questions) = {Math.round(currentTraps.length * 0.5)} points<br />
-              • Vérification technique (9 critères) = 2 points<br />
-              <strong>Total : {Math.round(currentQuestions.length * 1 + currentTraps.length * 0.5 + 2)} points maximum</strong>
+              • Identity questions ({currentQuestions.length} questions) = {Math.round(currentQuestions.length * 1)} points<br />
+              • Trap questions ({currentTraps.length} questions) = {Math.round(currentTraps.length * 0.5)} points<br />
+              • Technical verification (9 criteria) = 2 points<br />
+              <strong>Total: {Math.round(currentQuestions.length * 1 + currentTraps.length * 0.5 + 2)} points maximum</strong>
             </p>
           </div>
         </CardContent>
@@ -351,7 +351,7 @@ export default function AdminProtocolPage() {
       <Card className="border-2 border-violet-300">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-violet-700">
-            💳 Options de Remboursement ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Banque' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Banque→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'})
+            💳 Refund Options ({activeTab === 'mobile' ? 'Mobile Money' : activeTab === 'bank' ? 'Bank' : activeTab === 'paypal' ? 'PayPal' : activeTab === 'stripe' ? 'Stripe/IBAN' : activeTab === 'pm2pm' ? 'PM→PM' : activeTab === 'bank2wallet' ? 'Bank→Wallet' : activeTab === 'mobile2wallet' ? 'Mobile→Wallet' : 'Crypto'})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -370,10 +370,10 @@ export default function AdminProtocolPage() {
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" onClick={() => setShowAnswers(!showAnswers)} icon={showAnswers ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}>
-          {showAnswers ? 'Cacher les réponses' : 'Afficher les réponses'}
+          {showAnswers ? 'Hide answers' : 'Show answers'}
         </Button>
         <Button onClick={() => navigator.clipboard.writeText(document.querySelector('.space-y-8')?.textContent || '')} icon={<Copy className="w-4 h-4" />}>
-          Copier le protocole
+          Copy protocol
         </Button>
       </div>
     </div>

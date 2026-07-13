@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, Lock, Send, CreditCard, ArrowDown, ArrowUp, Snowflake } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,13 +12,14 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function PayPalPage() {
   const router = useRouter();
+  const tErrors = useTranslations('errors');
   const params = useParams();
   const locale = params.locale || 'fr';
   const { user } = useAuth();
 
   const [tab, setTab] = useState<'deposit' | 'withdraw'>('deposit');
 
-  // Dépôt (PayPal → Wallet)
+  // Deposit (PayPal → Wallet)
   const [amount, setAmount] = useState('100');
   const [step, setStep] = useState<'form' | 'redirecting' | 'success' | 'error'>('form');
   const [paypalError, setPaypalError] = useState<string | null>(null);
@@ -69,10 +71,10 @@ export default function PayPalPage() {
       const returnUrl = `${baseUrl}/${locale}/paypal/success`;
       const cancelUrl = `${baseUrl}/${locale}/paypal`;
       const result = await api.payments.createPayPalDeposit(amountNum, returnUrl, cancelUrl);
-      if (!result.approvalUrl) throw new Error('URL d\'approbation PayPal non reçue');
+      if (!result.approvalUrl) throw new Error('PayPal approval URL not received');
       window.location.href = result.approvalUrl;
     } catch (err: any) {
-      setPaypalError(err.message || 'Erreur de communication avec PayPal.');
+      setPaypalError(err.message || 'Communication error with PayPal.');
       setStep('error');
     }
   };
@@ -89,7 +91,7 @@ export default function PayPalPage() {
       await api.wallet.withdrawPayPal(withdrawEmail, withdrawAmountNum);
       setWithdrawStep('success');
     } catch (err: any) {
-      setWithdrawError(err.message || 'Erreur lors du retrait.');
+      setWithdrawError(err.message || 'Error during withdrawal.');
       setWithdrawStep('error');
     }
   };
@@ -98,7 +100,7 @@ export default function PayPalPage() {
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PayPal</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez vos transferts PayPal</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your PayPal transfers</p>
       </div>
 
       {/* Tabs */}
@@ -111,7 +113,7 @@ export default function PayPalPage() {
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
           }`}
         >
-          <ArrowDown className="w-4 h-4 inline mr-1" />Dépôt (Wallet+)
+          <ArrowDown className="w-4 h-4 inline mr-1" />Deposit (Wallet+)
         </button>
         <button
           onClick={() => setTab('withdraw')}
@@ -121,7 +123,7 @@ export default function PayPalPage() {
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
           }`}
         >
-          <ArrowUp className="w-4 h-4 inline mr-1" />Retrait (Wallet-)
+          <ArrowUp className="w-4 h-4 inline mr-1" />Withdrawal (Wallet-)
         </button>
       </div>
 
@@ -131,19 +133,19 @@ export default function PayPalPage() {
             <Card className="border-0 shadow-xl rounded-3xl bg-white dark:bg-slate-800 text-center overflow-hidden">
               <div className="bg-gradient-to-br from-emerald-500 to-green-600 py-10 text-white">
                 <CheckCircle2 className="w-12 h-12 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold">Dépôt PayPal réussi !</h2>
+                <h2 className="text-2xl font-bold">PayPal Deposit Successful!</h2>
               </div>
               <CardContent className="p-8 space-y-4">
-                <p className="text-sm text-slate-600 dark:text-slate-300">Fonds crédités sur votre wallet.</p>
-                <Button variant="primary" fullWidth onClick={() => router.push(`/${locale}/wallet`)}>Voir mon wallet</Button>
+                <p className="text-sm text-slate-600 dark:text-slate-300">Funds credited to your wallet.</p>
+                <Button variant="primary" fullWidth onClick={() => router.push(`/${locale}/wallet`)}>View my wallet</Button>
               </CardContent>
             </Card>
           ) : step === 'error' ? (
             <div className="text-center">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Erreur de paiement</h1>
-              <p className="text-slate-600 dark:text-slate-400 mb-8">{paypalError || 'Une erreur est survenue.'}</p>
-              <Button onClick={() => { setStep('form'); setPaypalError(null); }} variant="primary" fullWidth>Réessayer</Button>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment Error</h1>
+              <p className="text-slate-600 dark:text-slate-400 mb-8">{paypalError || tErrors('generics')}</p>
+              <Button onClick={() => { setStep('form'); setPaypalError(null); }} variant="primary" fullWidth>Retry</Button>
             </div>
           ) : (
             <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white dark:bg-slate-800">
@@ -162,18 +164,18 @@ export default function PayPalPage() {
                     <div className="bg-slate-50 dark:bg-slate-700 rounded-2xl p-4 text-sm space-y-2">
                       <div className="flex justify-between text-slate-600 dark:text-slate-300"><span>Montant :</span><span className="font-bold text-slate-900 dark:text-white">${amountNum.toFixed(2)} USD</span></div>
                       <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Frais (5%) :</span><span className="text-red-500 font-bold">-${depositFee.toFixed(2)} USD</span></div>
-                      <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2"><span className="font-bold text-slate-900 dark:text-white">Crédité sur wallet :</span><span className="font-bold text-emerald-600">${depositNet.toFixed(2)} USD</span></div>
+                      <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2"><span className="font-bold text-slate-900 dark:text-white">Credited to wallet:</span><span className="font-bold text-emerald-600">${depositNet.toFixed(2)} USD</span></div>
                     </div>
                     <div className="flex flex-col items-center justify-center p-8 gap-3">
                       <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Redirection vers PayPal...</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Redirecting to PayPal...</p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="bg-slate-50 dark:bg-slate-700 rounded-2xl p-4 text-sm space-y-2">
-                      <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Frais de dépôt (5%)</span><span className="font-semibold text-red-500">-${depositFee.toFixed(2)} USD</span></div>
-                      <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2 text-base"><span className="font-bold text-slate-800 dark:text-slate-200">Sur votre wallet</span><span className="font-extrabold text-blue-600">${depositNet.toFixed(2)} USD</span></div>
+                      <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Deposit fee (5%)</span><span className="font-semibold text-red-500">-${depositFee.toFixed(2)} USD</span></div>
+                      <div className="flex justify-between border-t border-slate-200 dark:border-slate-600 pt-2 text-base"><span className="font-bold text-slate-800 dark:text-slate-200">On your wallet</span><span className="font-extrabold text-blue-600">${depositNet.toFixed(2)} USD</span></div>
                     </div>
 
                     {paypalError && <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl text-xs text-red-700 dark:text-red-400">{paypalError}</div>}
@@ -184,7 +186,7 @@ export default function PayPalPage() {
                   </>
                 )}
 
-                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500"><ShieldCheck className="w-4 h-4 text-emerald-500" /><span>Paiement sécurisé par PayPal</span></div>
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500"><ShieldCheck className="w-4 h-4 text-emerald-500" /><span>Secure payment by PayPal</span></div>
               </CardContent>
             </Card>
           )}
@@ -197,31 +199,31 @@ export default function PayPalPage() {
             <Card className="border-0 shadow-xl rounded-3xl bg-white dark:bg-slate-800 text-center overflow-hidden">
               <div className="bg-gradient-to-br from-violet-500 to-purple-600 py-10 text-white">
                 <CheckCircle2 className="w-12 h-12 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold">Retrait PayPal réussi !</h2>
+                <h2 className="text-2xl font-bold">PayPal Withdrawal Successful!</h2>
               </div>
               <CardContent className="p-8 space-y-4">
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  ${withdrawNet.toFixed(2)} USD envoyés vers {withdrawEmail}
+                  ${withdrawNet.toFixed(2)} USD sent to {withdrawEmail}
                 </p>
-                <Button variant="primary" fullWidth onClick={() => router.push(`/${locale}/wallet`)}>Voir mon wallet</Button>
+                <Button variant="primary" fullWidth onClick={() => router.push(`/${locale}/wallet`)}>View my wallet</Button>
               </CardContent>
             </Card>
           ) : withdrawStep === 'error' ? (
             <div className="text-center">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Erreur de retrait</h1>
-              <p className="text-slate-600 dark:text-slate-400 mb-8">{withdrawError || 'Une erreur est survenue.'}</p>
-              <Button onClick={() => { setWithdrawStep('form'); setWithdrawError(null); }} variant="primary" fullWidth>Réessayer</Button>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Withdrawal Error</h1>
+              <p className="text-slate-600 dark:text-slate-400 mb-8">{withdrawError || tErrors('generics')}</p>
+              <Button onClick={() => { setWithdrawStep('form'); setWithdrawError(null); }} variant="primary" fullWidth>Retry</Button>
             </div>
           ) : (
             <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white dark:bg-slate-800">
               <CardContent className="p-6 space-y-5">
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Transférez votre solde wallet vers un compte PayPal. Les fonds sont envoyés directement par PayMaestro.
+                  Transfer your wallet balance to a PayPal account. Funds are sent directly by PayMaestro.
                 </p>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Email PayPal du destinataire</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Recipient PayPal Email</label>
                   <input
                     type="email"
                     value={withdrawEmail}
@@ -232,7 +234,7 @@ export default function PayPalPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Montant à envoyer (USD)</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Amount to send (USD)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
                     <input
@@ -248,14 +250,14 @@ export default function PayPalPage() {
                 </div>
 
                 <div className="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4 text-sm space-y-2">
-                  <div className="flex justify-between text-slate-600 dark:text-slate-300"><span>Montant à débiter :</span><span className="font-bold text-slate-900 dark:text-white">${withdrawAmountNum.toFixed(2)} USD</span></div>
+                  <div className="flex justify-between text-slate-600 dark:text-slate-300"><span>Amount to debit:</span><span className="font-bold text-slate-900 dark:text-white">${withdrawAmountNum.toFixed(2)} USD</span></div>
                   <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Frais (3%) :</span><span className="text-red-500 font-bold">-${withdrawFee.toFixed(2)} USD</span></div>
-                  <div className="flex justify-between border-t border-violet-200 dark:border-violet-600 pt-2"><span className="font-bold text-slate-900 dark:text-white">Reçu sur PayPal :</span><span className="font-bold text-emerald-600">${withdrawNet.toFixed(2)} USD</span></div>
+                  <div className="flex justify-between border-t border-violet-200 dark:border-violet-600 pt-2"><span className="font-bold text-slate-900 dark:text-white">Received on PayPal:</span><span className="font-bold text-emerald-600">${withdrawNet.toFixed(2)} USD</span></div>
                 </div>
 
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1">
-                  <p><strong>⏱️ Délai :</strong> 1-2 jours ouvrés</p>
-                  <p><strong>💰 Frais :</strong> 3% (prélevés sur le montant)</p>
+                  <p><strong>⏱️ Delay:</strong> 1-2 business days</p>
+                  <p><strong>💰 Fee:</strong> 3% (deducted from amount)</p>
                 </div>
 
                 {withdrawError && <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl text-xs text-red-700 dark:text-red-400">{withdrawError}</div>}
@@ -263,7 +265,7 @@ export default function PayPalPage() {
                 {withdrawStep === 'processing' ? (
                   <div className="flex flex-col items-center justify-center p-8 gap-3">
                     <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Envoi du paiement...</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Sending payment...</p>
                   </div>
                 ) : (
                   <Button onClick={handleWithdraw} variant="primary" fullWidth size="lg" disabled={!withdrawEmail || !withdrawAmountNum || withdrawAmountNum < 10 || !!isWithdrawFrozen}>
@@ -271,7 +273,7 @@ export default function PayPalPage() {
                   </Button>
                 )}
 
-                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500"><CreditCard className="w-4 h-4 text-violet-500" /><span>Paiement envoyé par PayMaestro</span></div>
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500"><CreditCard className="w-4 h-4 text-violet-500" /><span>Payment sent by PayMaestro</span></div>
               </CardContent>
             </Card>
           )}
@@ -280,7 +282,7 @@ export default function PayPalPage() {
       {isWithdrawFrozen && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
           <Snowflake className="w-5 h-5 shrink-0" />
-          Retrait PayPal bloqué — compte suspendu
+          PayPal withdrawal blocked — account suspended
         </div>
       )}
 

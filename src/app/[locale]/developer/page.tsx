@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
+import { useTranslations } from 'next-intl';
+import {
   Key, Plus, Copy, CheckCircle2, Eye, EyeOff, Loader2, 
   Trash2, Shield, Code, BookOpen, Zap, Clock, AlertTriangle,
   ArrowUpRight, X
@@ -12,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 
 export default function DeveloperPage() {
+  const tDeveloper = useTranslations('developer');
 
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +205,7 @@ export default function DeveloperPage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {businessType === 'REGISTERED' ? 'Compte Enregistré' : 'Compte Starter'}
+                    {businessType === 'REGISTERED' ? tDeveloper('registeredAccount') : tDeveloper('starterAccount')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {businessType === 'REGISTERED'
@@ -304,7 +306,7 @@ export default function DeveloperPage() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Annuler</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Cancel</Button>
               <Button fullWidth onClick={handleCreateKey} disabled={creating}>
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Générer la clé'}
               </Button>
@@ -358,15 +360,14 @@ export default function DeveloperPage() {
                 Faire évoluer votre compte
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                Passez de <strong className="text-slate-700 dark:text-slate-300">Compte Starter</strong> à{' '}
-                <strong className="text-green-600 dark:text-green-400">Compte Enregistré</strong>
+                {tDeveloper('upgradePrompt', { starter: tDeveloper('starterAccount'), registered: tDeveloper('registeredAccount') })}
               </p>
             </div>
 
             <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
               <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
-                <p>Le statut <strong>Compte Enregistré</strong> est nécessaire pour effectuer des transferts sortants (retraits Mobile Money, virements bancaires).</p>
+                <p>{tDeveloper('registeredRequired', { registered: tDeveloper('registeredAccount') })}</p>
               </div>
 
               <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl space-y-2">

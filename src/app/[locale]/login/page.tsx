@@ -3,21 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Shield, Zap, Globe2, CheckCircle2, Loader2 } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 
-const features = [
-  { icon: Zap, label: 'Transfert en moins de 5 min' },
-  { icon: Shield, label: 'Transactions 100% sécurisées' },
-  { icon: Globe2, label: '54 pays africains supportés' },
-  { icon: CheckCircle2, label: 'Taux de change en temps réel' },
-];
-
 export default function LoginPage() {
   const locale = useLocale();
+  const t = useTranslations('auth');
+  const tHome = useTranslations('home');
+  const tErrors = useTranslations('errors');
+
+  const features = [
+    { icon: Zap, label: tHome('featuresList.transferFast') },
+    { icon: Shield, label: tHome('featuresList.secureTransactions') },
+    { icon: Globe2, label: tHome('featuresList.africanCountries') },
+    { icon: CheckCircle2, label: tHome('featuresList.realTimeRates') },
+  ];
   const { login } = useAuth();
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -69,7 +72,7 @@ export default function LoginPage() {
 
       router.push(`/${locale}/dashboard`);
     } catch (error) {
-      logger.error('Erreur Google login:', error);
+      logger.error('Google login error:', error);
       setIsGoogleLoading(false);
     }
   };
@@ -86,14 +89,14 @@ export default function LoginPage() {
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">PayMaestro</h1>
           <p className="text-slate-400 text-base">
-            Connectez-vous pour accéder à votre espace
+            {t('pageTitle')}
           </p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-8 shadow-2xl">
-          <h2 className="text-xl font-semibold text-white mb-2">Bienvenue !</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{t('welcomeBack')}</h2>
           <p className="text-sm text-slate-400 mb-8">
-            Connectez-vous avec votre compte Google pour accéder à votre tableau de bord PayMaestro.
+            {t('loginDescription')}
           </p>
 
           {/* Case à cocher conditions */}
@@ -105,17 +108,17 @@ export default function LoginPage() {
               className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/10 text-violet-600 focus:ring-violet-500 focus:ring-offset-0 cursor-pointer"
             />
             <span className="text-xs text-slate-400 leading-relaxed">
-              J&apos;accepte les{' '}
+              {t('acceptTerms')}{' '}
               <Link href={`/${locale}/terms`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
-                Conditions d&apos;utilisation
+                {t('termsOfService')}
               </Link>{' '}
-              et la{' '}
+              {t('andText')}{' '}
               <Link href={`/${locale}/privacy`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
-                Politique de confidentialité
+                {t('privacyPolicy')}
               </Link>
-              {' '}et la{' '}
+              {' '}{t('andText')}{' '}
               <Link href={`/${locale}/refund`} target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
-                Politique de remboursement
+                {t('refundPolicy')}
               </Link>
             </span>
           </label>
@@ -136,12 +139,12 @@ export default function LoginPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
             )}
-            {isGoogleLoading ? 'Vérification en cours...' : 'Continuer avec Google'}
+            {isGoogleLoading ? t('verifying') : t('continueWithGoogle')}
           </button>
 
           {!acceptedTerms && (
             <p className="text-xs text-amber-400/80 text-center mt-2">
-              Veuillez accepter les conditions pour continuer
+              {tErrors('pleaseAcceptTerms')}
             </p>
           )}
 

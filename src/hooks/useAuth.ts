@@ -254,7 +254,7 @@ export async function handleGoogleAuthSuccess(
     
   } catch (error) {
     logger.error('Erreur lors de l\'authentification Google:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Une erreur inattendue est survenue';
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     
     if (onError) {
       onError(errorMessage);
@@ -334,7 +334,7 @@ export async function handleGoogleOneTapResponse(
     
   } catch (error) {
     logger.error('Erreur Google One Tap:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Une erreur inattendue est survenue';
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     
     if (onError) {
       onError(errorMessage);

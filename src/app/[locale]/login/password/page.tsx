@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Loader2, Eye, EyeOff, ShieldCheck, ArrowLeft, MapPin, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -12,6 +12,9 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]
 
 export default function LoginPasswordPage() {
   const locale = useLocale();
+  const t = useTranslations('auth');
+  const tErrors = useTranslations('errors');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { success: toastSuccess, error: showError } = useToast();
   const { loginReal } = useAuth();
@@ -94,13 +97,13 @@ export default function LoginPasswordPage() {
     sessionStorage.setItem('paymaestro_token', res.token);
     sessionStorage.setItem('pm_auth_user', JSON.stringify(authUser));
     loginReal(authUser);
-    toastSuccess('Connexion réussie');
+    toastSuccess(t('loginSuccess'));
     window.location.href = `/${locale}/dashboard`;
   };
 
   const handleSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password) { setError('Veuillez entrer votre mot de passe'); return; }
+    if (!password) { setError(tErrors('pleaseEnterPassword')); return; }
     setError('');
     setLoading(true);
 
@@ -129,14 +132,14 @@ export default function LoginPasswordPage() {
         handleCompleteSuccess(res);
       }
     } catch (err: any) {
-      setError(err?.error || err?.message || 'Mot de passe incorrect');
+      setError(err?.error || err?.message || tErrors('invalidPassword'));
     }
     setLoading(false);
   };
 
   const handleSubmit2FA = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!twoFactorCode) { setError('Veuillez entrer le code 2FA'); return; }
+    if (!twoFactorCode) { setError(tErrors('invalid2FACode')); return; }
     setError('');
     setLoading(true);
 
@@ -158,7 +161,7 @@ export default function LoginPasswordPage() {
         handleCompleteSuccess(res);
       }
     } catch (err: any) {
-      setError(err?.error || err?.message || 'Code 2FA invalide');
+      setError(err?.error || err?.message || tErrors('invalid2FACode'));
     }
     setLoading(false);
   };
@@ -176,7 +179,7 @@ export default function LoginPasswordPage() {
         handleCompleteSuccess(res);
       }
     } catch (err: any) {
-      setError(err?.error || err?.message || 'Erreur de confirmation');
+      setError(err?.error || err?.message || tErrors('connectionError'));
     }
     setLoading(false);
   };
@@ -186,30 +189,30 @@ export default function LoginPasswordPage() {
     try {
       await api.auth.forgotPassword(userEmail);
       setResetSent(true);
-      toastSuccess('Code de réinitialisation envoyé par email');
+      toastSuccess(t('sendCode'));
     } catch (e: any) { showError(e.message); }
     setLoading(false);
   };
 
   const handleVerifyResetCode = async () => {
-    if (!resetCode) { showError('Entrez le code reçu par email'); return; }
+    if (!resetCode) { showError(tErrors('invalid2FACode')); return; }
     setLoading(true);
     try {
       await api.auth.verifyResetCode(userEmail, resetCode);
       setResetVerified(true);
-      toastSuccess('Code vérifié');
+      toastSuccess(t('verifyCode'));
     } catch (e: any) { showError(e.message); }
     setLoading(false);
   };
 
   const handleResetPassword = async () => {
-    if (!newPassword) { showError('Nouveau mot de passe requis'); return; }
-    if (!PASSWORD_REGEX.test(newPassword)) { showError('Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé.'); return; }
-    if (newPassword !== confirmPassword) { showError('Les mots de passe ne correspondent pas'); return; }
+    if (!newPassword) { showError(t('newPasswordRequired')); return; }
+    if (!PASSWORD_REGEX.test(newPassword)) { showError(t('passwordRequirements')); return; }
+    if (newPassword !== confirmPassword) { showError(t('passwordMismatch')); return; }
     setLoading(true);
     try {
       await api.auth.resetPassword(userEmail, resetCode, newPassword, confirmPassword);
-      toastSuccess('Mot de passe réinitialisé avec succès');
+      toastSuccess(t('passwordResetSuccess'));
       setShowForgot(false);
       setResetSent(false);
       setResetVerified(false);
@@ -240,7 +243,7 @@ export default function LoginPasswordPage() {
             className="flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Retour
+            {t('back')}
           </button>
 
           {step === 'password' && !showForgot && (
@@ -249,23 +252,23 @@ export default function LoginPasswordPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
                   <ShieldCheck className="w-7 h-7 text-violet-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-1">Vérification du mot de passe</h1>
+                <h1 className="text-2xl font-bold text-white mb-1">{t('passwordVerification')}</h1>
                 {userEmail && (
                   <p className="text-sm text-slate-400">
-                    Connecté en tant que <span className="text-violet-300">{userEmail}</span>
+                    {t('loggedInAs')} <span className="text-violet-300">{userEmail}</span>
                   </p>
                 )}
               </div>
 
               <form onSubmit={handleSubmitPassword} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Mot de passe</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">{t('password')}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={e => { setPassword(e.target.value); setError(''); }}
-                      placeholder="Entrez votre mot de passe"
+                      placeholder={t('enterPassword')}
                       autoFocus
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
                     />
@@ -290,7 +293,7 @@ export default function LoginPasswordPage() {
                   disabled={loading}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('verify')}
                 </button>
 
                 <p className="text-center text-xs text-slate-500">
@@ -299,7 +302,7 @@ export default function LoginPasswordPage() {
                     onClick={() => { setShowForgot(true); setError(''); }}
                     className="text-violet-400 hover:underline font-semibold"
                   >
-                    Mot de passe oublié ?
+                    {t('forgotPassword')}
                   </button>
                 </p>
               </form>
@@ -312,9 +315,9 @@ export default function LoginPasswordPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
                   <KeyRound className="w-7 h-7 text-violet-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-1">Réinitialisation du mot de passe</h1>
+                <h1 className="text-2xl font-bold text-white mb-1">{t('resetPassword')}</h1>
                 <p className="text-sm text-slate-400">
-                  {!resetSent ? 'Un code vous sera envoyé par email' : resetVerified ? 'Définissez votre nouveau mot de passe' : `Code envoyé à ${userEmail}`}
+                  {!resetSent ? t('resetCodeSent') : resetVerified ? t('setNewPasswordDesc') : t('codeSentTo', { email: userEmail })}
                 </p>
               </div>
 
@@ -330,7 +333,7 @@ export default function LoginPasswordPage() {
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Mail className="w-5 h-5" /> Envoyer le code</>}
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Mail className="w-5 h-5" /> {t('sendCode')}</>}
                   </button>
                 </div>
               )}
@@ -338,7 +341,7 @@ export default function LoginPasswordPage() {
               {resetSent && !resetVerified && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Code de réinitialisation</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">{t('resetCodeLabel')}</label>
                     <input
                       type="text"
                       value={resetCode}
@@ -355,11 +358,11 @@ export default function LoginPasswordPage() {
                     disabled={loading || !resetCode}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier le code'}
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('verifyCode')}
                   </button>
                   <p className="text-center text-xs text-slate-500">
-                    Vous n&apos;avez pas reçu le code ?{' '}
-                    <button type="button" onClick={handleSendResetCode} className="text-violet-400 hover:underline">Renvoyer</button>
+                    {t('didNotReceiveCode')}{' '}
+                    <button type="button" onClick={handleSendResetCode} className="text-violet-400 hover:underline">{t('resend')}</button>
                   </p>
                 </div>
               )}
@@ -367,13 +370,13 @@ export default function LoginPasswordPage() {
               {resetVerified && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Nouveau mot de passe</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">{t('newPassword')}</label>
                     <div className="relative">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
-                        placeholder="Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé."
+                        placeholder={t('passwordRequirements')}
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
                       />
                       <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
@@ -382,13 +385,13 @@ export default function LoginPasswordPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Confirmer le mot de passe</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">{t('confirmPassword')}</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
-                        placeholder="Répétez le mot de passe"
+                        placeholder={t('repeatPassword')}
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
                       />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
@@ -403,11 +406,11 @@ export default function LoginPasswordPage() {
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Réinitialiser le mot de passe'}
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('resetPasswordButton')}
                   </button>
                   <p className="text-center text-xs text-slate-500">
                     <button type="button" onClick={() => { setShowForgot(false); setResetSent(false); setResetVerified(false); setResetCode(''); setNewPassword(''); setConfirmPassword(''); }} className="text-slate-400 hover:underline">
-                      Retour à la connexion
+                      {t('backToLogin')}
                     </button>
                   </p>
                 </div>
@@ -421,11 +424,11 @@ export default function LoginPasswordPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
                   <ShieldCheck className="w-7 h-7 text-violet-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-1">Authentification à deux facteurs</h1>
+                <h1 className="text-2xl font-bold text-white mb-1">{t('twoFactorTitle')}</h1>
                 <p className="text-sm text-slate-400">
                   {is2FAOTP
-                    ? 'Un code à 6 chiffres vous a été envoyé par email'
-                    : 'Saisissez le code généré par votre application d\'authentification'}
+                    ? t('twoFactorOTPSent')
+                    : t('twoFactorAppCode')}
                 </p>
               </div>
 
@@ -453,23 +456,23 @@ export default function LoginPasswordPage() {
                   disabled={loading || twoFactorCode.length < 6}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Vérifier le code'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('verifyCode')}
                 </button>
                 {is2FAOTP && (
                   <p className="text-center text-xs text-slate-500">
-                    Vous n&apos;avez pas reçu le code ?{' '}
+                    {t('didNotReceiveCode')}{' '}
                     <button
                       type="button"
                       onClick={async () => {
                         const currentToken = sessionStorage.getItem('pm_login_token') || loginToken;
                         try {
                           await api.twoFactor.sendLoginOTP?.();
-                          toastSuccess('Nouveau code envoyé par email');
+                          toastSuccess(t('sendCode'));
                         } catch { /* ignore */ }
                       }}
                       className="text-violet-400 hover:underline"
                     >
-                      Renvoyer
+                      {t('resend')}
                     </button>
                   </p>
                 )}
@@ -483,10 +486,9 @@ export default function LoginPasswordPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 mb-4">
                   <MapPin className="w-7 h-7 text-amber-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-1">Nouvelle localisation détectée</h1>
+                <h1 className="text-2xl font-bold text-white mb-1">{t('newLocationTitle')}</h1>
                 <p className="text-sm text-slate-400">
-                  Nous avons détecté une connexion depuis une localisation inconnue.
-                  Veuillez confirmer qu&apos;il s&apos;agit bien de vous.
+                  {t('newLocationDesc')}
                 </p>
               </div>
 
@@ -511,7 +513,7 @@ export default function LoginPasswordPage() {
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> Confirmer ma position</>}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> {t('confirmLocation')}</>}
               </button>
             </>
           )}

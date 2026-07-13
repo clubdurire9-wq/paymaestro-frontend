@@ -81,7 +81,7 @@ export default function AdminSupportPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2 mb-6">
         <MessageCircle className="w-8 h-8 text-violet-600" />
-        Support Live
+        Live Support
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[70vh]">

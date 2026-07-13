@@ -10,61 +10,61 @@ export default function TermsPage() {
   const sections = [
     {
       icon: Shield,
-      title: '1. Acceptation des conditions',
-      content: 'En accédant et en utilisant PayMaestro, vous acceptez d\'être lié par les présentes conditions d\'utilisation. Si vous n\'acceptez pas ces conditions, veuillez ne pas utiliser nos services.',
+      title: '1. Acceptance of Terms',
+      content: 'By accessing and using PayMaestro, you agree to be bound by these terms of service. If you do not accept these terms, please do not use our services.',
     },
     {
       icon: FileText,
-      title: '2. Description du service',
-      content: 'PayMaestro est une plateforme financière permettant aux utilisateurs de stocker, envoyer et retirer des fonds via un wallet centralisé sécurisé dans 54 pays africains. Déposez depuis PayPal, Mobile Money, banque ou crypto, puis retirez vers Mobile Money, banque, PayPal, crypto ou carte virtuelle.',
+      title: '2. Service Description',
+      content: 'PayMaestro is a financial platform that allows users to store, send and withdraw funds through a centralized secure wallet in 54 African countries. Deposit from PayPal, Mobile Money, bank or crypto, then withdraw to Mobile Money, bank, PayPal, crypto or virtual card.',
     },
     {
       icon: Scale,
-      title: '3. Frais et commissions',
-      content: 'Nos frais sont transparents et affichés avant chaque transaction : PayPal → Wallet (5%), Mobile Money → Wallet (3%), Banque → Wallet (2%), Crypto → Wallet (2%), Wallet → Mobile Money (3%), Wallet → Banque (2-5%), Wallet → PayPal (3%), Wallet → Carte (1%+2%FX). Tous les frais sont calculés sur le montant brut en USD.',
+      title: '3. Fees and Commissions',
+      content: 'Our fees are transparent and displayed before each transaction: PayPal → Wallet (5%), Mobile Money → Wallet (3%), Bank → Wallet (2%), Crypto → Wallet (2%), Wallet → Mobile Money (3%), Wallet → Bank (2-5%), Wallet → PayPal (3%), Wallet → Card (1%+2%FX). All fees are calculated on the gross amount in USD.',
     },
     {
       icon: Lock,
-      title: '4. Protection des données',
-      content: 'Nous collectons uniquement les données nécessaires à la fourniture de nos services (email, numéro de téléphone, pièce d\'identité pour KYC). Vos données sont cryptées et stockées de manière sécurisée. Nous ne partageons jamais vos données avec des tiers sans votre consentement explicite.',
+      title: '4. Data Protection',
+      content: 'We only collect data necessary to provide our services (email, phone number, ID for KYC). Your data is encrypted and stored securely. We never share your data with third parties without your explicit consent.',
     },
     {
       icon: Shield,
-      title: '5. Vérification d\'identité (KYC)',
-      content: 'Pour utiliser tous les services PayMaestro, vous devez vérifier votre identité en fournissant une pièce d\'identité valide (passeport, CNI, permis de conduire ou carte d\'électeur). Cette vérification est obligatoire pour les retraits et transferts.',
+      title: '5. Identity Verification (KYC)',
+      content: 'To use all PayMaestro services, you must verify your identity by providing a valid ID (passport, national ID, driving license or voter card). This verification is required for withdrawals and transfers.',
     },
     {
       icon: FileText,
-      title: '6. Limitation de responsabilité',
-      content: 'PayMaestro agit en tant qu\'intermédiaire de paiement. Nous ne sommes pas responsables des erreurs de saisie de numéro de téléphone ou de coordonnées bancaires par l\'utilisateur. En cas d\'erreur, contactez immédiatement notre support pour un remboursement.',
+      title: '6. Limitation of Liability',
+      content: 'PayMaestro acts as a payment intermediary. We are not responsible for incorrect phone numbers or bank details entered by the user. In case of error, contact our support immediately for a refund.',
     },
     {
       icon: Scale,
-      title: '7. Remboursements',
-      content: 'Les demandes de remboursement sont traitées au cas par cas par notre équipe. Un remboursement peut être effectué vers votre portefeuille, votre Mobile Money, votre compte PayPal ou votre compte bancaire. Les frais de service ne sont pas remboursables.',
+      title: '7. Refunds',
+      content: 'Refund requests are handled on a case-by-case basis by our team. A refund can be made to your wallet, Mobile Money, PayPal account or bank account. Service fees are non-refundable.',
     },
     {
       icon: Lock,
-      title: '8. Sécurité du compte',
-      content: 'Vous êtes responsable de la sécurité de vos identifiants de connexion. Activez l\'authentification à deux facteurs lorsque disponible. PayMaestro ne vous demandera jamais votre mot de passe par email ou téléphone.',
+      title: '8. Account Security',
+      content: 'You are responsible for the security of your login credentials. Enable two-factor authentication when available. PayMaestro will never ask for your password by email or phone.',
     },
     {
       icon: Shield,
-      title: '9. Modification des conditions',
-      content: 'PayMaestro se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront notifiés des changements importants par email. L\'utilisation continue de nos services après modification vaut acceptation.',
+      title: '9. Modification of Terms',
+      content: 'PayMaestro reserves the right to modify these terms at any time. Users will be notified of important changes by email. Continued use of our services after modification constitutes acceptance.',
     },
     {
       icon: Scale,
       title: '10. Contact',
-      content: 'Pour toute question concernant ces conditions, contactez notre équipe support via le chatbot sur notre plateforme ou par email à support@paymaestro.com.',
+      content: 'For any questions regarding these terms, contact our support team via the chatbot on our platform or by email at support@paymaestro.com.',
     },
   ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Conditions d'Utilisation</h1>
-        <p className="text-slate-500 dark:text-slate-400">Dernière mise à jour : Juin 2026</p>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Terms of Service</h1>
+        <p className="text-slate-500 dark:text-slate-400">Last updated: June 2026</p>
       </div>
 
       <div className="space-y-6">
@@ -84,7 +84,7 @@ export default function TermsPage() {
       </div>
 
       <div className="mt-8 text-center text-sm text-slate-400 dark:text-slate-500">
-        <p>En utilisant PayMaestro, vous acceptez ces conditions d'utilisation.</p>
+        <p>By using PayMaestro, you accept these terms of service.</p>
       </div>
     </div>
   );

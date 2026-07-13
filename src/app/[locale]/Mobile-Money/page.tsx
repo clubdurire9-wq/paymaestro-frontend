@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loader2, CheckCircle2, AlertTriangle, ArrowDown, ArrowUp, Phone, Snowflake } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ function CountrySelect({ value, onChange, className }: { value: CountryData; onC
 
 export default function MobileMoneyPage() {
   const [tab, setTab] = useState<'deposit' | 'withdraw'>('deposit');
+  const t = useTranslations('mobileMoney');
 
   const [mobileCountry, setMobileCountry] = useState<CountryData>(ALL_COUNTRIES[0]);
   const [mobileCurrency, setMobileCurrency] = useState('XOF');
@@ -134,15 +136,15 @@ export default function MobileMoneyPage() {
   function parseDepositError(raw: string): string {
     const lower = raw.toLowerCase();
     if (lower.includes('invalid_payer_format') || lower.includes('msisdn') || lower.includes('phone number') || lower.includes('too long')) {
-      return 'Le numéro de téléphone saisi semble incorrect ou mal formaté. Vérifiez que votre numéro est correct et réessayez.';
+      return t('phoneError');
     }
     if (lower.includes('insufficient') || lower.includes('solde insuffisant')) {
-      return 'Votre solde est insuffisant pour effectuer cette opération.';
+      return t('insufficientBalance');
     }
     if (lower.includes('timeout') || lower.includes('indisponible') || lower.includes('500') || lower.includes('service')) {
-      return 'Une interruption technique temporaire est survenue. Veuillez réessayer dans quelques instants.';
+      return t('serviceUnavailable');
     }
-    return 'Une erreur est survenue lors du dépôt. Vérifiez vos informations et réessayez. Si le problème persiste, contactez notre support.';
+    return t('depositGeneralError');
   }
 
   useEffect(() => {
@@ -165,8 +167,8 @@ export default function MobileMoneyPage() {
         setMobileDepositLoading(false);
         setDepositModalData({
           type: 'error',
-          title: 'Délai dépassé',
-          message: 'Le dépôt a pris trop de temps. Veuillez vérifier votre historique.',
+          title: t('delayExceeded'),
+          message: t('delayMessage'),
         });
         setShowDepositModal(true);
         return;
@@ -180,8 +182,8 @@ export default function MobileMoneyPage() {
             setMobileDepositLoading(false);
             setDepositModalData({
               type: 'success',
-              title: 'Dépôt réussi !',
-              message: `${tx.amount_currency} ${tx.currency_code} ont été crédités sur votre wallet.`,
+              title: t('depositSuccess'),
+              message: t('creditedMessage', { amount: tx.amount_currency, currency: tx.currency_code }),
               amount: `${tx.amount_currency} ${tx.currency_code}`,
             });
             setShowDepositModal(true);
@@ -191,8 +193,8 @@ export default function MobileMoneyPage() {
             setMobileDepositLoading(false);
             setDepositModalData({
               type: 'error',
-              title: 'Dépôt échoué',
-              message: 'Le dépôt n\'a pas abouti. Veuillez réessayer.',
+              title: t('depositFailed'),
+              message: t('depositGeneralError'),
             });
             setShowDepositModal(true);
             return;
@@ -224,8 +226,8 @@ export default function MobileMoneyPage() {
         setMobileDepositLoading(false);
         setDepositModalData({
           type: 'error',
-          title: 'Méthode non disponible',
-          message: 'Le paiement par redirection n\'est pas disponible pour Mobile Money. Veuillez réessayer.',
+          title: t('notAvailable'),
+          message: t('notAvailable'),
         });
         setShowDepositModal(true);
         return;
@@ -234,18 +236,18 @@ export default function MobileMoneyPage() {
         setMobilePendingTxId(result.transactionId);
         setMobileDepositMessage({
           type: 'info',
-          text: `📱 Demande envoyée ! Vérifiez votre téléphone ${mobileCountry.countryCode}${mobilePhone.replace(/^0+/, '')} pour confirmer le paiement via ${mobileOperator}. Un push OTP vous a été envoyé.`
+          text: t('depositRequestSent', { phone: `${mobileCountry.countryCode}${mobilePhone.replace(/^0+/, '')}`, operator: mobileOperator })
         });
         setMobileAmount('');
         setMobilePhone('');
       } else if (result?.completed) {
         setMobileDepositLoading(false);
-        setDepositModalData({
-          type: 'success',
-          title: 'Dépôt réussi !',
-          message: `${result.amountLocal} ${result.currencyCode || mobileCountry.code} ont été crédités sur votre wallet.`,
-          amount: `${result.amountLocal} ${result.currencyCode || mobileCountry.code}`,
-        });
+          setDepositModalData({
+            type: 'success',
+            title: t('depositSuccess'),
+            message: t('creditedMessage', { amount: result.amountLocal, currency: result.currencyCode || mobileCountry.code }),
+            amount: `${result.amountLocal} ${result.currencyCode || mobileCountry.code}`,
+          });
         setShowDepositModal(true);
         setMobileAmount('');
         setMobilePhone('');
@@ -253,19 +255,19 @@ export default function MobileMoneyPage() {
         setMobileDepositLoading(false);
         setMobileDepositMessage({
           type: 'success',
-          text: '✅ Dépôt effectué avec succès !'
+          text: t('depositSuccess')
         });
         setMobileAmount('');
         setMobilePhone('');
       }
     } catch (error: any) {
       setMobileDepositLoading(false);
-      const msg = error?.message || 'Erreur lors du dépôt. Veuillez réessayer.';
-      setDepositModalData({
-        type: 'error',
-        title: 'Dépôt échoué',
-        message: parseDepositError(msg),
-      });
+      const msg = error?.message || t('depositGeneralError');
+        setDepositModalData({
+          type: 'error',
+          title: t('depositFailed'),
+          message: parseDepositError(msg),
+        });
       setShowDepositModal(true);
     }
   };
@@ -290,7 +292,7 @@ export default function MobileMoneyPage() {
         setWithdrawRecipientName(null);
         setWithdrawMessage({
           type: 'info',
-          text: `⚠️ Nom non vérifié par l'opérateur. Vérifiez bien le numéro avant de confirmer.`
+          text: t('nameNotVerified')
         });
       }
       setShowWithdrawConfirm(true);
@@ -298,7 +300,7 @@ export default function MobileMoneyPage() {
       setWithdrawRecipientName(null);
       setWithdrawMessage({
         type: 'info',
-        text: `⚠️ Vérification indisponible. Vérifiez bien le numéro avant de confirmer.`
+          text: t('verificationUnavailable')
       });
       setShowWithdrawConfirm(true);
     }
@@ -330,8 +332,8 @@ export default function MobileMoneyPage() {
       setShowWithdrawPassword(false);
       setWithdrawResultData({
         type: 'success',
-        title: 'Retrait réussi !',
-        message: `Transfert de ${parseFloat(withdrawAmount).toFixed(2)} USD vers ${withdrawCountry.countryCode}${cleanPhone}.`,
+        title: t('withdrawSuccess'),
+        message: t('creditedMessage', { amount: parseFloat(withdrawAmount).toFixed(2), currency: `${withdrawCountry.countryCode}${cleanPhone}` }),
         amount: `${(parseFloat(withdrawAmount) * 0.97 * rate).toFixed(2)} ${withdrawCountry.code}`,
       });
       setShowWithdrawResult(true);
@@ -343,8 +345,8 @@ export default function MobileMoneyPage() {
       setShowWithdrawPassword(false);
       setWithdrawResultData({
         type: 'error',
-        title: 'Retrait échoué',
-        message: error?.message || 'Erreur lors du retrait. Veuillez réessayer.',
+        title: t('withdrawFailed'),
+        message: error?.message || t('depositGeneralError'),
       });
       setShowWithdrawResult(true);
     }
@@ -354,8 +356,8 @@ export default function MobileMoneyPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Mobile Money</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez vos transferts Mobile Money</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('subtitle')}</p>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -367,7 +369,7 @@ export default function MobileMoneyPage() {
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
           }`}
         >
-          <ArrowDown className="w-4 h-4 inline mr-1" />Déposer (Wallet+)
+          <ArrowDown className="w-4 h-4 inline mr-1" />{t('depositTab')}
         </button>
         <button
           onClick={() => setTab('withdraw')}
@@ -377,7 +379,7 @@ export default function MobileMoneyPage() {
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
           }`}
         >
-          <ArrowUp className="w-4 h-4 inline mr-1" />Retirer (Wallet-)
+          <ArrowUp className="w-4 h-4 inline mr-1" />{t('withdrawTab')}
         </button>
       </div>
 
@@ -387,14 +389,14 @@ export default function MobileMoneyPage() {
             <div className="flex items-center gap-3">
               <Phone className="w-8 h-8 text-amber-600 dark:text-amber-400" />
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Dépôt Mobile Money</h3>
-                <p className="text-sm text-amber-700 dark:text-amber-400">Rechargez votre wallet depuis votre compte Mobile Money</p>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('depositTitle')}</h3>
+                <p className="text-sm text-amber-700 dark:text-amber-400">{t('depositDesc')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Pays</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('country')}</label>
                 <CountrySelect
                   value={mobileCountry}
                   onChange={(c) => { setMobileCountry(c); setMobileCurrency(c.code); setMobileOperator(c.operators[0] || 'Orange'); }}
@@ -402,7 +404,7 @@ export default function MobileMoneyPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Opérateur</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('operator')}</label>
                 <select
                   value={mobileOperator}
                   onChange={(e) => setMobileOperator(e.target.value)}
@@ -416,7 +418,7 @@ export default function MobileMoneyPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Votre numéro</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('phoneNumber')}</label>
               <div className="flex gap-2 mt-1">
                 <span className="px-2 py-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-semibold dark:text-white shrink-0">
                   {mobileCountry.countryCode}
@@ -436,7 +438,7 @@ export default function MobileMoneyPage() {
                 type="number"
                 value={mobileAmount}
                 onChange={(e) => setMobileAmount(e.target.value)}
-                placeholder={`Montant en ${mobileCurrency}`}
+                placeholder={t('amountCurrency', { currency: mobileCurrency })}
                 className="flex-1 px-4 py-3 border dark:border-slate-600 rounded-xl text-lg font-bold dark:bg-slate-800 dark:text-white"
               />
               <Button
@@ -449,7 +451,7 @@ export default function MobileMoneyPage() {
                 ) : (
                   <ArrowDown className="w-4 h-4 mr-2" />
                 )}
-                {mobileDepositLoading ? 'Traitement...' : 'Déposer'}
+                {mobileDepositLoading ? t('processing') : t('deposit')}
               </Button>
             </div>
 
@@ -457,14 +459,13 @@ export default function MobileMoneyPage() {
               <div className="rounded-xl p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-center space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto" />
                 <p className="text-sm font-semibold text-blue-800 dark:text-blue-400">
-                  En attente de confirmation...
+                  {t('pendingOTP')}
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-300">
-                  Un push OTP a été envoyé à votre téléphone. <br />
-                  Veuillez entrer votre code PIN pour finaliser le paiement.
+                  {t('otpSent')}
                 </p>
                 <p className="text-xs text-blue-500 dark:text-blue-400">
-                  Dès confirmation, votre wallet sera crédité automatiquement.
+                  {t('autoCredit')}
                 </p>
                 <button
                   className="text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200 underline"
@@ -474,7 +475,7 @@ export default function MobileMoneyPage() {
                     setMobileDepositMessage(null);
                   }}
                 >
-                  Annuler et réessayer
+                  {t('cancelAndRetry')}
                 </button>
               </div>
             ) : null}
@@ -491,9 +492,9 @@ export default function MobileMoneyPage() {
               </div>
             ) : !mobilePendingTxId ? (
               <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-400 space-y-1">
-                <p><strong>💰 Frais :</strong> 3% du montant</p>
-                <p><strong>⏱️ Traitement :</strong> Vous recevrez un push OTP sur votre téléphone</p>
-                <p className="mt-1">Le montant sera crédité en USD sur votre wallet après validation du code PIN.</p>
+                <p><strong>{t('fees')}</strong> {t('feeDetail', { percent: '3' })}</p>
+                <p><strong>{t('processingTime')}</strong> {t('otpPush')}</p>
+                <p className="mt-1">{t('creditInfo')}</p>
               </div>
             ) : null}
           </CardContent>
@@ -506,14 +507,14 @@ export default function MobileMoneyPage() {
             <div className="flex items-center gap-3">
               <Phone className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Retrait Mobile Money</h3>
-                <p className="text-sm text-emerald-700 dark:text-emerald-400">Retirez vos fonds vers votre compte Mobile Money</p>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('withdrawTitle')}</h3>
+                <p className="text-sm text-emerald-700 dark:text-emerald-400">{t('withdrawDesc')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Pays</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('country')}</label>
                 <CountrySelect
                   value={withdrawCountry}
                   onChange={(c) => { setWithdrawCountry(c); setWithdrawOperator(c.operators[0] || 'Orange'); }}
@@ -521,7 +522,7 @@ export default function MobileMoneyPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Opérateur</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('operator')}</label>
                 <select
                   value={withdrawOperator}
                   onChange={(e) => setWithdrawOperator(e.target.value)}
@@ -535,7 +536,7 @@ export default function MobileMoneyPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Votre numéro Mobile Money</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t('withdrawPhone')}</label>
               <div className="flex gap-2 mt-1">
                 <span className="px-2 py-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-semibold dark:text-white shrink-0">
                   {withdrawCountry?.countryCode || ''}
@@ -553,7 +554,7 @@ export default function MobileMoneyPage() {
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                  Montant (USD)
+                  {t('amountUSD')}
                 </label>
                 <input
                   type="number"
@@ -574,7 +575,7 @@ export default function MobileMoneyPage() {
                   ) : (
                     <ArrowUp className="w-4 h-4 mr-2" />
                   )}
-                  {withdrawVerifying ? 'Vérification...' : 'Retirer'}
+                  {withdrawVerifying ? t('verifying') : t('withdraw')}
                 </Button>
               </div>
             </div>
@@ -592,8 +593,8 @@ export default function MobileMoneyPage() {
             )}
 
             <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-400 space-y-1">
-              <p><strong>💰 Frais :</strong> 3% du montant</p>
-              <p><strong>⏱️ Délai :</strong> Quelques minutes</p>
+              <p><strong>{t('fees')}</strong> {t('feeDetail', { percent: '3' })}</p>
+              <p><strong>{t('processingTime')}</strong> {t('otpPush')}</p>
               {withdrawAmount && withdrawCountry && (() => {
                 const usdAmount = parseFloat(withdrawAmount) || 0;
                 const rate = currencies.find(c => c.code === withdrawCountry.code)?.rate || 600;
@@ -602,9 +603,9 @@ export default function MobileMoneyPage() {
                 const localAmount = netUSD * rate;
                 return (
                   <>
-                    <p>Frais : {fee.toFixed(2)} USD</p>
+                    <p>{t('fees')} {fee.toFixed(2)} USD</p>
                     <p className="font-bold mt-1">
-                      Vous recevrez {localAmount.toFixed(2)} {withdrawCountry.code} sur votre Mobile Money
+                      {t('estimatedReceive', { amount: localAmount.toFixed(2), currency: withdrawCountry.code })}
                     </p>
                   </>
                 );
@@ -624,37 +625,37 @@ export default function MobileMoneyPage() {
                       <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-3">
                         <Phone className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                       </div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirmer le retrait</h3>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('confirmTitle')}</h3>
                     </div>
 
                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Bénéficiaire</span>
+                        <span className="text-slate-500">{t('recipient')}</span>
                         {withdrawRecipientName ? (
                           <span className="font-semibold text-slate-900 dark:text-white">{withdrawRecipientName}</span>
                         ) : (
-                          <span className="font-semibold text-amber-600 dark:text-amber-400">Non vérifié ⚠️</span>
+                          <span className="font-semibold text-amber-600 dark:text-amber-400">{t('unverified')}</span>
                         )}
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Téléphone</span>
+                        <span className="text-slate-500">{t('phone')}</span>
                         <span className="font-semibold text-slate-900 dark:text-white">{withdrawCountry.countryCode}{withdrawPhone.replace(/^0+/, '')}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Opérateur</span>
+                        <span className="text-slate-500">{t('operator')}</span>
                         <span className="font-semibold text-slate-900 dark:text-white">{withdrawOperator}</span>
                       </div>
                       <hr className="border-slate-200 dark:border-slate-700" />
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Montant</span>
+                        <span className="text-slate-500">{t('amount')}</span>
                         <span className="font-semibold text-slate-900 dark:text-white">{usdAmount.toFixed(2)} USD</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Frais (3%)</span>
+                        <span className="text-slate-500">{t('feeAmount')}</span>
                         <span className="font-semibold text-red-600 dark:text-red-400">-{fee.toFixed(2)} USD</span>
                       </div>
                       <div className="flex justify-between text-emerald-700 dark:text-emerald-400 font-bold">
-                        <span>Vous recevez</span>
+                        <span>{t('youReceive')}</span>
                         <span>{localAmount.toFixed(2)} {withdrawCountry.code}</span>
                       </div>
                     </div>
@@ -664,14 +665,14 @@ export default function MobileMoneyPage() {
                         onClick={() => { setShowWithdrawConfirm(false); setWithdrawRecipientName(null); }}
                         className="flex-1 py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
-                        Annuler
-                      </button>
-                      <button
-                        onClick={handleMobileWithdrawConfirm}
-                        disabled={withdrawLoading}
-                        className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 disabled:opacity-50"
-                      >
-                        {withdrawLoading ? 'Traitement...' : 'Confirmer le retrait'}
+                        {t('cancel')}
+                       </button>
+                       <button
+                         onClick={handleMobileWithdrawConfirm}
+                         disabled={withdrawLoading}
+                         className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 disabled:opacity-50"
+                       >
+                         {withdrawLoading ? t('processing') : t('confirmWithdraw')}
                       </button>
                     </div>
                   </div>
@@ -715,7 +716,7 @@ export default function MobileMoneyPage() {
                         : 'bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500'
                     }`}
                   >
-                    {withdrawResultData.type === 'success' ? 'Accéder au portefeuille' : 'Réessayer'}
+                    {withdrawResultData.type === 'success' ? t('goToWallet') : t('retry')}
                   </button>
                 </div>
               </div>
@@ -750,7 +751,7 @@ export default function MobileMoneyPage() {
                         : 'bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500'
                     }`}
                   >
-                    {depositModalData.type === 'success' ? 'Accéder au portefeuille' : 'Réessayer'}
+                    {depositModalData.type === 'success' ? t('goToWallet') : t('retry')}
                   </button>
                 </div>
               </div>
@@ -762,7 +763,7 @@ export default function MobileMoneyPage() {
       {isWithdrawFrozen && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
           <Snowflake className="w-5 h-5 shrink-0" />
-          Retrait Mobile Money bloqué — compte suspendu
+          {t('withdrawFrozen')}
         </div>
       )}
 

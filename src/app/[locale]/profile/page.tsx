@@ -102,6 +102,7 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
 export default function ProfilePage() {
   const t = useTranslations('profile');
   const tCommon = useTranslations('common');
+  const tErrors = useTranslations('errors');
   const locale = useLocale();
   const { success, error: showError } = useToast();
 
@@ -304,7 +305,7 @@ export default function ProfilePage() {
   };
 
   const handleCreatePassword = async () => {
-    if (!newPassword) { showError('Veuillez entrer un mot de passe'); return; }
+    if (!newPassword) { showError(tErrors('pleaseEnterPassword')); return; }
     if (!validatePasswordStrength(newPassword)) {
       showError('Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.');
       return;
@@ -323,8 +324,8 @@ export default function ProfilePage() {
   };
 
   const handleChangePassword = async () => {
-    if (!oldPassword) { showError('Veuillez entrer votre mot de passe actuel'); return; }
-    if (!newPassword) { showError('Veuillez entrer un nouveau mot de passe'); return; }
+    if (!oldPassword) { showError(tErrors('pleaseEnterPassword')); return; }
+    if (!newPassword) { showError(tErrors('pleaseEnterPassword')); return; }
     if (!validatePasswordStrength(newPassword)) {
       showError('Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.');
       return;
@@ -402,7 +403,7 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     if (!profileForm.lastName || !profileForm.firstName || !profileForm.dateOfBirth || !profileForm.country) {
-      showError('Veuillez remplir tous les champs obligatoires (nom, prénom, date de naissance, pays).');
+      showError(tErrors('fillAllFields'));
       return;
     }
     setShowConfirmModal(true);
@@ -627,13 +628,13 @@ export default function ProfilePage() {
                       </p>
                       {!twoFAOTPSent ? (
                         <Button variant="primary" fullWidth size="sm" loading={twoFALoading} onClick={handleSend2FAOTP}>
-                          <Mail className="w-3.5 h-3.5 mr-1" /> Envoyer le code de vérification
+                          <Mail className="w-3.5 h-3.5 mr-1" /> Send verification code
                         </Button>
                       ) : (
                         <div className="space-y-2">
                           <p className="text-[10px] font-bold text-emerald-600">Code envoyé ! Vérifiez votre boîte email.</p>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Code reçu par email</label>
+                            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Verification code received by email</label>
                             <div className="flex gap-2 mt-1">
                               <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 bg-white dark:bg-slate-800" placeholder="000000" maxLength={6} />
                               <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FAOTP}>Activer</Button>
@@ -711,7 +712,7 @@ export default function ProfilePage() {
                 </div>
               )}
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Ces informations seront utilisées pour la vérification KYC. Assurez-vous qu&apos;elles correspondent exactement à vos documents d&apos;identité.
+                This information will be used for KYC verification. Make sure it exactly matches your ID documents.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Input
@@ -941,20 +942,20 @@ export default function ProfilePage() {
       </div>
 
       {/* Confirmation Modal */}
-      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirmer la mise à jour" size="sm">
+      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirm update" size="sm">
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <p className="text-xs text-amber-800 dark:text-amber-200">
-              <strong>Attention :</strong> La mise à jour de vos informations légales n&apos;est autorisée qu&apos;<strong>une seule fois par mois</strong>. Assurez-vous que toutes les données sont correctes avant de confirmer.
+              <strong>Warning:</strong> Updating your legal information is only allowed <strong>once per month</strong>. Make sure all data is correct before confirming.
             </p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" fullWidth size="sm" onClick={() => setShowConfirmModal(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button variant="primary" fullWidth size="sm" onClick={confirmSaveProfile}>
-              Valider
+              Confirm
             </Button>
           </div>
         </div>

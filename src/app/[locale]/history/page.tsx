@@ -30,6 +30,7 @@ export default function HistoryPage() {
   const { user } = useAuth();
   const t = useTranslations('history');
   const tCommon = useTranslations('common');
+  const tErrors = useTranslations('errors');
   const locale = useLocale();
 
   // State
@@ -108,7 +109,7 @@ export default function HistoryPage() {
       case 'PENDING':
         return <Badge variant="warning">{t(`status.${status}`)}</Badge>;
       case 'PAYPAL_APPROVED':
-        return <Badge variant="info">PayPal validé</Badge>;
+        return <Badge variant="info">PayPal validated</Badge>;
       case 'FAILED':
         return <Badge variant="error">{t(`status.${status}`)}</Badge>;
       default:
@@ -136,8 +137,8 @@ export default function HistoryPage() {
       const filename = `PayMaestro_Releve_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
     } catch (e: any) {
-      logger.error('❌ Erreur génération PDF:', e);
-      setToast({ type: 'error', message: 'Impossible de générer le PDF. Veuillez réessayer.' });
+      logger.error('❌ PDF generation error:', e);
+      setToast({ type: 'error', message: tErrors('pdfGenerationFailed') });
     }
   };
 
@@ -147,7 +148,7 @@ export default function HistoryPage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('title')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Visualisez et exportez l&apos;ensemble de vos retraits passés.
+            View and export all your past withdrawals.
           </p>
         </div>
         <Button 
@@ -156,7 +157,7 @@ export default function HistoryPage() {
           onClick={exportToPDF}
           disabled={filteredTransactions.length === 0}
         >
-          Exporter en PDF
+          Export to PDF
         </Button>
       </div>
 
@@ -165,12 +166,12 @@ export default function HistoryPage() {
         <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
           {/* Search bar */}
           <div className="sm:col-span-2 relative">
-            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Rechercher</label>
+            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Search</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="ID, Référence ou Téléphone..."
+                placeholder="ID, Reference or Phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
@@ -188,7 +189,7 @@ export default function HistoryPage() {
 
           {/* Status Filter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Statut</label>
+            <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Status</label>
             <Select
               options={[
                 { value: 'ALL', label: t('filters.all') },
@@ -206,7 +207,7 @@ export default function HistoryPage() {
             <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{t('filters.currency')}</label>
             <Select
               options={[
-                { value: 'ALL', label: 'Toutes les devises' },
+                { value: 'ALL', label: 'All currencies' },
                 ...LIVE_RATES.map(r => ({ value: r.currency, label: `${r.flag} ${r.currency}` }))
               ]}
               value={currencyFilter}
@@ -227,7 +228,7 @@ export default function HistoryPage() {
             <div className="p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
               <Clock className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 stroke-[1.5]" />
               <p className="font-semibold text-slate-700 dark:text-slate-300">{t('empty')}</p>
-              <p className="text-xs">Essayez de modifier ou de réinitialiser vos filtres de recherche.</p>
+              <p className="text-xs">Try modifying or resetting your search filters.</p>
             </div>
           ) : (
             <>
@@ -236,10 +237,10 @@ export default function HistoryPage() {
                   <thead>
                     <tr className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 text-xs uppercase font-semibold">
                       <th className="py-4 px-6">{t('table.date')}</th>
-                      <th className="py-4 px-6">ID Retrait</th>
+                      <th className="py-4 px-6">Withdrawal ID</th>
                       <th className="py-4 px-6">{t('table.amount')} USD</th>
                       <th className="py-4 px-6">{t('table.received')}</th>
-                      <th className="py-4 px-6">Téléphone</th>
+                      <th className="py-4 px-6">Phone</th>
                       <th className="py-4 px-6">{t('table.status')}</th>
                       <th className="py-4 px-6 text-right">{t('table.actions')}</th>
                     </tr>
@@ -273,7 +274,7 @@ export default function HistoryPage() {
                               setIsModalOpen(true);
                             }}
                           >
-                            Détails
+                            Details
                           </Button>
                         </td>
                       </tr>
@@ -286,7 +287,7 @@ export default function HistoryPage() {
               {totalPages > 1 && (
                 <div className="border-t border-slate-100 dark:border-slate-700/50 px-6 py-4 flex items-center justify-between text-sm bg-slate-55/20 dark:bg-slate-800/30">
                   <span className="text-xs text-slate-400 dark:text-slate-500">
-                    Page {currentPage} sur {totalPages} ({filteredTransactions.length} résultats)
+                    Page {currentPage} of {totalPages} ({filteredTransactions.length} results)
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -331,7 +332,7 @@ export default function HistoryPage() {
                 {formatCurrency(selectedTx.receivedAmount, selectedTx.currency)}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Initialisé le {new Date(selectedTx.date).toLocaleString()}
+                Initiated on {new Date(selectedTx.date).toLocaleString()}
               </p>
             </div>
 
@@ -355,7 +356,7 @@ export default function HistoryPage() {
               <div className="text-slate-500 dark:text-slate-400">{t('detail.exchangeRate')}</div>
               <div className="text-right font-medium text-slate-950 dark:text-white">1 USD = {selectedTx.exchangeRate} {selectedTx.currency}</div>
 
-              <div className="text-slate-500 dark:text-slate-400">Téléphone Mobile Money</div>
+              <div className="text-slate-500 dark:text-slate-400">Mobile Money Phone</div>
               <div className="text-right font-semibold text-slate-950 dark:text-white">{selectedTx.phone}</div>
 
               {selectedTx.reference && (
@@ -383,10 +384,10 @@ export default function HistoryPage() {
                       `} 
                     />
                     <p className="text-xs font-semibold text-slate-900 dark:text-white">
-                      {step.status === 'MOBILE_MONEY_SENT' && 'Fonds envoyés'}
-                      {step.status === 'PAYPAL_APPROVED' && 'Paiement PayPal validé'}
-                      {step.status === 'PENDING' && 'Transaction initialisée'}
-                      {step.status === 'FAILED' && 'Transaction échouée'}
+                      {step.status === 'MOBILE_MONEY_SENT' && 'Funds sent'}
+                      {step.status === 'PAYPAL_APPROVED' && 'PayPal payment validated'}
+                      {step.status === 'PENDING' && 'Transaction initialized'}
+                      {step.status === 'FAILED' && 'Transaction failed'}
                     </p>
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                       {new Date(step.timestamp).toLocaleString()}

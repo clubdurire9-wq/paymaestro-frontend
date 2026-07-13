@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'PayMaestro — PayPal vers Mobile Money',
-    description: 'La passerelle sécurisée pour retirer vos fonds PayPal vers Mobile Money en Afrique.',
+    description: 'The secure gateway to withdraw your PayPal funds to Mobile Money in Africa.',
     type: 'website',
   },
 };

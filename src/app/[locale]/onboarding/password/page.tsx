@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Loader2, Eye, EyeOff, Key, Check, X, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -15,6 +15,8 @@ export default function OnboardingPasswordPage() {
   const router = useRouter();
   const { success: toastSuccess, error: showError } = useToast();
   const { loginReal } = useAuth();
+  const tErrors = useTranslations('errors');
+  const tAuth = useTranslations('auth');
 
   const [loginToken, setLoginToken] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -54,7 +56,7 @@ export default function OnboardingPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!password) { setError('Veuillez entrer un mot de passe'); return; }
+    if (!password) { setError(tErrors('pleaseEnterPassword')); return; }
     if (!allValid) { setError('Le mot de passe ne respecte pas les critères de sécurité'); return; }
     if (password !== confirmPassword) { setError('Les mots de passe ne correspondent pas'); return; }
 
@@ -103,7 +105,7 @@ export default function OnboardingPasswordPage() {
         sessionStorage.setItem('paymaestro_token', res.token);
         sessionStorage.setItem('pm_auth_user', JSON.stringify(authUser));
         loginReal(authUser);
-        toastSuccess('Compte créé avec succès');
+        toastSuccess(tAuth('loginSuccess'));
         window.location.href = `/${locale}/dashboard`;
       }
     } catch (err: any) {
@@ -171,7 +173,7 @@ export default function OnboardingPasswordPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Confirmer le mot de passe</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Confirm password</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}

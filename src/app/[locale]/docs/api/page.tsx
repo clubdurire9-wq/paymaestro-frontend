@@ -10,7 +10,7 @@ const endpoints = [
   {
     method: 'GET',
     path: '/api/v1/health',
-    desc: 'Vérifier que l\'API est opérationnelle.',
+    desc: 'Check that the API is operational.',
     auth: false,
     response: `{
   "success": true,
@@ -23,7 +23,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/auth/register',
-    desc: 'Créer un compte utilisateur.',
+    desc: 'Create a user account.',
     auth: false,
     body: `{
   "email": "user@example.com",
@@ -45,7 +45,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/auth/login',
-    desc: 'Connecter un utilisateur existant.',
+    desc: 'Log in an existing user.',
     auth: false,
     body: `{
   "email": "user@example.com",
@@ -62,7 +62,7 @@ const endpoints = [
   {
     method: 'GET',
     path: '/api/v1/wallet/balance',
-    desc: 'Obtenir le solde du wallet.',
+    desc: 'Get wallet balance.',
     auth: true,
     response: `{
   "success": true,
@@ -75,7 +75,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/payments/create-order',
-    desc: 'Créer une commande PayPal pour dépôt.',
+    desc: 'Create a PayPal order for deposit.',
     auth: true,
     body: `{
   "amount": 100.00,
@@ -93,7 +93,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/wallet/deposit-mobile',
-    desc: 'Initier un dépôt Mobile Money.',
+    desc: 'Initiate a Mobile Money deposit.',
     auth: true,
     body: `{
   "amount": 50.00,
@@ -108,14 +108,14 @@ const endpoints = [
     "transactionId": "TX_123",
     "provider": "PAYSTACK",
     "status": "PENDING",
-    "message": "Vérifiez votre téléphone pour autoriser le paiement"
+    "message": "Check your phone to authorize the payment"
   }
 }`,
   },
   {
     method: 'POST',
     path: '/api/v1/wallet/pm-to-pm',
-    desc: 'Transférer des fonds à un autre utilisateur PayMaestro.',
+    desc: 'Transfer funds to another PayMaestro user.',
     auth: true,
     body: `{
   "recipientEmail": "ami@example.com",
@@ -134,7 +134,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/wallet/withdraw-to-mobile',
-    desc: 'Retirer des fonds du wallet vers Mobile Money.',
+    desc: 'Withdraw funds from wallet to Mobile Money.',
     auth: true,
     body: `{
   "amount": 30.00,
@@ -154,7 +154,7 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/crypto/generate-address',
-    desc: 'Générer une adresse de dépôt crypto.',
+    desc: 'Generate a crypto deposit address.',
     auth: true,
     body: `{
   "currency": "USDT",
@@ -173,28 +173,28 @@ const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/kyc/submit',
-    desc: 'Soumettre des documents KYC.',
+    desc: 'Submit KYC documents.',
     auth: true,
     body: '(multipart/form-data)\n  documentFront: File\n  documentBack: File\n  documentType: "PASSPORT" | "NATIONAL_ID" | "DRIVERS_LICENSE"',
     response: `{
   "success": true,
   "data": {
     "status": "PENDING",
-    "message": "Documents reçus. Traitement sous 24-48h."
+    "message": "Documents received. Processing within 24-48h."
   }
 }`,
   },
 ];
 
 const errorCodes = [
-  { code: 'KYC_REQUIRED', status: 403, desc: 'L\'utilisateur doit d\'abord vérifier son identité (KYC).', solution: 'Rediriger vers /kyc' },
-  { code: 'INSUFFICIENT_BALANCE', status: 400, desc: 'Solde insuffisant dans le wallet.', solution: 'Vérifier le solde avant la transaction' },
-  { code: 'TRANSACTION_FROZEN', status: 403, desc: 'La transaction a été gelée par un administrateur.', solution: 'Contacter le support' },
-  { code: 'ACTION_FROZEN', status: 403, desc: 'Cette action est désactivée pour votre compte.', solution: 'Contacter le support' },
-  { code: 'RATE_LIMIT_EXCEEDED', status: 429, desc: 'Trop de requêtes. Limite : 300 req/15min.', solution: 'Attendre et réessayer' },
-  { code: 'INVALID_PROVIDER', status: 400, desc: 'Le provider de paiement n\'est pas disponible pour ce pays.', solution: 'Utiliser un autre opérateur' },
-  { code: 'AGE_RESTRICTION', status: 400, desc: 'Vous devez avoir au moins 18 ans.', solution: 'Vérifier la date de naissance' },
-  { code: 'PROFILE_UPDATE_COOLDOWN', status: 400, desc: 'Modification du profil limitée à 1 fois tous les 30 jours.', solution: 'Attendre la fin de la période' },
+  { code: 'KYC_REQUIRED', status: 403, desc: 'User must first verify their identity (KYC).', solution: 'Redirect to /kyc' },
+  { code: 'INSUFFICIENT_BALANCE', status: 400, desc: 'Insufficient wallet balance.', solution: 'Check balance before transaction' },
+  { code: 'TRANSACTION_FROZEN', status: 403, desc: 'The transaction has been frozen by an administrator.', solution: 'Contact support' },
+  { code: 'ACTION_FROZEN', status: 403, desc: 'This action is disabled for your account.', solution: 'Contact support' },
+  { code: 'RATE_LIMIT_EXCEEDED', status: 429, desc: 'Too many requests. Limit: 300 req/15min.', solution: 'Wait and retry' },
+  { code: 'INVALID_PROVIDER', status: 400, desc: 'The payment provider is not available for this country.', solution: 'Use a different operator' },
+  { code: 'AGE_RESTRICTION', status: 400, desc: 'You must be at least 18 years old.', solution: 'Check date of birth' },
+  { code: 'PROFILE_UPDATE_COOLDOWN', status: 400, desc: 'Profile modification limited to once every 30 days.', solution: 'Wait for the period to end' },
 ];
 
 export default function ApiDocsPage() {
@@ -218,13 +218,13 @@ export default function ApiDocsPage() {
           <div className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500">
             <Link href={`/${locale}/docs`} className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">Documentation</Link>
             <span>/</span>
-            <span className="text-slate-600 dark:text-slate-300">API Référence</span>
+            <span className="text-slate-600 dark:text-slate-300">API Reference</span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">API Référence</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">API Reference</h1>
         </div>
       </div>
       <p className="text-slate-500 dark:text-slate-400 -mt-4">
-        Intégrez PayMaestro dans votre application. Tous les endpoints, paramètres et codes d&apos;erreur.
+        Integrate PayMaestro into your application. All endpoints, parameters and error codes.
       </p>
 
       {/* Base URL */}
@@ -245,7 +245,7 @@ export default function ApiDocsPage() {
               {copiedIndex === -1 ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Toutes les requêtes doivent utiliser le préfixe <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">/api/v1</code>.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">All requests must use the prefix <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">/api/v1</code>.</p>
         </CardContent>
       </Card>
 
@@ -257,12 +257,12 @@ export default function ApiDocsPage() {
             <h2 className="font-bold text-slate-900 dark:text-white">Authentification</h2>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            La plupart des endpoints nécessitent un token JWT. Incluez-le dans l&apos;en-tête HTTP <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">Authorization: Bearer &lt;token&gt;</code>.
-            Le token est obtenu via <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">POST /auth/login</code> ou <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">POST /auth/register</code>.
+            Most endpoints require a JWT token. Include it in the HTTP header <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">Authorization: Bearer &lt;token&gt;</code>.
+            The token is obtained via <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">POST /auth/login</code> or <code className="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-1 rounded">POST /auth/register</code>.
           </p>
           <div className="bg-slate-900 dark:bg-slate-800 rounded-xl p-4 overflow-x-auto">
             <code className="text-sm text-emerald-400 font-mono">
-{`// Exemple d'en-tête
+{`// Header example
 fetch('https://paymaestro-backend.onrender.com/api/v1/wallet/balance', {
   headers: {
     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIs...',
@@ -307,7 +307,7 @@ fetch('https://paymaestro-backend.onrender.com/api/v1/wallet/balance', {
               {/* Body */}
               {'body' in ep && (
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Corps de la requête</h4>
+                  <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Request body</h4>
                   <div className="relative">
                     <div className="bg-slate-900 dark:bg-slate-800 rounded-xl p-4 overflow-x-auto">
                       <pre className="text-sm text-emerald-400 font-mono whitespace-pre-wrap">{ep.body}</pre>
@@ -324,7 +324,7 @@ fetch('https://paymaestro-backend.onrender.com/api/v1/wallet/balance', {
 
               {/* Response */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Réponse</h4>
+                <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Response</h4>
                 <div className="relative">
                   <div className="bg-slate-900 dark:bg-slate-800 rounded-xl p-4 overflow-x-auto">
                     <pre className="text-sm text-emerald-400 font-mono whitespace-pre-wrap">{ep.response}</pre>
@@ -350,15 +350,15 @@ fetch('https://paymaestro-backend.onrender.com/api/v1/wallet/balance', {
             <h2 className="font-bold text-slate-900 dark:text-white">Webhooks</h2>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            PayMaestro peut notifier votre serveur en temps réel via des webhooks. Configurez l&apos;URL de callback dans le dashboard administrateur.
+            PayMaestro can notify your server in real-time via webhooks. Configure the callback URL in the admin dashboard.
           </p>
           <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Événements disponibles :</p>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Available events:</p>
             <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
-              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">payment.completed</code> — Paiement réussi</li>
-              <li className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-amber-500" /> <code className="text-violet-600 dark:text-violet-400">payment.failed</code> — Paiement échoué</li>
-              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">kyc.approved</code> — KYC approuvé</li>
-              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">kyc.rejected</code> — KYC rejeté</li>
+              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">payment.completed</code> — Payment successful</li>
+              <li className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-amber-500" /> <code className="text-violet-600 dark:text-violet-400">payment.failed</code> — Payment failed</li>
+              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">kyc.approved</code> — KYC approved</li>
+              <li className="flex items-center gap-2"><Server className="w-4 h-4 text-violet-500" /> <code className="text-violet-600 dark:text-violet-400">kyc.rejected</code> — KYC rejected</li>
             </ul>
           </div>
         </CardContent>
@@ -402,11 +402,11 @@ fetch('https://paymaestro-backend.onrender.com/api/v1/wallet/balance', {
       {/* SDK */}
       <section className="text-center py-8 border-t border-slate-100 dark:border-slate-800 space-y-4">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pas encore de SDK ?</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Utilisez directement notre API REST avec fetch, axios ou votre outil préféré. Des SDK officiels arrivent bientôt !</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Use our REST API directly with fetch, axios or your preferred tool. Official SDKs coming soon!</p>
         <Link href={`/${locale}/docs`}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors text-sm font-medium"
         >
-          Retour à la documentation <ArrowRight className="w-4 h-4" />
+          Back to documentation <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
     </div>

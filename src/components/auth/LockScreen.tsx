@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActivity } from '@/contexts/ActivityContext';
 import { Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function LockScreen() {
   const { isLocked, unlock, unlockError } = useActivity();
@@ -11,10 +12,12 @@ export default function LockScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+  const tErrors = useTranslations('errors');
+  const t = useTranslations('lock');
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password) { setLocalError('Veuillez entrer votre mot de passe'); return; }
+    if (!password) { setLocalError(tErrors('pleaseEnterPassword')); return; }
     setLocalError('');
     setLoading(true);
     const ok = await unlock(password);
@@ -49,20 +52,20 @@ export default function LockScreen() {
                 <Lock className="w-8 h-8 text-amber-400" />
               </div>
 
-              <h1 className="text-2xl font-bold text-white mb-2">Session verrouillée</h1>
+              <h1 className="text-2xl font-bold text-white mb-2">{t('title')}</h1>
               <p className="text-sm text-slate-400 mb-8">
-                Pour votre sécurité, votre session a été verrouillée après 15 minutes d&apos;inactivité.
+                {t('description')}
               </p>
 
               <form onSubmit={handleUnlock} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2 text-left">Votre mot de passe</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2 text-left">{t('password')}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={e => { setPassword(e.target.value); setLocalError(''); }}
-                      placeholder="Entrez votre mot de passe"
+                      placeholder={t('placeholder')}
                       autoFocus
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
                     />
@@ -91,7 +94,7 @@ export default function LockScreen() {
                   disabled={loading}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-base font-semibold active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Déverrouiller'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('unlock')}
                 </button>
               </form>
             </div>

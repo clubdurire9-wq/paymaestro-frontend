@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ALL_COUNTRIES } from '@/data/countries';
+import { useTranslations } from 'next-intl';
 
 interface CurrencyRate {
   code: string;
@@ -26,6 +27,7 @@ interface WithdrawalFeeCalculatorProps {
 
 export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalance }: WithdrawalFeeCalculatorProps) {
   const [amount, setAmount] = useState('');
+  const t = useTranslations('wallet');
 
   const [mobileCountry, setMobileCountry] = useState(ALL_COUNTRIES[0]);
   const [countryOpen, setCountryOpen] = useState(false);
@@ -53,10 +55,10 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
   const isValid = usdAmount > 0 && !exceedsBalance;
 
   const feeBreakdown = useMemo(() => [
-    { label: `Frais de traitement (${processingFeePct}%)`, amount: processingFee, color: 'text-red-500' },
-    { label: 'Total des frais', amount: totalFees, color: 'text-red-600 font-bold' },
-    { label: 'Montant net reçu', amount: netUsd, color: 'text-emerald-600 font-bold text-lg' },
-  ], [processingFee, totalFees, netUsd, processingFeePct]);
+    { label: t('calculatorProcessingFee', { percent: processingFeePct }), amount: processingFee, color: 'text-red-500' },
+    { label: t('calculatorTotalFees'), amount: totalFees, color: 'text-red-600 font-bold' },
+    { label: t('calculatorNetAmount'), amount: netUsd, color: 'text-emerald-600 font-bold text-lg' },
+  ], [processingFee, totalFees, netUsd, processingFeePct, t]);
 
   return (
     <>
@@ -65,7 +67,7 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-violet-900 dark:text-violet-100">
               <Calculator className="w-5 h-5" />
-              Calculateur de retrait
+              {t('calculatorTitle')}
             </CardTitle>
             {onRefreshBalance && (
               <button onClick={onRefreshBalance} className="p-1.5 text-violet-500 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-200 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors">
@@ -76,12 +78,12 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           <div className="bg-white/60 dark:bg-slate-800/40 rounded-xl p-3 flex items-center justify-between text-sm">
-            <span className="text-slate-600 dark:text-slate-400">Solde disponible</span>
+            <span className="text-slate-600 dark:text-slate-400">{t('calculatorBalance')}</span>
             <span className="font-bold text-slate-900 dark:text-white text-lg">{usdBalance.toFixed(2)} USD</span>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Montant à retirer (USD)</label>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">{t('calculatorWithdrawAmount')}</label>
             <input
               type="number"
               value={amount}
@@ -92,18 +94,18 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
             {exceedsBalance && (
               <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" />
-                Montant supérieur à votre solde disponible
+                {t('calculatorExceedsBalance')}
               </p>
             )}
           </div>
 
           <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl px-4 py-2.5 text-sm text-violet-800 dark:text-violet-300 flex items-center gap-2">
             <Smartphone className="w-4 h-4" />
-            <span>Retrait via <strong>Mobile Money</strong> — frais de <strong>3%</strong></span>
+            <span>{t('calculatorMobileMoneyInfo', { percent: 3 })}</span>
           </div>
 
           <div ref={countryRef} className="relative">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Pays de destination</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">{t('calculatorDestination')}</label>
               <button
                 type="button"
                 onClick={() => setCountryOpen(!countryOpen)}
@@ -130,18 +132,18 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
                 </div>
               )}
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Taux appliqué : 1 USD = {destRate} {destCurrency}
+                {t('calculatorAppliedRate', { rate: destRate, currency: destCurrency })}
               </p>
             </div>
 
           {usdAmount > 0 && (
             <div className="bg-white dark:bg-slate-800/60 rounded-xl p-4 space-y-2 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détail des frais</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('calculatorFeeBreakdown')}</p>
               {feeBreakdown.map((item) => (
                 <div key={item.label} className="flex justify-between text-sm items-center">
                   <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
                   <span className={item.color}>
-                    {item.label === 'Montant net reçu' ? '' : '-'}{item.amount.toFixed(2)} USD
+                    {item.label === t('calculatorNetAmount') ? '' : '-'}{item.amount.toFixed(2)} USD
                   </span>
                 </div>
               ))}
@@ -149,7 +151,7 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
                 <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
                   {destAmount.toFixed(2)} {destCurrency}
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Montant estimé reçu en devise locale</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('calculatorEstimatedAmount')}</p>
               </div>
             </div>
           )}
@@ -157,7 +159,7 @@ export function WithdrawalFeeCalculator({ usdBalance, currencies, onRefreshBalan
           {!isValid && usdAmount > 0 && (
             <p className="text-xs text-center text-red-500 flex items-center justify-center gap-1">
               <AlertTriangle className="w-3 h-3" />
-              Veuillez vérifier le montant saisi
+              {t('calculatorVerifyAmount')}
             </p>
           )}
         </CardContent>

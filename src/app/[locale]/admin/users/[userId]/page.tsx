@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, FileText, MapPin, Loader2, Mail, Phone, Globe,
@@ -29,29 +30,29 @@ interface ServiceDef {
 }
 
 const SERVICES: ServiceDef[] = [
-  { key: 'mobile_deposit', label: 'Dépôt Mobile Money', icon: Smartphone, color: 'green',
+  { key: 'mobile_deposit', label: 'Mobile Money Deposit', icon: Smartphone, color: 'green',
     getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT').length,
     getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT') },
-  { key: 'withdrawal', label: 'Retrait', icon: TrendingUp, color: 'red',
+  { key: 'withdrawal', label: 'Withdrawal', icon: TrendingUp, color: 'red',
     getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'WITHDRAWAL').length,
     getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'WITHDRAWAL') },
-  { key: 'wallet', label: 'Wallet (solde)', icon: Wallet, color: 'violet',
+  { key: 'wallet', label: 'Wallet (balance)', icon: Wallet, color: 'violet',
     getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL').length,
     getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL') },
   { key: 'conversion', label: 'Conversion', icon: Activity, color: 'blue',
     getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'CONVERSION').length,
     getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'CONVERSION') },
-  { key: 'fee', label: 'Frais', icon: Clock, color: 'yellow',
+  { key: 'fee', label: 'Fee', icon: Clock, color: 'yellow',
     getCount: (a) => (a?.wallet || []).filter((t: any) => t.type === 'FEE').length,
     getTxs: (a) => (a?.wallet || []).filter((t: any) => t.type === 'FEE') },
   { key: 'paypal', label: 'PayPal / Legacy', icon: CreditCard, color: 'orange',
     getCount: (a) => a?.paypal?.length || 0,
     getTxs: (a) => a?.paypal || [] },
-  { key: 'iban_deposit', label: 'IBAN Dépôt', icon: Landmark, color: 'blue',
+  { key: 'iban_deposit', label: 'IBAN Deposit', icon: Landmark, color: 'blue',
     getCount: () => 0, getTxs: () => [] },
   { key: 'crypto', label: 'Crypto (BTC/ETH/USDT)', icon: Bitcoin, color: 'orange',
     getCount: () => 0, getTxs: () => [] },
-  { key: 'cards', label: 'Cartes virtuelles', icon: CreditCard, color: 'purple',
+  { key: 'cards', label: 'Virtual Cards', icon: CreditCard, color: 'purple',
     getCount: () => 0, getTxs: () => [] },
 ];
 
@@ -60,7 +61,7 @@ const SERVICE_BADGE: Record<string, 'success' | 'error' | 'info' | 'warning'> = 
 };
 
 const SERVICE_LABEL: Record<string, string> = {
-  DEPOSIT: 'DÉPÔT', WITHDRAWAL: 'RETRAIT', CONVERSION: 'CONV', FEE: 'FRAIS',
+  DEPOSIT: 'DEPOSIT', WITHDRAWAL: 'WITHDRAWAL', CONVERSION: 'CONV', FEE: 'FEE',
 };
 
 export default function AdminUserDetailPage() {
@@ -98,7 +99,7 @@ export default function AdminUserDetailPage() {
 
   const handleToggleBusiness = async () => {
     const newType = userProfile?.business_type === 'REGISTERED' ? 'STARTER' : 'REGISTERED';
-    if (!confirm(`Passer cet utilisateur en "Compte ${newType === 'REGISTERED' ? 'Enregistré' : 'Starter'}" ?`)) return;
+    if (!confirm(`Switch this user to "${newType === 'REGISTERED' ? 'Registered' : 'Starter'} Account?"`)) return;
     setUpdatingBusiness(true);
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1'}/admin/users/business-type`, {
@@ -242,7 +243,7 @@ export default function AdminUserDetailPage() {
               onClick={handleToggleBusiness}
               title="Cliquer pour changer le statut business">
               <Shield className="w-3 h-3 mr-1" />
-              {userProfile?.business_type === 'REGISTERED' ? 'Enregistré' : 'Starter'}
+              {userProfile?.business_type === 'REGISTERED' ? 'Registered Account' : 'Starter Account'}
               {updatingBusiness && <Loader2 className="w-3 h-3 ml-1 animate-spin" />}
             </Badge>
             <button
@@ -274,7 +275,7 @@ export default function AdminUserDetailPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">
-                  {userProfile?.name || userProfile?.email || 'Utilisateur'}
+                  {userProfile?.name || userProfile?.email || 'User'}
                 </h1>
                 <p className="text-sm text-slate-400 mt-1">ID: {userProfile?.id}</p>
                 <div className="flex flex-wrap gap-2 mt-3">

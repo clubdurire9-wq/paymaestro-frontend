@@ -1,18 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ShieldAlert, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function KYCWarningBanner() {
   const locale = useLocale();
+  const t = useTranslations('kyc.banner');
   const { user } = useAuth();
 
   if (!user) return null;
 
   const status = user.kycStatus;
-  // Nombre de tentatives restantes depuis le serveur (ou 3 par défaut)
   const remaining = typeof (user as any).kycRemainingAttempts === 'number' ? (user as any).kycRemainingAttempts : 3;
 
   if (status === 'APPROVED') return null;
@@ -33,18 +33,18 @@ export default function KYCWarningBanner() {
     : ShieldAlert;
 
   const title = isRejected
-    ? 'Compte bloqué'
+    ? t('rejected')
     : isPending
-    ? 'Vérification en cours'
-    : 'Compte non vérifié';
+    ? t('pendingTitle')
+    : t('unverified');
 
   const message = isRejected
     ? remaining > 0
-      ? `Vous ne pouvez pas utiliser les services de PayMaestro car votre dossier n'a pas été approuvé. Il vous reste ${remaining} tentative${remaining > 1 ? 's' : ''} sur 3.`
-      : 'Vous avez épuisé toutes vos tentatives de vérification. Votre compte est définitivement bloqué.'
+      ? t('rejectedMessage', { remaining })
+      : t('exhaustedMessage')
     : isPending
-    ? 'Votre vérification KYC est en cours de traitement. Vous serez notifié dès qu\'elle sera approuvée.'
-    : 'Profil incomplet ou non vérifié : Assurez-vous que les informations de votre profil (Nom, Prénom) correspondent exactement à vos pièces d\'identité avant de lancer la vérification pour éviter un rejet.';
+    ? t('pendingMessage')
+    : t('unverifiedMessage');
 
   return (
     <div className={`${bgColor} text-white`}>
@@ -62,7 +62,7 @@ export default function KYCWarningBanner() {
               href={isRejected ? `/${locale}/kyc` : `/${locale}/profile?trigger=kyc`}
               className="flex items-center gap-1 text-sm font-semibold text-white hover:text-white/80 transition-colors whitespace-nowrap"
             >
-              {isRejected ? 'Contester la décision' : 'Vérifier maintenant'}
+              {isRejected ? t('contestDecision') : t('verifyNow')}
               <ArrowRight className="w-4 h-4" />
             </Link>
           )}

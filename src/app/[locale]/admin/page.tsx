@@ -167,17 +167,17 @@ export default function AdminPage() {
   ];
   const links: { href: string; label: string; icon: React.ElementType }[] = [
     { href: `/${locale}/admin/live`, label: 'Live', icon: Activity },
-    { href: `/${locale}/admin/disputes`, label: 'Litiges', icon: AlertTriangle },
-    { href: `/${locale}/admin/refunds`, label: 'Remboursements', icon: RotateCcw },
+    { href: `/${locale}/admin/disputes`, label: 'Disputes', icon: AlertTriangle },
+    { href: `/${locale}/admin/refunds`, label: 'Refunds', icon: RotateCcw },
     { href: `/${locale}/admin/agents`, label: 'Agents', icon: Headphones },
     { href: `/${locale}/admin/api-keys`, label: 'API Keys', icon: Key },
-    { href: `/${locale}/admin/cards`, label: 'Cartes', icon: CreditCard },
+    { href: `/${locale}/admin/cards`, label: 'Cards', icon: CreditCard },
     { href: `/${locale}/admin/crypto`, label: 'Crypto', icon: Bitcoin },
     { href: `/${locale}/admin/finance`, label: 'Finance', icon: PiggyBank },
-    { href: `/${locale}/admin/frozen`, label: 'Comptes gelés', icon: Snowflake },
-    { href: `/${locale}/admin/payment-pages`, label: 'Pages de paiement', icon: FileText },
-    { href: `/${locale}/admin/protocol`, label: 'Protocole', icon: BookOpen },
-    { href: `/${locale}/admin/security`, label: 'Sécurité', icon: Shield },
+    { href: `/${locale}/admin/frozen`, label: t('frozenAccounts'), icon: Snowflake },
+    { href: `/${locale}/admin/payment-pages`, label: 'Payment Pages', icon: FileText },
+    { href: `/${locale}/admin/protocol`, label: 'Protocol', icon: BookOpen },
+    { href: `/${locale}/admin/security`, label: 'Security', icon: Shield },
     { href: `/${locale}/admin/support`, label: 'Support', icon: LifeBuoy },
   ];
 
@@ -287,7 +287,7 @@ export default function AdminPage() {
                 </Card>
                 <Card className="border-l-4 border-l-rose-500">
                   <CardContent className="pt-6">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Comptes gelés</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('frozenAccounts')}</p>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{(dashboardData?.frozenAccounts || 0).toLocaleString()}</h3>
                   </CardContent>
                 </Card>
@@ -724,7 +724,7 @@ export default function AdminPage() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" fullWidth onClick={() => setRefundTx(null)} disabled={refundProcessing}>
-                Annuler
+                Cancel
               </Button>
               <Button
                 fullWidth
@@ -734,7 +734,7 @@ export default function AdminPage() {
                 variant={refundAmount && parseFloat(refundAmount) < parseFloat(refundTx.amountUSD) ? 'primary' : 'danger'}
               >
                 {refundProcessing
-                  ? 'Traitement...'
+                  ? 'Processing...'
                   : `${refundAmount && parseFloat(refundAmount) < parseFloat(refundTx.amountUSD) ? 'Remb. partiel' : 'Rembourser total'}${refundAmount ? ` ${parseFloat(refundAmount).toFixed(2)}$` : ''}`
                 }
               </Button>

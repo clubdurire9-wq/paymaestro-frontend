@@ -268,9 +268,9 @@ export default function IBANPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setShowConfirm(false)}>Annuler</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowConfirm(false)}>Cancel</Button>
               <Button fullWidth onClick={handleConfirmCreateIBAN} disabled={creating}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmer et créer'}
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm and create'}
               </Button>
             </div>
           </div>

@@ -49,9 +49,9 @@ export default function AdminCardsPage() {
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <CreditCard className="w-8 h-8 text-violet-600" /> Cartes Virtuelles
+          <CreditCard className="w-8 h-8 text-violet-600" /> Virtual Cards
         </h1>
-        <Button variant="outline" onClick={loadCards} icon={<RefreshCw className="w-4 h-4" />}>Rafraîchir</Button>
+        <Button variant="outline" onClick={loadCards} icon={<RefreshCw className="w-4 h-4" />}>Refresh</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -92,7 +92,7 @@ export default function AdminCardsPage() {
               )}
               <button onClick={() => handleCancel(card.id)} 
                 className="text-xs bg-red-500/50 px-3 py-1 rounded-lg hover:bg-red-500/70 ml-auto">
-                <Ban className="w-3 h-3 inline mr-1" />Annuler
+                <Ban className="w-3 h-3 inline mr-1" />Cancel
               </button>
             </div>
           </div>

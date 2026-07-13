@@ -33,7 +33,7 @@ export default function ChatWidget() {
     return [
       {
         role: 'bot',
-        content: "Je suis PayMaestro Assistant, le chatbot officiel de PayMaestro. Je suis là pour vous aider à utiliser nos services financiers (portefeuille, transferts, retraits, etc.) et répondre à vos questions. L'IA peut faire des erreurs. Veuillez vérifier les informations importantes.",
+        content: "I am PayMaestro Assistant, the official chatbot of PayMaestro. I am here to help you use our financial services (wallet, transfers, withdrawals, etc.) and answer your questions. AI can make mistakes. Please verify important information.",
         timestamp: new Date(),
       },
     ];
@@ -114,7 +114,7 @@ export default function ChatWidget() {
     allFiles.forEach(file => {
       formData.append('screenshots', file);
     });
-    formData.append('context', input || 'Problème utilisateur');
+    formData.append('context', input || 'User issue');
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
 
@@ -131,7 +131,7 @@ export default function ChatWidget() {
           ...prev,
           {
             role: 'user',
-            content: `📸 ${allFiles.length} image(s) envoyée(s)${input ? ': ' + input : ''}`,
+            content: `📸 ${allFiles.length} image(s) sent${input ? ': ' + input : ''}`,
             timestamp: new Date(),
             images: allFiles.map((file, i) => ({
               data: allPreviews[i],
@@ -141,7 +141,7 @@ export default function ChatWidget() {
           },
           {
             role: 'bot',
-            content: data.data?.reply || 'Images reçues. Analyse en cours...',
+            content: data.data?.reply || 'Images received. Analyzing...',
             timestamp: new Date(),
           },
         ]);
@@ -187,7 +187,7 @@ export default function ChatWidget() {
       if (data.success) {
         const botMessage: Message = {
           role: 'bot',
-          content: data.data?.reply || "Désolé, je n'ai pas compris.",
+          content: data.data?.reply || "Sorry, I didn't understand.",
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
@@ -199,7 +199,7 @@ export default function ChatWidget() {
         ...prev,
         {
           role: 'bot',
-          content: 'Désolé, le service est momentanément indisponible. Veuillez réessayer.',
+          content: 'Sorry, the service is temporarily unavailable. Please try again.',
           timestamp: new Date(),
         },
       ]);
@@ -220,7 +220,7 @@ export default function ChatWidget() {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-violet-600 text-white rounded-full shadow-lg hover:bg-violet-700 transition-all duration-300 flex items-center justify-center animate-bounce"
-          aria-label="Ouvrir le chat"
+          aria-label="Open chat"
         >
           <MessageCircle className="w-6 h-6" />
         </button>
@@ -236,7 +236,7 @@ export default function ChatWidget() {
               </div>
               <div>
                 <h3 className="font-semibold text-sm">PayMaestro Assistant</h3>
-                <p className="text-xs text-violet-200">En ligne</p>
+                <p className="text-xs text-violet-200">Online</p>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white">
@@ -299,7 +299,7 @@ export default function ChatWidget() {
                   onClick={() => { setAllFiles([]); setAllPreviews([]); }}
                   className="text-xs text-red-500 hover:underline"
                 >
-                  Tout supprimer
+                  Delete all
                 </button>
                 <button
                   onClick={handleSendImages}
@@ -348,7 +348,7 @@ export default function ChatWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Tapez votre message..."
+                placeholder="Type your message..."
                 className="flex-1 px-4 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                 disabled={loading}
               />
@@ -359,7 +359,7 @@ export default function ChatWidget() {
 
             {/* ⚠️ Message d'avertissement discret */}
             <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-2">
-              PayMaestro Assistant est une IA et peut générer des erreurs. Veuillez vérifier les informations importantes.
+              PayMaestro Assistant is an AI and may generate errors. Please verify important information.
             </p>
           </div>
         </div>

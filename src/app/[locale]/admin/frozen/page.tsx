@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import {
   Lock, Unlock, Loader2, AlertTriangle, Search, User,
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/useToast';
 
 export default function FrozenAccountsPage() {
   const locale = useLocale();
+  const tAdmin = useTranslations('admin');
   const { success, error: toastError } = useToast();
 
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -50,7 +51,7 @@ export default function FrozenAccountsPage() {
     setActionLoading('freeze');
     try {
       await api.admin.freeze(freezeUserId.trim(), freezeReason.trim(), freezeType);
-      success('Compte gelé avec succès');
+      success(tAdmin('accountFrozen'));
       setShowFreezeModal(false);
       setFreezeUserId('');
       setFreezeReason('');
@@ -66,7 +67,7 @@ export default function FrozenAccountsPage() {
     setActionLoading(userId);
     try {
       await api.admin.unfreeze(userId);
-      success('Compte dégelé avec succès');
+      success(tAdmin('accountUnfrozen'));
       loadAccounts();
     } catch (e: any) {
       toastError(e.message || 'Erreur de dégel');
@@ -115,7 +116,7 @@ export default function FrozenAccountsPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Snowflake className="w-6 h-6 text-blue-500" />
-              Comptes gelés
+              {tAdmin('frozenAccounts')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
               {accounts.length} compte(s) gelé(s)
@@ -283,7 +284,7 @@ export default function FrozenAccountsPage() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" fullWidth onClick={() => setShowFreezeModal(false)}>
-                Annuler
+                Cancel
               </Button>
               <Button
                 fullWidth

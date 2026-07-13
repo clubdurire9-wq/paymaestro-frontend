@@ -9,161 +9,161 @@ const sections = [
   {
     id: 'intro',
     icon: Rocket,
-    title: 'Qu\'est-ce que PayMaestro ?',
+    title: 'What is PayMaestro?',
     content: [
-      'PayMaestro est une plateforme financière tout-en-un qui vous permet de recevoir des fonds depuis PayPal, Mobile Money, virement bancaire ou crypto, de les stocker dans un wallet centralisé sécurisé, et de les retirer vers le service de votre choix.',
-      'Notre mission : offrir aux créateurs africains et à la diaspora un accès simple et rapide aux services financiers digitaux, sans les contraintes des banques traditionnelles.',
+      'PayMaestro is an all-in-one financial platform that lets you receive funds from PayPal, Mobile Money, bank transfer or crypto, store them in a centralized secure wallet, and withdraw to the service of your choice.',
+      'Our mission: to offer African creators and the diaspora simple, fast access to digital financial services, without the constraints of traditional banks.',
     ],
   },
   {
     id: 'account',
     icon: CheckCircle,
-    title: 'Créer un compte',
+    title: 'Create an Account',
     steps: [
-      'Rendez-vous sur la page d\'inscription',
-      'Connectez-vous avec votre compte Google ou créez un compte avec votre email',
-      'Définissez votre mot de passe',
-      'Activez l\'authentification à deux facteurs (recommandé)',
-      'Votre wallet est automatiquement créé avec un solde de 0 $',
+      'Go to the registration page',
+      'Sign in with your Google account or create an account with your email',
+      'Set your password',
+      'Enable two-factor authentication (recommended)',
+      'Your wallet is automatically created with a balance of $0',
     ],
   },
   {
     id: 'kyc',
     icon: Shield,
-    title: 'Vérification KYC',
-    warning: 'La vérification KYC est obligatoire pour effectuer des retraits et transferts.',
+    title: 'KYC Verification',
+    warning: 'KYC verification is required to make withdrawals and transfers.',
     steps: [
-      'Accédez à la section "Vérification" depuis la sidebar',
-      'Remplissez vos informations légales (nom, prénom, date de naissance, pays, adresse)',
-      'Téléchargez un document d\'identité valide (passeport, CNI, permis de conduire, carte d\'électeur)',
-      'Soumettez votre demande',
-      'Notre équipe traite votre dossier sous 24 à 48 heures',
-      'Vous recevrez une notification par email dès l\'approbation',
+      'Go to the "Verification" section from the sidebar',
+      'Fill in your legal information (last name, first name, date of birth, country, address)',
+      'Upload a valid ID document (passport, national ID, driving license, voter card)',
+      'Submit your request',
+      'Our team processes your file within 24 to 48 hours',
+      'You will receive an email notification once approved',
     ],
   },
   {
     id: 'paypal',
     icon: DollarSign,
-    title: 'Dépôt PayPal → Wallet',
+    title: 'PayPal Deposit → Wallet',
     steps: [
-      'Depuis la sidebar, cliquez sur "PayPal"',
-      'Entrez le montant que vous souhaitez déposer (min 10 $)',
-      'Cliquez sur "Payer avec PayPal"',
-      'Vous êtes redirigé vers PayPal pour valider le paiement',
-      'Les fonds sont automatiquement crédités sur votre wallet PayMaestro',
-      'Frais : 5 % du montant brut',
+      'From the sidebar, click on "PayPal"',
+      'Enter the amount you wish to deposit (min $10)',
+      'Click on "Pay with PayPal"',
+      'You are redirected to PayPal to validate the payment',
+      'Funds are automatically credited to your PayMaestro wallet',
+      'Fee: 5% of the gross amount',
     ],
   },
   {
     id: 'mobile-money',
     icon: Smartphone,
-    title: 'Dépôt Mobile Money → Wallet',
+    title: 'Mobile Money Deposit → Wallet',
     steps: [
-      'Accédez à la page Wallet depuis la sidebar',
-      'Sélectionnez l\'onglet "Dépôt Mobile Money"',
-      'Choisissez votre pays dans la liste (54 pays disponibles)',
-      'Sélectionnez votre opérateur (Orange, MTN, Airtel, Wave, etc.)',
-      'Entrez votre numéro de téléphone',
-      'Indiquez le montant en devise locale',
-      'Vous pouvez choisir USD ou devise locale selon les options disponibles',
-      'Confirmez la transaction',
-      'Vérifiez votre téléphone pour autoriser le paiement',
-      'Frais : 3 % du montant',
+      'Go to the Wallet page from the sidebar',
+      'Select the "Mobile Money Deposit" tab',
+      'Choose your country from the list (54 countries available)',
+      'Select your operator (Orange, MTN, Airtel, Wave, etc.)',
+      'Enter your phone number',
+      'Enter the amount in local currency',
+      'You can choose USD or local currency depending on available options',
+      'Confirm the transaction',
+      'Check your phone to authorize the payment',
+      'Fee: 3% of the amount',
     ],
   },
   {
     id: 'iban',
     icon: Globe,
-    title: 'Virement SEPA / IBAN',
+    title: 'SEPA Transfer / IBAN',
     steps: [
-      'Accédez à la page IBAN depuis la sidebar',
-      'Sélectionnez votre pays parmi 14 pays SEPA disponibles',
-      'Créez votre IBAN virtuel (premier IBAN gratuit, 5 $ les suivants)',
-      'Utilisez cet IBAN pour recevoir des virements depuis l\'Europe',
-      'Les fonds arrivent sur votre wallet PayMaestro',
-      'Frais : 2 % du montant',
+      'Go to the IBAN page from the sidebar',
+      'Select your country from 14 available SEPA countries',
+      'Create your virtual IBAN (first IBAN free, $5 for additional)',
+      'Use this IBAN to receive transfers from Europe',
+      'Funds arrive in your PayMaestro wallet',
+      'Fee: 2% of the amount',
     ],
   },
   {
     id: 'crypto',
     icon: Bitcoin,
-    title: 'Dépôt Crypto → Wallet',
+    title: 'Crypto Deposit → Wallet',
     steps: [
-      'Accédez à la page Crypto depuis la sidebar',
-      'Sélectionnez la crypto (BTC, ETH, USDT, USDC, SOL, XRP, BNB, TRX)',
-      'Générez une adresse de dépôt',
-      'Scannez le QR code ou copiez l\'adresse',
-      'Envoyez vos fonds depuis votre portefeuille externe',
-      'La transaction est détectée automatiquement (NowPayments)',
-      'Les fonds sont crédités sur votre wallet après confirmation réseau',
-      'Frais : 2 % du montant',
+      'Go to the Crypto page from the sidebar',
+      'Select the crypto (BTC, ETH, USDT, USDC, SOL, XRP, BNB, TRX)',
+      'Generate a deposit address',
+      'Scan the QR code or copy the address',
+      'Send your funds from your external wallet',
+      'The transaction is detected automatically (NowPayments)',
+      'Funds are credited to your wallet after network confirmation',
+      'Fee: 2% of the amount',
     ],
   },
   {
     id: 'pm-transfer',
     icon: ArrowLeftRight,
-    title: 'Transfert PayMaestro → PayMaestro',
+    title: 'PayMaestro → PayMaestro Transfer',
     steps: [
-      'Accédez à la page Wallet',
-      'Sélectionnez "Transfert PM → PM"',
-      'Entrez l\'email ou le numéro de téléphone du destinataire',
-      'Indiquez le montant',
-      'Confirmez la transaction',
-      'Le destinataire reçoit les fonds instantanément',
-      'Frais : 0 % (gratuit)',
+      'Go to the Wallet page',
+      'Select "PM → PM Transfer"',
+      'Enter the recipient\'s email or phone number',
+      'Enter the amount',
+      'Confirm the transaction',
+      'The recipient receives the funds instantly',
+      'Fee: 0% (free)',
     ],
   },
   {
     id: 'withdraw-mobile',
     icon: Smartphone,
-    title: 'Retrait Wallet → Mobile Money',
+    title: 'Withdraw Wallet → Mobile Money',
     steps: [
-      'Dans la page Wallet, sélectionnez l\'onglet "Retrait Mobile Money"',
-      'Choisissez le pays et l\'opérateur',
-      'Entrez le numéro de téléphone du destinataire',
-      'Indiquez le montant',
-      'Confirmez la transaction',
-      'Les fonds sont envoyés sous quelques minutes',
-      'Frais : 3 % du montant',
+      'In the Wallet page, select the "Mobile Money Withdrawal" tab',
+      'Choose the country and operator',
+      'Enter the recipient\'s phone number',
+      'Enter the amount',
+      'Confirm the transaction',
+      'Funds are sent within minutes',
+      'Fee: 3% of the amount',
     ],
   },
   {
     id: 'cards',
     icon: CreditCard,
-    title: 'Cartes Virtuelles',
+    title: 'Virtual Cards',
     steps: [
-      'Accédez à la page Cartes depuis la sidebar',
-      'Cliquez sur "Créer une carte"',
-      'Choisissez le pays de la carte',
-      'Définissez le plafond (facultatif)',
-      'Confirmez la création (frais de 2 $)',
-      'Votre carte Visa/Mastercard est créée instantanément',
-      'Vous pouvez voir, copier ou masquer le numéro de carte et le CVV',
-      'Utilisez-la pour les paiements en ligne partout dans le monde',
+      'Go to the Cards page from the sidebar',
+      'Click on "Create a card"',
+      'Choose the card country',
+      'Set the spending limit (optional)',
+      'Confirm creation ($2 fee)',
+      'Your Visa/Mastercard is created instantly',
+      'You can view, copy or hide the card number and CVV',
+      'Use it for online payments anywhere in the world',
     ],
   },
   {
     id: 'referral',
     icon: Users,
-    title: 'Programme de Parrainage',
+    title: 'Referral Program',
     steps: [
-      'Accédez à la page Parrainage depuis la sidebar',
-      'Votre code de parrainage unique est automatiquement généré',
-      'Partagez votre lien avec vos amis',
-      'Lorsqu\'un filleul effectue sa première transaction payante, vous recevez une commission',
-      'Suivez vos gains et votre réseau depuis la page Parrainage',
+      'Go to the Referral page from the sidebar',
+      'Your unique referral code is automatically generated',
+      'Share your link with your friends',
+      'When a referred user makes their first paid transaction, you receive a commission',
+      'Track your earnings and network from the Referral page',
     ],
   },
   {
     id: 'security',
     icon: Shield,
-    title: 'Sécurité de votre compte',
+    title: 'Account Security',
     items: [
-      { label: 'Authentification', value: '2FA via Google Authenticator disponible dans Profil > Sécurité' },
-      { label: 'Chiffrement', value: 'AES-256-GCM pour les données sensibles, SHA-256 pour les audits' },
-      { label: 'Protection', value: 'Détection de fraude en temps réel, blocage IP VPN/proxy, rate limiting' },
-      { label: 'Conformité', value: 'PCI-DSS, KYC/AML, RGPD' },
-      { label: 'Notifications', value: 'Alertes email pour chaque connexion, transaction, changement de mot de passe' },
+      { label: 'Authentication', value: '2FA via Google Authenticator available in Profile > Security' },
+      { label: 'Encryption', value: 'AES-256-GCM for sensitive data, SHA-256 for audits' },
+      { label: 'Protection', value: 'Real-time fraud detection, VPN/proxy IP blocking, rate limiting' },
+      { label: 'Compliance', value: 'PCI-DSS, KYC/AML, GDPR' },
+      { label: 'Notifications', value: 'Email alerts for every login, transaction, password change' },
     ],
   },
 ];
@@ -182,19 +182,19 @@ export default function GettingStartedPage() {
           <div className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500">
             <Link href={`/${locale}/docs`} className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">Documentation</Link>
             <span>/</span>
-            <span className="text-slate-600 dark:text-slate-300">Démarrage rapide</span>
+            <span className="text-slate-600 dark:text-slate-300">Quick Start</span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">Guide de démarrage rapide</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">Quick Start Guide</h1>
         </div>
       </div>
       <p className="text-slate-500 dark:text-slate-400 -mt-4">
-        Apprenez à utiliser PayMaestro de A à Z. Créez un compte, vérifiez votre identité et effectuez vos premières transactions.
+        Learn how to use PayMaestro from A to Z. Create an account, verify your identity and make your first transactions.
       </p>
 
       {/* Table of contents */}
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-bold text-slate-900 dark:text-white mb-3">Dans ce guide</h2>
+          <h2 className="font-bold text-slate-900 dark:text-white mb-3">In this guide</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {sections.map(s => (
               <a key={s.id} href={`#${s.id}`}
@@ -265,12 +265,12 @@ export default function GettingStartedPage() {
 
       {/* Next */}
       <section className="text-center py-8 border-t border-slate-100 dark:border-slate-800 space-y-4">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Vous avez fini le guide ?</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Consultez la documentation API pour intégrer PayMaestro dans votre application.</p>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Finished the guide?</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Check out the API documentation to integrate PayMaestro into your application.</p>
         <Link href={`/${locale}/docs/api`}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors text-sm font-medium"
         >
-          API Développeur <ArrowRight className="w-4 h-4" />
+          Developer API <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
     </div>

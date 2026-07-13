@@ -62,6 +62,12 @@
     "countries": {
       "title": "Disponible dans 12 pays africains",
       "subtitle": "Et bientôt plus..."
+    },
+    "featuresList": {
+      "transferFast": "Transfert en moins de 5 min",
+      "secureTransactions": "Transactions 100% sécurisées",
+      "africanCountries": "54 pays africains supportés",
+      "realTimeRates": "Taux de change en temps réel"
     }
   },
   "auth": {
@@ -75,7 +81,60 @@
     "verifyCode": "Vérifier le code",
     "codeSent": "Code envoyé au {phone}",
     "invalidCode": "Code invalide",
-    "phoneVerified": "Téléphone vérifié !"
+    "phoneVerified": "Téléphone vérifié !",
+    "pageTitle": "Connectez-vous pour accéder à votre espace",
+    "welcomeBack": "Bienvenue !",
+    "loginDescription": "Connectez-vous avec votre compte Google pour accéder à votre tableau de bord PayMaestro.",
+    "acceptTerms": "J'accepte les",
+    "termsOfService": "Conditions d'utilisation",
+    "privacyPolicy": "Politique de confidentialité",
+    "refundPolicy": "Politique de remboursement",
+    "andText": "et",
+    "verifying": "Vérification en cours...",
+    "continueWithGoogle": "Continuer avec Google",
+    "acceptTermsToContinue": "Veuillez accepter les conditions pour continuer",
+    "passwordVerification": "Vérification du mot de passe",
+    "loggedInAs": "Connecté en tant que",
+    "password": "Mot de passe",
+    "enterPassword": "Entrez votre mot de passe",
+    "verify": "Vérifier",
+    "forgotPassword": "Mot de passe oublié ?",
+    "back": "Retour",
+    "resetPassword": "Réinitialisation du mot de passe",
+    "resetCodeSent": "Un code vous sera envoyé par email",
+    "setNewPasswordDesc": "Définissez votre nouveau mot de passe",
+    "codeSentTo": "Code envoyé à {email}",
+    "resetCodeLabel": "Code de réinitialisation",
+    "resend": "Renvoyer",
+    "didNotReceiveCode": "Vous n'avez pas reçu le code ?",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "repeatPassword": "Répétez le mot de passe",
+    "resetPasswordButton": "Réinitialiser le mot de passe",
+    "backToLogin": "Retour à la connexion",
+    "twoFactorTitle": "Authentification à deux facteurs",
+    "twoFactorOTPSent": "Un code à 6 chiffres vous a été envoyé par email",
+    "twoFactorAppCode": "Saisissez le code généré par votre application d'authentification",
+    "newLocationTitle": "Nouvelle localisation détectée",
+    "newLocationDesc": "Nous avons détecté une connexion depuis une localisation inconnue. Veuillez confirmer qu'il s'agit bien de vous.",
+    "confirmLocation": "Confirmer ma position",
+    "loginSuccess": "Connexion réussie",
+    "passwordResetSuccess": "Mot de passe réinitialisé avec succès",
+    "passwordRequirements": "Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "newPasswordRequired": "Nouveau mot de passe requis"
+  },
+  "errors": {
+    "pleaseEnterPassword": "Veuillez entrer votre mot de passe",
+    "invalidPassword": "Mot de passe incorrect",
+    "invalid2FACode": "Code 2FA invalide",
+    "invalidBankAccount": "Compte bancaire invalide",
+    "connectionError": "Erreur de connexion. Veuillez réessayer.",
+    "generics": "Une erreur est survenue. Veuillez réessayer.",
+    "pdfGenerationFailed": "Impossible de générer le PDF. Veuillez réessayer.",
+    "fillAllFields": "Veuillez remplir tous les champs obligatoires.",
+    "transferFailed": "Erreur lors du transfert. Veuillez réessayer.",
+    "pleaseAcceptTerms": "Veuillez accepter les conditions pour continuer"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -104,7 +163,14 @@
       "newWithdraw": "Nouveau retrait",
       "viewHistory": "Historique",
       "verifyKYC": "Vérifier mon identité"
-    }
+    },
+    "withdrawIn5": "Retirer vos fonds en 5 minutes"
+  },
+  "developer": {
+    "starterAccount": "Compte Starter",
+    "registeredAccount": "Compte Enregistré",
+    "upgradePrompt": "Passez de {starter} à {registered}",
+    "registeredRequired": "Le statut {registered} est nécessaire pour effectuer des transferts sortants."
   },
   "withdraw": {
     "title": "Nouveau retrait",
@@ -181,6 +247,25 @@
     "export": "Exporter",
     "empty": "Aucune transaction pour le moment"
   },
+  "freeze": {
+    "accountBlocked": "Compte temporairement bloqué",
+    "securityReason": "Pour des raisons de sécurité, votre compte a été suspendu. Veuillez contacter le support pour plus d'informations.",
+    "reason": "Motif",
+    "restrictionType": "Type de restriction",
+    "blockedBy": "Bloqué par",
+    "date": "Date du blocage",
+    "operationsSuspended": "Opérations suspendues",
+    "operationsDesc": "Les transferts, retraits et envois d'argent sont temporairement désactivés. Vous pouvez toujours consulter votre solde et votre historique.",
+    "understood": "J'ai compris",
+    "type": {
+      "ALL": "Tout bloquer",
+      "MOBILE_MONEY": "Mobile Money",
+      "BANK": "Banque / Stripe",
+      "PAYPAL": "PayPal",
+      "CRYPTO": "Crypto",
+      "INTERNAL": "PM→PM"
+    }
+  },
   "kyc": {
     "title": "Vérification d'identité",
     "status": {
@@ -223,7 +308,25 @@
       "title": "Document non validé",
       "message": "Motif : {reason}",
       "retry": "Réessayer avec un autre document"
+    },
+    "banner": {
+      "rejected": "Compte bloqué",
+      "pendingTitle": "Vérification en cours",
+      "unverified": "Compte non vérifié",
+      "rejectedMessage": "Vous ne pouvez pas utiliser les services de PayMaestro car votre dossier n'a pas été approuvé. Il vous reste {remaining} tentative(s) sur 3.",
+      "exhaustedMessage": "Vous avez épuisé toutes vos tentatives de vérification. Votre compte est définitivement bloqué.",
+      "pendingMessage": "Votre vérification KYC est en cours de traitement. Vous serez notifié dès qu'elle sera approuvée.",
+      "unverifiedMessage": "Profil incomplet ou non vérifié : Assurez-vous que les informations de votre profil correspondent exactement à vos pièces d'identité.",
+      "contestDecision": "Contester la décision",
+      "verifyNow": "Vérifier maintenant"
     }
+  },
+  "lock": {
+    "title": "Session verrouillée",
+    "description": "Pour votre sécurité, votre session a été verrouillée après 15 minutes d'inactivité.",
+    "password": "Votre mot de passe",
+    "placeholder": "Entrez votre mot de passe",
+    "unlock": "Déverrouiller"
   },
   "profile": {
     "title": "Mon profil",
@@ -266,6 +369,10 @@
       "Quels documents pour le KYC ?"
     ]
   },
+  "crypto": {
+    "depositTitle": "Déposer des {crypto}",
+    "withdrawTitle": "Retirer vers un wallet crypto"
+  },
   "admin": {
     "title": "Administration",
     "sidebar": {
@@ -288,7 +395,71 @@
       "ban": "Bannir",
       "unban": "Débannir",
       "banReason": "Motif du bannissement"
-    }
+    },
+    "frozenAccounts": "Comptes gelés",
+    "accountFrozen": "Compte gelé avec succès",
+    "accountUnfrozen": "Compte dégelé avec succès"
+  },
+  "mobileMoney": {
+    "title": "Mobile Money",
+    "subtitle": "Gérez vos transferts Mobile Money",
+    "depositTab": "Déposer (Wallet+)",
+    "withdrawTab": "Retirer (Wallet-)",
+    "depositTitle": "Dépôt Mobile Money",
+    "depositDesc": "Rechargez votre wallet depuis votre compte Mobile Money",
+    "withdrawTitle": "Retrait Mobile Money",
+    "withdrawDesc": "Retirez vos fonds vers votre compte Mobile Money",
+    "country": "Pays",
+    "operator": "Opérateur",
+    "phoneNumber": "Votre numéro",
+    "withdrawPhone": "Votre numéro Mobile Money",
+    "amountCurrency": "Montant en {currency}",
+    "amountUSD": "Montant (USD)",
+    "deposit": "Déposer",
+    "withdraw": "Retirer",
+    "processing": "Traitement...",
+    "verifying": "Vérification...",
+    "pendingOTP": "En attente de confirmation...",
+    "otpSent": "Un push OTP a été envoyé à votre téléphone. Veuillez entrer votre code PIN pour finaliser le paiement.",
+    "autoCredit": "Dès confirmation, votre wallet sera crédité automatiquement.",
+    "cancelAndRetry": "Annuler et réessayer",
+    "depositSuccess": "Dépôt réussi !",
+    "depositFailed": "Dépôt échoué",
+    "withdrawSuccess": "Retrait réussi !",
+    "withdrawFailed": "Retrait échoué",
+    "goToWallet": "Accéder au portefeuille",
+    "retry": "Réessayer",
+    "fees": "Frais :",
+    "feeDetail": "Frais ({percent}% du montant)",
+    "processingTime": "Traitement :",
+    "otpPush": "Vous recevrez un push OTP sur votre téléphone",
+    "creditInfo": "Le montant sera crédité en USD sur votre wallet après validation du code PIN.",
+    "delayExceeded": "Délai dépassé",
+    "delayMessage": "Le dépôt a pris trop de temps. Veuillez vérifier votre historique.",
+    "withdrawFrozen": "Retrait Mobile Money bloqué — compte suspendu",
+    "confirmTitle": "Confirmer le retrait",
+    "recipient": "Bénéficiaire",
+    "phone": "Téléphone",
+    "unverified": "Non vérifié ⚠️",
+    "amount": "Montant",
+    "feeAmount": "Frais (3%)",
+    "youReceive": "Vous recevez",
+    "cancel": "Annuler",
+    "confirmWithdraw": "Confirmer le retrait",
+    "estimatedReceive": "Vous recevrez {amount} {currency} sur votre Mobile Money",
+    "phoneError": "Le numéro de téléphone saisi semble incorrect. Vérifiez et réessayez.",
+    "insufficientBalance": "Votre solde est insuffisant pour effectuer cette opération.",
+    "serviceUnavailable": "Une interruption technique temporaire est survenue. Veuillez réessayer dans quelques instants.",
+    "depositGeneralError": "Une erreur est survenue lors du dépôt. Vérifiez vos informations et réessayez.",
+    "nameNotVerified": "Nom non vérifié par l'opérateur. Vérifiez bien le numéro avant de confirmer.",
+    "verificationUnavailable": "Vérification indisponible. Vérifiez bien le numéro avant de confirmer.",
+    "depositRequestSent": "Demande envoyée ! Vérifiez votre téléphone {phone} pour confirmer le paiement via {operator}. Un push OTP vous a été envoyé.",
+    "notAvailable": "Le paiement par redirection n'est pas disponible pour Mobile Money. Veuillez réessayer.",
+    "creditedMessage": "{amount} {currency} ont été crédités sur votre wallet."
+  },
+  "bank": {
+    "account": "Compte :",
+    "verified": "Compte vérifié — Risque faible"
   },
   "wallet": {
     "title": "Mon Portefeuille",
@@ -310,7 +481,30 @@
     "to": "Vers",
     "convert": "Convertir",
     "conversionFee": "Frais de conversion : 2%.",
-    "noTransactions": "Aucune transaction"
+    "noTransactions": "Aucune transaction",
+    "quickAccess": "Accès rapide",
+    "depositMobileMoney": "Déposer via Mobile Money",
+    "withdrawMobileMoney": "Retirer vers Mobile Money",
+    "depositWithdrawPayPal": "Déposer / Retirer via PayPal",
+    "withdrawFunds": "Retirer des fonds",
+    "passwordTitle": "Mot de passe",
+    "passwordDesc": "Entrez votre mot de passe pour confirmer cette opération.",
+    "passwordPlaceholder": "Votre mot de passe",
+    "passwordCancel": "Annuler",
+    "passwordConfirm": "Confirmer",
+    "calculatorTitle": "Calculateur de retrait",
+    "calculatorBalance": "Solde disponible",
+    "calculatorWithdrawAmount": "Montant à retirer (USD)",
+    "calculatorExceedsBalance": "Montant supérieur à votre solde disponible",
+    "calculatorMobileMoneyInfo": "Retrait via Mobile Money — frais de {percent}%",
+    "calculatorDestination": "Pays de destination",
+    "calculatorAppliedRate": "Taux appliqué : 1 USD = {rate} {currency}",
+    "calculatorFeeBreakdown": "Détail des frais",
+    "calculatorProcessingFee": "Frais de traitement ({percent}%)",
+    "calculatorTotalFees": "Total des frais",
+    "calculatorNetAmount": "Montant net reçu",
+    "calculatorEstimatedAmount": "Montant estimé reçu en devise locale",
+    "calculatorVerifyAmount": "Veuillez vérifier le montant saisi"
   },
   "notifications": {
     "title": "Notifications",

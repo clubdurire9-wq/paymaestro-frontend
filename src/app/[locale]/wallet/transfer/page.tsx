@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { 
   Send, CheckCircle2, 
   Loader2, Users, Snowflake
@@ -15,6 +15,7 @@ import { FrozenModal } from '@/components/FrozenModal';
 
 export default function TransferPage() {
   const locale = useLocale();
+  const tErrors = useTranslations('errors');
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceParam = searchParams.get('source');
@@ -104,10 +105,10 @@ export default function TransferPage() {
         setStep('done');
       } else {
         setShowPassword(false);
-        setError(d.error || d.message || 'Erreur lors du transfert. Veuillez réessayer.');
+        setError(d.error || d.message || tErrors('transferFailed'));
       }
     } catch {
-      setError('Erreur de connexion. Veuillez réessayer.');
+      setError(tErrors('connectionError'));
     }
     setLoading(false);
   };
@@ -254,7 +255,7 @@ export default function TransferPage() {
                 {/* Boutons d'action */}
                 <div className="flex gap-3">
                   <Button variant="outline" fullWidth onClick={() => { setLookupResult(null); setLookupEmail(''); }}>
-                    ❌ Annuler — Ce n'est pas la bonne personne
+                    ❌ Cancel — This is not the right person
                   </Button>
                   <Button fullWidth onClick={() => { setStep('pm-amount'); setError(''); }} className="bg-green-600 hover:bg-green-700">
                     ✅ C'est bien la bonne personne — Continuer

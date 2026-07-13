@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Bitcoin, ArrowUp, Copy, Loader2, QrCode, CheckCircle2, TrendingUp, TrendingDown, Snowflake } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function CryptoPage() {
   const locale = useLocale();
+  const t = useTranslations('crypto');
   const { user } = useAuth();
   const isGatewayAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
@@ -90,7 +91,7 @@ export default function CryptoPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
         <Bitcoin className="w-8 h-8 text-orange-500" />
-        <h1 className="text-3xl font-bold">Dépôt Crypto</h1>
+        <h1 className="text-3xl font-bold">Crypto Deposit</h1>
       </div>
 
       {/* Taux en direct */}
@@ -110,11 +111,11 @@ export default function CryptoPage() {
         ))}
       </div>
 
-      {/* Onglets Dépôt/Retrait */}
+      {/* Deposit/Withdraw tabs */}
       <div className="flex gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
         <button onClick={() => setActiveTab('deposit')}
           className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${activeTab === 'deposit' ? 'bg-white dark:bg-slate-800 shadow' : 'text-slate-500 dark:text-slate-400'}`}>
-          📥 Dépôt Crypto → Wallet
+          📥 Crypto Deposit → Wallet
         </button>
         {isGatewayAdmin && (
           <button onClick={() => setActiveTab('withdraw')}
@@ -124,12 +125,12 @@ export default function CryptoPage() {
         )}
       </div>
 
-      {/* Section Dépôt */}
+      {/* Deposit section */}
       {activeTab === 'deposit' && (
         <>
           {/* Génération adresse */}
           <Card>
-            <CardHeader><CardTitle>Déposer des {selectedCrypto}</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('depositTitle', { crypto: selectedCrypto })}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 {rates?.supportedNetworks?.[selectedCrypto]?.map((net: string) => (
@@ -141,7 +142,7 @@ export default function CryptoPage() {
               </div>
 
               <Button onClick={handleGenerateAddress} disabled={generating} icon={<QrCode className="w-4 h-4" />}>
-                {generating ? 'Génération...' : 'Générer l\'adresse de dépôt'}
+                {generating ? 'Generating...' : 'Generate deposit address'}
               </Button>
 
               {error && (
@@ -155,7 +156,7 @@ export default function CryptoPage() {
                   <img src={depositAddress.qrCode} alt="QR Code" className="mx-auto w-40 h-40" />
                   <p className="font-mono text-sm break-all bg-white dark:bg-slate-800 p-3 rounded-lg">{depositAddress.address}</p>
                   <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(depositAddress.address)} icon={<Copy className="w-4 h-4" />}>
-                    Copier l'adresse
+                    Copy address
                   </Button>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Min: {depositAddress.minAmount} {selectedCrypto} | Confirmations: {depositAddress.confirmationsRequired}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">⏱️ {depositAddress.estimatedTime}</p>
@@ -167,10 +168,10 @@ export default function CryptoPage() {
         </>
       )}
 
-      {/* Section Retrait — ADMIN uniquement */}
+      {/* Withdraw section — ADMIN only */}
       {activeTab === 'withdraw' && isGatewayAdmin && (
         <Card>
-          <CardHeader><CardTitle>Retirer vers un wallet crypto</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('withdrawTitle')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-semibold">Adresse de destination</label>
@@ -190,14 +191,14 @@ export default function CryptoPage() {
             </div>
             {withdrawAmount && (
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-sm">
-                <p>Vous recevrez : <strong>{(parseFloat(withdrawAmount) * 0.98 / (rates?.[selectedCrypto]?.usd || 1)).toFixed(6)} {selectedCrypto}</strong></p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Frais : 2% | Réseau : {selectedNetwork}</p>
+                <p>You will receive: <strong>{(parseFloat(withdrawAmount) * 0.98 / (rates?.[selectedCrypto]?.usd || 1)).toFixed(6)} {selectedCrypto}</strong></p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Fee: 2% | Network: {selectedNetwork}</p>
               </div>
             )}
             {withdrawResult && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
-                <p className="font-bold text-green-800">✅ Retrait effectué !</p>
-                <p>{withdrawResult.amountCrypto.toFixed(6)} {selectedCrypto} envoyés</p>
+                <p className="font-bold text-green-800">✅ Withdrawal completed!</p>
+                <p>{withdrawResult.amountCrypto.toFixed(6)} {selectedCrypto} sent</p>
                 <p className="text-xs">Réf: {withdrawResult.reference}</p>
                 <p className="text-xs">⏱️ {withdrawResult.estimatedTime}</p>
               </div>
@@ -208,26 +209,26 @@ export default function CryptoPage() {
 
       {/* Frais */}
       <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-sm text-slate-600 dark:text-slate-300">
-        <p><strong>💱 Taux :</strong> En direct via CoinGecko/Binance</p>
-        <p><strong>⏱️ Délai :</strong> 10-60 min (BTC) | 3-5 min (ETH) | Instantané (USDT)</p>
-        <p><strong>🔄 Après dépôt :</strong> Les fonds sont en USD dans votre wallet → vous pouvez les utiliser pour tous les services PayMaestro</p>
+        <p><strong>💱 Rate:</strong> Live via CoinGecko/Binance</p>
+        <p><strong>⏱️ Time:</strong> 10-60 min (BTC) | 3-5 min (ETH) | Instant (USDT)</p>
+        <p><strong>🔄 After deposit:</strong> Funds are in USD in your wallet → you can use them for all PayMaestro services</p>
       </div>
 
       {isCryptoWithdrawFrozen && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
           <Snowflake className="w-5 h-5 shrink-0" />
-          Retrait crypto bloqué — compte suspendu
+          Crypto withdrawal blocked — account suspended
         </div>
       )}
 
       <FrozenModal isOpen={frozenModalOpen} data={frozenData} onClose={() => setFrozenModalOpen(false)} />
 
-      {/* Modale de confirmation de retrait — ADMIN uniquement */}
+      {/* Withdrawal confirmation modal — ADMIN only */}
       {showCryptoConfirm && isGatewayAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <Bitcoin className="w-12 h-12 text-orange-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg">Confirmer le retrait</h3>
+            <h3 className="font-bold text-lg">Confirm withdrawal</h3>
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mt-4 text-left space-y-2 text-sm">
               <p><strong>Destinataire :</strong> <span className="font-mono text-xs">{withdrawAddress.substring(0, 15)}...</span></p>
               <p><strong>Montant :</strong> {withdrawAmount}$</p>
@@ -237,8 +238,8 @@ export default function CryptoPage() {
             </div>
             <p className="text-red-600 text-xs mt-3">⚠️ Vérifiez l'adresse — les transactions crypto sont irréversibles !</p>
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" fullWidth onClick={() => setShowCryptoConfirm(false)}>Annuler</Button>
-              <Button fullWidth onClick={() => { setShowCryptoConfirm(false); handleWithdraw(); }}>Confirmer</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowCryptoConfirm(false)}>Cancel</Button>
+              <Button fullWidth onClick={() => { setShowCryptoConfirm(false); handleWithdraw(); }}>Confirm</Button>
             </div>
           </div>
         </div>

@@ -49,15 +49,15 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/paypal`, label: 'PayPal', icon: ArrowUpRight },
     { href: `/${locale}/Mobile-Money`, label: 'Mobile Money', icon: Phone },
     { href: `/${locale}/iban`, label: 'IBAN', icon: Building },
-    { href: `/${locale}/history`, label: 'Historique', icon: History },
-    { href: `/${locale}/cards`, label: 'Cartes', icon: CreditCard },
+    { href: `/${locale}/history`, label: 'History', icon: History },
+    { href: `/${locale}/cards`, label: 'Cards', icon: CreditCard },
     { href: `/${locale}/crypto`, label: 'Crypto', icon: Bitcoin },
-    { href: `/${locale}/payment-page`, label: 'Page Paiement', icon: Globe },
-    { href: `/${locale}/bank`, label: 'Banque', icon: Landmark },
-    { href: `/${locale}/referral`, label: 'Parrainage', icon: Gift },
-    { href: `/${locale}/kyc`, label: 'Vérification', icon: UserCheck },
-    { href: `/${locale}/profile`, label: 'Profil', icon: User },
-    { href: `/${locale}/developer`, label: 'Développeur', icon: Code },
+    { href: `/${locale}/payment-page`, label: 'Payment Page', icon: Globe },
+    { href: `/${locale}/bank`, label: 'Bank', icon: Landmark },
+    { href: `/${locale}/referral`, label: 'Referral', icon: Gift },
+    { href: `/${locale}/kyc`, label: 'Verification', icon: UserCheck },
+    { href: `/${locale}/profile`, label: 'Profile', icon: User },
+    { href: `/${locale}/developer`, label: 'Developer', icon: Code },
     { href: `/${locale}/docs`, label: 'Documentation', icon: BookOpen },
     { href: `/${locale}/contact`, label: 'Contact Support', icon: LifeBuoy },
     ...(isAdmin ? [{ href: `/${locale}/admin`, label: 'Admin', icon: ShieldAlert }] : []),
@@ -119,7 +119,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
           <button
             onClick={onToggle}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title={isExpanded ? 'Réduire' : 'Développer'}
+            title={isExpanded ? 'Collapse' : 'Expand'}
           >
             {isExpanded ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
           </button>

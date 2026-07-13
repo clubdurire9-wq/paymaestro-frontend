@@ -9,8 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 const categories = [
   {
     icon: Rocket,
-    title: 'Démarrage rapide',
-    desc: 'Créez votre compte, vérifiez votre identité et effectuez votre première transaction en quelques minutes.',
+    title: 'Quick Start',
+    desc: 'Create your account, verify your identity and make your first transaction in minutes.',
     href: '/docs/getting-started',
     color: 'from-violet-600 to-indigo-600',
     bg: 'bg-violet-50 dark:bg-violet-900/20',
@@ -19,7 +19,7 @@ const categories = [
   {
     icon: Wallet,
     title: 'Wallet',
-    desc: 'Gérez votre portefeuille PayMaestro : dépôts, retraits, conversion de devises et historique.',
+    desc: 'Manage your PayMaestro wallet: deposits, withdrawals, currency conversion and history.',
     href: '/docs/getting-started#wallet',
     color: 'from-emerald-600 to-green-600',
     bg: 'bg-emerald-50 dark:bg-emerald-900/20',
@@ -27,8 +27,8 @@ const categories = [
   },
   {
     icon: CreditCard,
-    title: 'Paiements & Transferts',
-    desc: 'PayPal, Mobile Money, virement bancaire, crypto et cartes virtuelles.',
+    title: 'Payments & Transfers',
+    desc: 'PayPal, Mobile Money, bank transfer, crypto and virtual cards.',
     href: '/docs/getting-started#payments',
     color: 'from-amber-500 to-orange-600',
     bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -36,8 +36,8 @@ const categories = [
   },
   {
     icon: Code,
-    title: 'API Développeur',
-    desc: 'Intégrez PayMaestro à votre application via notre API REST documentée.',
+    title: 'Developer API',
+    desc: 'Integrate PayMaestro into your application via our documented REST API.',
     href: '/docs/api',
     color: 'from-blue-600 to-cyan-600',
     bg: 'bg-blue-50 dark:bg-blue-900/20',
@@ -45,8 +45,8 @@ const categories = [
   },
   {
     icon: Shield,
-    title: 'Sécurité & Conformité',
-    desc: 'KYC, chiffrement AES-256, PCI-DSS, et protection contre la fraude.',
+    title: 'Security & Compliance',
+    desc: 'KYC, AES-256 encryption, PCI-DSS, and fraud protection.',
     href: '/docs/getting-started#security',
     color: 'from-red-600 to-rose-600',
     bg: 'bg-red-50 dark:bg-red-900/20',
@@ -55,7 +55,7 @@ const categories = [
   {
     icon: HelpCircle,
     title: 'FAQ',
-    desc: 'Réponses aux questions les plus fréquentes sur PayMaestro.',
+    desc: 'Answers to the most frequently asked questions about PayMaestro.',
     href: '/docs/faq',
     color: 'from-sky-600 to-blue-600',
     bg: 'bg-sky-50 dark:bg-sky-900/20',
@@ -64,13 +64,13 @@ const categories = [
 ];
 
 const quickLinks = [
-  { icon: Smartphone, label: 'Dépôt Mobile Money', href: '/docs/getting-started#mobile-money' },
-  { icon: DollarSign, label: 'Dépôt PayPal → Wallet', href: '/docs/getting-started#paypal' },
-  { icon: Globe, label: 'Virement SEPA/IBAN', href: '/docs/getting-started#iban' },
-  { icon: Bitcoin, label: 'Dépôt Crypto', href: '/docs/getting-started#crypto' },
-  { icon: ArrowLeftRight, label: 'Transfert PM → PM', href: '/docs/getting-started#pm-transfer' },
-  { icon: Users, label: 'Programme de parrainage', href: '/docs/getting-started#referral' },
-  { icon: Building, label: 'Carte virtuelle', href: '/docs/getting-started#cards' },
+  { icon: Smartphone, label: 'Mobile Money Deposit', href: '/docs/getting-started#mobile-money' },
+  { icon: DollarSign, label: 'PayPal Deposit → Wallet', href: '/docs/getting-started#paypal' },
+  { icon: Globe, label: 'SEPA/IBAN Transfer', href: '/docs/getting-started#iban' },
+  { icon: Bitcoin, label: 'Crypto Deposit', href: '/docs/getting-started#crypto' },
+  { icon: ArrowLeftRight, label: 'PM → PM Transfer', href: '/docs/getting-started#pm-transfer' },
+  { icon: Users, label: 'Referral Program', href: '/docs/getting-started#referral' },
+  { icon: Building, label: 'Virtual Card', href: '/docs/getting-started#cards' },
   { icon: LifeBuoy, label: 'Contact Support', href: '/contact' },
 ];
 
@@ -92,9 +92,9 @@ export default function DocsPage() {
         <div className="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto">
           <BookOpen className="w-7 h-7 text-violet-600 dark:text-violet-400" />
         </div>
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white">Documentation PayMaestro</h1>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white">PayMaestro Documentation</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400">
-          Tout ce que vous devez savoir pour utiliser et intégrer PayMaestro.
+          Everything you need to know to use and integrate PayMaestro.
         </p>
 
         {/* Search */}
@@ -104,7 +104,7 @@ export default function DocsPage() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher dans la documentation..."
+            placeholder="Search the documentation..."
             className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
           />
         </div>
@@ -114,7 +114,7 @@ export default function DocsPage() {
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Parcourir par catégorie</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Browse by Category</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCategories.map((cat) => (
@@ -129,7 +129,7 @@ export default function DocsPage() {
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{cat.desc}</p>
                   <div className="flex items-center gap-1 mt-3 text-xs font-medium text-violet-600 dark:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Explorer <ArrowRight className="w-3 h-3" />
+                    Explore <ArrowRight className="w-3 h-3" />
                   </div>
                 </CardContent>
               </Card>
@@ -139,14 +139,14 @@ export default function DocsPage() {
         {filteredCategories.length === 0 && (
           <div className="text-center py-12 text-slate-400 dark:text-slate-500">
             <BookOpen className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p>Aucun résultat pour &quot;{search}&quot;</p>
+            <p>No results for &quot;{search}&quot;</p>
           </div>
         )}
       </section>
 
       {/* Quick Links */}
       <section className="space-y-6">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Liens rapides</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Quick Links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {(search ? filteredQuickLinks : quickLinks).map((link) => (
             <Link key={link.label} href={`/${locale}${link.href}`}
@@ -163,7 +163,7 @@ export default function DocsPage() {
 
       {/* Integration badges */}
       <section className="text-center py-8 border-t border-slate-100 dark:border-slate-800">
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">Disponible dans 54 pays africains</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">Available in 54 African countries</p>
         <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           {['MTN Mobile Money', 'Orange Money', 'Wave', 'Moov', 'Airtel Money', 'M-Pesa', 'Free Money', 'Tigo Cash', 'Mobicash', 'Safaricom'].map(op => (
             <span key={op} className="px-3 py-1.5 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">

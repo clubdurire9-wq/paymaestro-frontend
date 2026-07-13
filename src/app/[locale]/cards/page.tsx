@@ -166,9 +166,9 @@ export default function VirtualCardsPage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <CreditCard className="w-8 h-8 text-violet-600" />
-            Cartes Virtuelles
+            Virtual Cards
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Cartes Visa/Mastercard virtuelles prépayées</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Prepaid virtual Visa/Mastercard cards</p>
         </div>
         <Button onClick={() => setShowCreate(true)} icon={<Plus className="w-4 h-4" />}>
           Nouvelle carte
@@ -310,7 +310,7 @@ export default function VirtualCardsPage() {
                 </button>
               )}
               <button onClick={() => setCancelTarget(card)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
-                <XCircle className="w-3 h-3" /> Annuler
+                  <XCircle className="w-3 h-3" /> Cancel
               </button>
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function VirtualCardsPage() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Annuler</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Cancel</Button>
               <Button fullWidth onClick={handleCreateCard} disabled={creating}>
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Créer (2$)'}
               </Button>
@@ -385,9 +385,9 @@ export default function VirtualCardsPage() {
             <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-7 h-7 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Annuler la carte</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Cancel card</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-              Êtes-vous sûr de vouloir annuler définitivement la carte <strong>{cancelTarget.brand?.toUpperCase()} •••• {cancelTarget.last_four}</strong> ?
+              Are you sure you want to permanently cancel the card <strong>{cancelTarget.brand?.toUpperCase()} •••• {cancelTarget.last_four}</strong>?
             </p>
             <p className="text-xs text-red-500 mt-2 font-semibold">Cette action est irréversible.</p>
             <div className="flex gap-3 mt-6">
@@ -401,7 +401,7 @@ export default function VirtualCardsPage() {
                 onClick={() => handleCancelCard(cancelTarget.id)}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
               >
-                Oui, annuler
+                Yes, cancel
               </button>
             </div>
           </div>
@@ -436,7 +436,7 @@ export default function VirtualCardsPage() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" fullWidth onClick={() => { setRechargeTarget(null); setRechargeAmount(''); }}>
-                Annuler
+                Cancel
               </Button>
               <Button fullWidth onClick={handleRecharge} disabled={recharging || !rechargeAmount || parseFloat(rechargeAmount) <= 0}>
                 {recharging ? <Loader2 className="w-4 h-4 animate-spin" /> : `Recharger ${rechargeAmount ? `${parseFloat(rechargeAmount).toFixed(2)}$` : ''}`}

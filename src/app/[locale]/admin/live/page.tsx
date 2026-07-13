@@ -30,7 +30,7 @@ export default function AdminLivePage() {
   const [userGeo, setUserGeo] = useState<any>(null);
   const [userCountries, setUserCountries] = useState<any>(null);
 
-  // États pour la modale de remboursement avec vérification
+  // States for refund modal with verification
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [refundTx, setRefundTx] = useState<any>(null);
   const [refundOption, setRefundOption] = useState<'WALLET' | 'CORRECT_NUMBER' | 'PAYPAL'>('WALLET');
@@ -40,7 +40,7 @@ export default function AdminLivePage() {
   const [verificationAnswers, setVerificationAnswers] = useState({ email: '', amount: '', date: '', number: '', operator: '' });
   const [verificationPassed, setVerificationPassed] = useState(false);
 
-  // États pour la modale de vérification de réclamation
+  // States for claim verification modal
   const [claimData, setClaimData] = useState<any>(null);
   const [refundType, setRefundType] = useState<string>('WALLET');
   const [refundPhone, setRefundPhone] = useState('');
@@ -200,7 +200,7 @@ export default function AdminLivePage() {
     setRefundReason('');
   };
 
-  // Vérification des réponses de l'utilisateur
+  // Check user responses
   const handleVerify = () => {
     const tx = refundTx;
     const ans = verificationAnswers;
@@ -215,13 +215,13 @@ export default function AdminLivePage() {
     ) {
       setVerificationPassed(true);
     } else {
-      alert('❌ Vérification échouée. Les informations ne correspondent pas.');
+      alert('❌ Verification failed. The information does not match.');
     }
   };
 
   // Remboursement avec option enrichie
   const handleRefund = async (transactionId: number, type?: string) => {
-    const reason = refundReason || 'Remboursement admin';
+    const reason = refundReason || 'Admin refund';
     if (!reason) return;
 
     setRefunding(transactionId);
@@ -254,7 +254,7 @@ export default function AdminLivePage() {
 
   // Soumission du remboursement depuis la modale
   const handleRefundSubmit = async () => {
-    if (!refundReason) { alert('Veuillez entrer un motif'); return; }
+    if (!refundReason) { alert('Please enter a reason'); return; }
     setRefunding(refundTx.id);
     try {
       await api.admin.refundWithOptions({ transactionId: refundTx.id, reason: refundReason, refundOption, correctPhone, correctOperator });
@@ -284,7 +284,7 @@ export default function AdminLivePage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
             <Activity className="w-8 h-8 text-red-600 animate-pulse" />
-            Activité en Temps Réel
+            Real-Time Activity
           </h1>
           <p className="text-sm text-slate-500 mt-1">Surveillez toutes les transactions des utilisateurs</p>
         </div>
@@ -294,7 +294,7 @@ export default function AdminLivePage() {
           </Button>
           <Button variant="outline" onClick={loadData} size="sm">
             <RefreshCw className="w-4 h-4 mr-1" />
-            Rafraîchir
+            Refresh
           </Button>
         </div>
       </div>
@@ -314,7 +314,7 @@ export default function AdminLivePage() {
       {/* UTILISATEURS PAR PAYS */}
       {userCountries && (
         <Card>
-          <CardHeader><CardTitle>🌍 Utilisateurs connectés par pays</CardTitle></CardHeader>
+          <CardHeader><CardTitle>🌍 Connected users by country</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto">
               {Object.entries(userCountries || {}).map(([country, count]: any) => (
@@ -338,7 +338,7 @@ export default function AdminLivePage() {
               <div key={act.id} className={`flex items-center justify-between p-3 rounded-xl ${act.status === 'REFUNDED' ? 'bg-yellow-50 border border-yellow-200' : 'bg-slate-50'}`}>
                 <div className="flex items-center gap-3 flex-1">
                   <Badge variant={act.type === 'DEPOSIT' ? 'success' : act.type === 'WITHDRAWAL' ? 'error' : 'info'}>
-                    {act.type === 'DEPOSIT' ? '⬇️ Dépôt' : act.type === 'WITHDRAWAL' ? '⬆️ Retrait' : '🔄 Conv'}
+                    {act.type === 'DEPOSIT' ? '⬇️ Deposit' : act.type === 'WITHDRAWAL' ? '⬆️ Withdrawal' : '🔄 Conv'}
                   </Badge>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -373,14 +373,14 @@ export default function AdminLivePage() {
                       <button 
                         onClick={() => handleRefundClick(act)} 
                         className="p-1 hover:bg-green-100 rounded" 
-                        title="Rembourser (vérification)"
+                        title="Refund (verification)"
                       >
                         <Undo2 className="w-4 h-4 text-green-600" />
                       </button>
                       <button 
                         onClick={() => handleVerifyClaim(act.id)} 
                         className="p-1 hover:bg-orange-100 rounded" 
-                        title="Vérifier réclamation"
+                        title="Verify claim"
                       >
                         <Search className="w-4 h-4 text-orange-600" />
                       </button>
@@ -390,7 +390,7 @@ export default function AdminLivePage() {
               </div>
             ))}
             {activities.length === 0 && (
-              <p className="text-slate-400 text-center py-8">Aucune activité</p>
+              <p className="text-slate-400 text-center py-8">No activity</p>
             )}
           </div>
         </CardContent>
@@ -401,10 +401,10 @@ export default function AdminLivePage() {
         <Card className="border-2 border-violet-300">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Activité de l'utilisateur</CardTitle>
+              <CardTitle>User Activity</CardTitle>
               <div className="flex items-center gap-2">
                 {userProfile && (
-                  <button onClick={handleExportUserPDF} className="p-1.5 hover:bg-violet-100 rounded-lg text-violet-600 transition-colors" title="Exporter le relevé PDF officiel">
+                  <button onClick={handleExportUserPDF} className="p-1.5 hover:bg-violet-100 rounded-lg text-violet-600 transition-colors" title="Export official PDF statement">
                     <FileText className="w-4 h-4" />
                   </button>
                 )}
@@ -449,13 +449,13 @@ export default function AdminLivePage() {
             
             <div className="space-y-3">
               <p><strong>Email :</strong> {userGeo.userEmail}</p>
-              <p><strong>Dernière IP :</strong> {userGeo.lastIP}</p>
-              <p><strong>Dernière connexion :</strong> {new Date(userGeo.lastLogin).toLocaleString('fr-FR')}</p>
+              <p><strong>Last IP:</strong> {userGeo.lastIP}</p>
+              <p><strong>Last login:</strong> {new Date(userGeo.lastLogin).toLocaleString('fr-FR')}</p>
               
               <div className="bg-blue-50 rounded-xl p-4 space-y-2">
                 <p><strong>Pays :</strong> {getFlagEmoji(userGeo.geo?.countryCode)} {userGeo.geo?.country}</p>
                 <p><strong>Ville :</strong> {userGeo.geo?.city}</p>
-                <p><strong>Région :</strong> {userGeo.geo?.region}</p>
+                <p><strong>Region:</strong> {userGeo.geo?.region}</p>
                 <p><strong>FAI :</strong> {userGeo.geo?.isp}</p>
                 <p><strong>Organisation :</strong> {userGeo.geo?.org}</p>
               </div>
@@ -478,11 +478,11 @@ export default function AdminLivePage() {
       {showRefundModal && refundTx && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto space-y-4">
-            <h3 className="text-xl font-bold">🔍 Vérification & Remboursement</h3>
+            <h3 className="text-xl font-bold">🔍 Verification & Refund</h3>
 
             {!verificationPassed ? (
               <>
-                <p className="text-sm text-slate-600">Posez ces questions à l'utilisateur :</p>
+                <p className="text-sm text-slate-600">Ask the user these questions:</p>
                 <div className="space-y-2">
                   <input 
                     placeholder="Email de l'utilisateur" 
@@ -490,37 +490,37 @@ export default function AdminLivePage() {
                     onChange={(e) => setVerificationAnswers({...verificationAnswers, email: e.target.value})} 
                   />
                   <input 
-                    placeholder="Montant exact ($)" 
+                    placeholder="Exact amount ($)" 
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                     onChange={(e) => setVerificationAnswers({...verificationAnswers, amount: e.target.value})} 
                   />
                   <input 
-                    placeholder="Date du retrait (JJ/MM/AAAA)" 
+                    placeholder="Withdrawal date (DD/MM/YYYY)" 
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                     onChange={(e) => setVerificationAnswers({...verificationAnswers, date: e.target.value})} 
                   />
                   <input 
-                    placeholder="Numéro utilisé" 
+                    placeholder="Number used" 
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                     onChange={(e) => setVerificationAnswers({...verificationAnswers, number: e.target.value})} 
                   />
                   <input 
-                    placeholder="Opérateur" 
+                    placeholder="Operator" 
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                     onChange={(e) => setVerificationAnswers({...verificationAnswers, operator: e.target.value})} 
                   />
                 </div>
-                <Button onClick={handleVerify} className="w-full">Vérifier l'identité</Button>
+                <Button onClick={handleVerify} className="w-full">Verify identity</Button>
               </>
             ) : (
               <>
-                <Badge variant="success">✅ Identité vérifiée</Badge>
+                <Badge variant="success">✅ Identity verified</Badge>
                 <div className="space-y-3">
                   <label className="text-sm font-semibold">Option de remboursement</label>
                   <div className="space-y-2">
                     {[
                       { value: 'WALLET', label: '💰 Recharger le Wallet USD' },
-                      { value: 'CORRECT_NUMBER', label: '📱 Envoyer sur le bon numéro' },
+                      { value: 'CORRECT_NUMBER', label: '📱 Send to correct number' },
                       { value: 'PAYPAL', label: '🏦 Rembourser sur PayPal' },
                     ].map(opt => (
                       <button 
@@ -536,12 +536,12 @@ export default function AdminLivePage() {
                   {refundOption === 'CORRECT_NUMBER' && (
                     <>
                       <input 
-                        placeholder="Numéro correct" 
+                        placeholder="Correct number" 
                         className="w-full px-3 py-2 border rounded-lg text-sm" 
                         onChange={(e) => setCorrectPhone(e.target.value)} 
                       />
                       <input 
-                        placeholder="Opérateur correct" 
+                        placeholder="Correct operator" 
                         className="w-full px-3 py-2 border rounded-lg text-sm" 
                         onChange={(e) => setCorrectOperator(e.target.value)} 
                       />
@@ -549,19 +549,19 @@ export default function AdminLivePage() {
                   )}
 
                   <input 
-                    placeholder="Motif du remboursement" 
+                    placeholder="Refund reason" 
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                     onChange={(e) => setRefundReason(e.target.value)} 
                   />
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="outline" className="w-full" onClick={() => setShowRefundModal(false)}>Annuler</Button>
+                  <Button variant="outline" className="w-full" onClick={() => setShowRefundModal(false)}>Cancel</Button>
                   <Button 
                     className="w-full" 
                     onClick={handleRefundSubmit} 
                     disabled={refunding === refundTx?.id}
                   >
-                    {refunding === refundTx?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : '✅ Rembourser'}
+                    {refunding === refundTx?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : '✅ Confirm refund'}
                   </Button>
                 </div>
               </>
@@ -574,7 +574,7 @@ export default function AdminLivePage() {
       {claimData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">🔍 Vérification de réclamation</h2>
+            <h2 className="text-xl font-bold mb-4">🔍 Claim verification</h2>
             
             {/* Infos transaction */}
             <div className="bg-slate-50 p-4 rounded-xl mb-4 space-y-2 text-sm">
@@ -587,30 +587,30 @@ export default function AdminLivePage() {
             {/* Évaluation des risques */}
             <div className="grid grid-cols-3 gap-2 mb-4">
               <div className={`p-2 rounded-lg text-center text-xs ${claimData.riskAssessment.isFirstRefund ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {claimData.riskAssessment.isFirstRefund ? '✅ Première réclamation' : `⚠️ ${claimData.riskAssessment.previousRefunds} réclamations`}
+                {claimData.riskAssessment.isFirstRefund ? '✅ First claim' : `⚠️ ${claimData.riskAssessment.previousRefunds} claims`}
               </div>
               <div className={`p-2 rounded-lg text-center text-xs ${claimData.riskAssessment.otherTransfersToTarget === 0 ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
-                {claimData.riskAssessment.otherTransfersToTarget === 0 ? '✅ Numéro inconnu' : `⚠️ ${claimData.riskAssessment.otherTransfersToTarget} transferts vers ce N°`}
+                {claimData.riskAssessment.otherTransfersToTarget === 0 ? '✅ Unknown number' : `⚠️ ${claimData.riskAssessment.otherTransfersToTarget} transfers to this number`}
               </div>
               <div className={`p-2 rounded-lg text-center text-xs ${!claimData.riskAssessment.isRepeatTarget ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {!claimData.riskAssessment.isRepeatTarget ? '✅ 1er envoi vers ce N°' : '⚠️ Transferts répétés'}
+                {!claimData.riskAssessment.isRepeatTarget ? '✅ 1st send to this number' : '⚠️ Repeated transfers'}
               </div>
             </div>
 
-            {/* Questions de vérification */}
+            {/* Verification questions */}
             <div className="space-y-2 mb-4">
-              <h4 className="font-semibold text-sm">📋 Questions à poser :</h4>
+              <h4 className="font-semibold text-sm">📋 Questions to ask:</h4>
               {claimData.questions.map((q: any) => (
                 <div key={q.id} className="bg-blue-50 p-2 rounded-lg text-xs">
                   <p className="text-blue-900">{q.id}. {q.question}</p>
-                  <p className="text-blue-600 font-semibold">Réponse attendue : {q.expectedAnswer}</p>
+                  <p className="text-blue-600 font-semibold">Expected answer: {q.expectedAnswer}</p>
                 </div>
               ))}
             </div>
 
             {/* Options de remboursement */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-sm">💳 Type de remboursement :</h4>
+              <h4 className="font-semibold text-sm">💳 Refund type:</h4>
               {claimData.refundOptions.map((opt: any) => (
                 <button
                   key={opt.type}
@@ -688,12 +688,12 @@ export default function AdminLivePage() {
               {refundType === 'PM2PM' && claimData && (
                 <div className="space-y-2 pl-2 mt-3">
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
-                    <p className="text-sm font-bold text-green-800 mb-2">🔄 Remboursement PM→PM</p>
+                    <p className="text-sm font-bold text-green-800 mb-2">🔄 PM→PM Refund</p>
                     
                     {claimData.pm2pmDetails ? (
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Expéditeur :</span>
+                          <span className="text-slate-500">Sender:</span>
                           <span className="font-bold">{claimData.pm2pmDetails.sender?.name}</span>
                         </div>
                         <div className="flex justify-between">
@@ -701,7 +701,7 @@ export default function AdminLivePage() {
                           <span className="font-mono text-xs">{claimData.pm2pmDetails.sender?.email}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Destinataire :</span>
+                        <span className="text-slate-500">Recipient:</span>
                           <span className="font-bold">{claimData.pm2pmDetails.recipient?.name}</span>
                         </div>
                         <div className="flex justify-between">
@@ -709,7 +709,7 @@ export default function AdminLivePage() {
                           <span className="font-mono text-xs">{claimData.pm2pmDetails.recipient?.email}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Montant :</span>
+                        <span className="text-slate-500">Amount:</span>
                           <span className="font-bold text-lg">${claimData.pm2pmDetails.transaction?.amount?.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
@@ -727,7 +727,7 @@ export default function AdminLivePage() {
                         
                         {claimData.pm2pmDetails.canRefund && (
                           <div className="bg-green-50 p-2 rounded-lg text-xs text-green-700 mt-2">
-                            ✅ Remboursement possible. L'argent sera retourné du destinataire vers l'expéditeur.
+                            ✅ Refund possible. The money will be returned from the recipient to the sender.
                           </div>
                         )}
                       </div>
@@ -742,7 +742,7 @@ export default function AdminLivePage() {
               {refundType === 'MOBILE_TO_WALLET' && (
                 <div className="space-y-2 pl-2 mt-3">
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
-                    <p className="text-sm font-bold text-blue-800 mb-2">📱 Remboursement Mobile → Wallet</p>
+                    <p className="text-sm font-bold text-blue-800 mb-2">📱 Mobile → Wallet Refund</p>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Montant :</span>
@@ -753,7 +753,7 @@ export default function AdminLivePage() {
                         <span className="font-mono text-xs">{claimData?.transaction?.user?.email}</span>
                       </div>
                       <div className="bg-green-50 p-2 rounded-lg text-xs text-green-700 mt-2">
-                        ✅ Le montant sera crédité sur le wallet de l'utilisateur.
+                        ✅ The amount will be credited to the user's wallet.
                       </div>
                     </div>
                   </div>
@@ -764,14 +764,14 @@ export default function AdminLivePage() {
                 <div className="space-y-2 pl-2">
                   <input 
                     type="tel" 
-                    placeholder="Bon numéro" 
+                    placeholder="Correct number" 
                     value={refundPhone} 
                     onChange={(e) => setRefundPhone(e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
                   />
                   <input 
                     type="text" 
-                    placeholder="Opérateur (Orange, MTN...)" 
+                    placeholder="Operator (Orange, MTN...)" 
                     value={refundOperator} 
                     onChange={(e) => setRefundOperator(e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg text-sm" 
@@ -827,9 +827,9 @@ export default function AdminLivePage() {
               {refundType === 'STRIPE' && (
                 <div className="space-y-2 pl-2 mt-3">
                   <div className="bg-blue-50 p-3 rounded-xl text-xs text-blue-800">
-                    <p className="font-semibold mb-1">💡 Remboursement Stripe</p>
-                    <p>L'argent sera crédité sur le portefeuille de l'utilisateur via son compte Stripe.</p>
-                    <p className="mt-1">Si l'utilisateur n'a pas encore d'IBAN, un compte sera créé automatiquement.</p>
+                    <p className="font-semibold mb-1">💡 Stripe Refund</p>
+                    <p>The money will be credited to the user's wallet via their Stripe account.</p>
+                    <p className="mt-1">If the user does not have an IBAN yet, an account will be created automatically.</p>
                   </div>
                 </div>
               )}
@@ -838,22 +838,22 @@ export default function AdminLivePage() {
               {refundType === 'BANK_TO_WALLET' && (
                 <div className="space-y-2 pl-2 mt-3">
                   <div className="bg-blue-50 p-3 rounded-xl text-xs text-blue-800">
-                    <p className="font-semibold mb-1">🏦 Remboursement Banque → Wallet</p>
-                    <p>L'argent sera crédité directement sur le portefeuille de l'utilisateur comme un dépôt bancaire.</p>
-                    <p className="mt-1">Frais : 0% (remboursement admin)</p>
+                    <p className="font-semibold mb-1">🏦 Bank → Wallet Refund</p>
+                    <p>The money will be credited directly to the user's wallet as a bank deposit.</p>
+                    <p className="mt-1">Fee: 0% (admin refund)</p>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="outline" className="w-full" onClick={() => setClaimData(null)}>Annuler</Button>
+              <Button variant="outline" className="w-full" onClick={() => setClaimData(null)}>Cancel</Button>
               <Button 
                 className="w-full" 
                 onClick={() => handleRefund(claimData.transaction.id, refundType)}
                 disabled={refunding !== null || (refundType === 'MOBILE_MONEY' && (!refundPhone || !refundOperator)) || (refundType === 'PM2PM' && claimData?.pm2pmDetails && !claimData.pm2pmDetails.canRefund)}
               >
-                {refunding ? <Loader2 className="w-4 h-4 animate-spin" /> : '✅ Confirmer le remboursement'}
+                {refunding ? <Loader2 className="w-4 h-4 animate-spin" /> : '✅ Confirm refund'}
               </Button>
             </div>
           </div>

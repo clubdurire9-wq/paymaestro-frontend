@@ -396,7 +396,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t('quickActions.newWithdraw')}</h4>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Retirer vos fonds en 5 minutes</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('withdrawIn5')}</p>
                 </div>
               </button>
             </Link>

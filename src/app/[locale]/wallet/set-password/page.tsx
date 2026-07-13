@@ -75,7 +75,7 @@ export default function SetWalletPasswordPage() {
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              placeholder="Confirmer le mot de passe"
+              placeholder="Confirm password"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none"
             />
             {error && <p className="text-sm text-red-600">{error}</p>}

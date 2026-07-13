@@ -80,6 +80,7 @@ interface WalletTx {
 
 export default function WalletPage() {
   const t = useTranslations();
+  const tWallet = useTranslations('wallet');
   const router = useRouter();
   const { user: _authUser } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
@@ -105,7 +106,7 @@ export default function WalletPage() {
       if (bal) setBalance(bal);
       if (txs) setTransactions(txs);
     } catch (error) {
-      logger.error('Erreur de chargement:', error);
+      logger.error('Loading error:', error);
     }
     setLoading(false);
   };
@@ -162,7 +163,7 @@ export default function WalletPage() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('wallet.totalDeposited') || 'Total déposé'}
+              {t('wallet.totalDeposited') || 'Total deposited'}
             </p>
             <p className="text-2xl font-bold text-slate-800 dark:text-white">
               ${balance?.totalDeposited?.toFixed(2) || '0.00'}
@@ -173,7 +174,7 @@ export default function WalletPage() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('wallet.totalWithdrawn') || 'Total retiré'}
+              {t('wallet.totalWithdrawn') || 'Total withdrawn'}
             </p>
             <p className="text-2xl font-bold text-slate-800 dark:text-white">
               ${balance?.totalWithdrawn?.toFixed(2) || '0.00'}
@@ -190,16 +191,16 @@ export default function WalletPage() {
           className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-300 dark:border-amber-800/50 rounded-xl text-center hover:shadow-lg transition-all cursor-pointer"
         >
           <ArrowDown className="w-8 h-8 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
-          <p className="font-bold text-amber-800 dark:text-amber-300">Déposer via Mobile Money</p>
-          <p className="text-sm text-amber-600 dark:text-amber-400">Rechargez depuis votre compte Mobile Money</p>
+          <p className="font-bold text-amber-800 dark:text-amber-300">{tWallet('depositMobileMoney')}</p>
+          <p className="text-sm text-amber-600 dark:text-amber-400">Top up from your Mobile Money account</p>
         </button>
         <button
           onClick={() => router.push(`/${locale}/Mobile-Money?tab=withdraw`)}
           className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-300 dark:border-emerald-800/50 rounded-xl text-center hover:shadow-lg transition-all cursor-pointer"
         >
           <ArrowUp className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-          <p className="font-bold text-emerald-800 dark:text-emerald-300">Retirer vers Mobile Money</p>
-          <p className="text-sm text-emerald-600 dark:text-emerald-400">Retirez vos fonds vers Mobile Money</p>
+          <p className="font-bold text-emerald-800 dark:text-emerald-300">{tWallet('withdrawMobileMoney')}</p>
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">Withdraw your funds to Mobile Money</p>
         </button>
       </div>
 
@@ -209,8 +210,8 @@ export default function WalletPage() {
         className="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-300 dark:border-blue-800/50 rounded-xl text-center hover:shadow-lg transition-all cursor-pointer"
       >
         <CreditCard className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-        <p className="font-bold text-blue-800 dark:text-blue-300">Déposer / Retirer via PayPal</p>
-        <p className="text-sm text-blue-600 dark:text-blue-400">Dépôt instantané et retrait vers votre compte PayPal</p>
+        <p className="font-bold text-blue-800 dark:text-blue-300">{tWallet('depositWithdrawPayPal')}</p>
+        <p className="text-sm text-blue-600 dark:text-blue-400">Instant deposit and withdrawal to your PayPal account</p>
       </button>
 
       {/* BOUTON RAPIDE - Transfert PayMaestro → PayMaestro */}
@@ -219,13 +220,13 @@ export default function WalletPage() {
         className="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-300 dark:border-green-800/50 rounded-xl text-center hover:shadow-lg transition-all cursor-pointer"
       >
         <Users className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
-        <p className="font-bold text-green-800 dark:text-green-300">Transfert PayMaestro → PayMaestro</p>
-        <p className="text-sm text-green-600 dark:text-green-400">0% de frais — Gratuit !</p>
+        <p className="font-bold text-green-800 dark:text-green-300">PayMaestro → PayMaestro Transfer</p>
+        <p className="text-sm text-green-600 dark:text-green-400">0% fee — Free!</p>
       </button>
 
       {/* SOLDES PAR DEVISE — uniquement les devises avec solde > 0 */}
       <Card>
-        <CardHeader><CardTitle>Soldes par devise</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Balances by Currency</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[400px] overflow-y-auto">
             {ALL_COUNTRIES.map(c => (
@@ -241,47 +242,47 @@ export default function WalletPage() {
         </CardContent>
       </Card>
 
-      {/* INFORMATIONS DÉLAIS — Rassurer l'utilisateur */}
+      {/* Processing times info */}
       <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800/50">
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
               <p className="text-2xl">📥</p>
-              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Dépôts</p>
+              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Deposits</p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                PayPal, Mobile Money, Stripe : <span className="font-bold text-green-600 dark:text-green-400">Instantané</span>
+                PayPal, Mobile Money, Stripe: <span className="font-bold text-green-600 dark:text-green-400">Instant</span>
               </p>
               <p className="text-xs text-blue-500 dark:text-blue-400">
-                Banque : <span className="font-bold">1-5 jours ouvrés</span>
+                Bank: <span className="font-bold">1-5 business days</span>
               </p>
             </div>
 
             <div className="space-y-1 border-x border-blue-200 dark:border-blue-800/50 px-4">
               <p className="text-2xl">📤</p>
-              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Retraits</p>
+              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Withdrawals</p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                Mobile Money : <span className="font-bold text-green-600 dark:text-green-400">5 minutes</span>
+                Mobile Money: <span className="font-bold text-green-600 dark:text-green-400">5 minutes</span>
               </p>
               <p className="text-xs text-blue-500 dark:text-blue-400">
-                PayPal, Banque : <span className="font-bold">1-2 jours ouvrés</span>
+                PayPal, Bank: <span className="font-bold">1-2 business days</span>
               </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-2xl">🔄</p>
-              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Transferts</p>
+              <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Transfers</p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                PM→PM : <span className="font-bold text-green-600 dark:text-green-400">Immédiat et Gratuit</span>
+                PM→PM: <span className="font-bold text-green-600 dark:text-green-400">Instant and Free</span>
               </p>
               <p className="text-xs text-blue-500 dark:text-blue-400">
-                Mobile→Mobile : <span className="font-bold">5 minutes</span>
+                Mobile→Mobile: <span className="font-bold">5 minutes</span>
               </p>
             </div>
           </div>
 
           <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800/50 text-center">
             <p className="text-[10px] text-blue-500 dark:text-blue-400 flex items-center justify-center gap-1">
-              🛡️ Toutes les transactions sont sécurisées et traçables
+              🛡️ All transactions are secure and traceable
             </p>
           </div>
         </CardContent>
@@ -290,14 +291,14 @@ export default function WalletPage() {
       {/* ONGLET HISTORIQUE UNIQUEMENT */}
       <div className="border-b pb-2">
         <span className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white whitespace-nowrap">
-          💳 Historique
+          💳 History
         </span>
       </div>
 
       {/* HISTORIQUE */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('wallet.transactionHistory') || 'Historique des transactions'}</CardTitle>
+          <CardTitle>{t('wallet.transactionHistory') || 'Transaction History'}</CardTitle>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
@@ -339,14 +340,14 @@ export default function WalletPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-sm dark:text-white">
-                        {tx.type === 'DEPOSIT' && 'Dépôt'}
-                        {tx.type === 'WITHDRAWAL' && 'Retrait'}
+                        {tx.type === 'DEPOSIT' && 'Deposit'}
+                        {tx.type === 'WITHDRAWAL' && 'Withdrawal'}
                         {tx.type === 'CONVERSION' && 'Conversion'}
-                        {tx.type === 'TRANSFER' && 'Transfert'}
+                        {tx.type === 'TRANSFER' && 'Transfer'}
                         {tx.type === 'WALLET_TO_PAYPAL' && 'Wallet → PayPal'}
-                        {tx.type === 'FEE' && 'Frais'}
+                        {tx.type === 'FEE' && 'Fee'}
                         {tx.type === 'MOBILE_MONEY_SENT' && 'Mobile Money'}
-                        {tx.type === 'REVERSED' && 'Annulé'}
+                        {tx.type === 'REVERSED' && 'Reversed'}
                         {!['DEPOSIT','WITHDRAWAL','CONVERSION','TRANSFER','WALLET_TO_PAYPAL','FEE','MOBILE_MONEY_SENT','REVERSED'].includes(tx.type) && (tx.type || 'Transaction')}
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">
@@ -385,7 +386,7 @@ export default function WalletPage() {
                     </p>
                     {Number(tx.fee_usd) > 0 && (
                       <p className="text-xs text-slate-400 dark:text-slate-500">
-                        Frais: ${Number(tx.fee_usd).toFixed(2)}
+                        Fee: ${Number(tx.fee_usd).toFixed(2)}
                       </p>
                     )}
                   </div>

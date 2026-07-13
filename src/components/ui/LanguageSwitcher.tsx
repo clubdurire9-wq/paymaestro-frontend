@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 
 const locales = ['fr', 'en'];
 const localeNames: Record<string, string> = { fr: 'Français', en: 'English' };
-const localeFlags: Record<string, string> = { fr: '🇫🇷', en: '🇬🇧' };
+const localeFlagUrls: Record<string, string> = { fr: 'https://flagcdn.com/24x18/fr.png', en: 'https://flagcdn.com/24x18/gb.png' };
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
@@ -37,7 +37,7 @@ export default function LanguageSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
       >
-        <span>{localeFlags[locale] || '🌐'}</span>
+        <img crossOrigin="anonymous" src={localeFlagUrls[locale]} alt={localeNames[locale]} className="w-6 h-4 object-cover rounded" />
         <span>{localeNames[locale] || locale.toUpperCase()}</span>
         <span>{isOpen ? '▲' : '▼'}</span>
       </button>
@@ -52,7 +52,7 @@ export default function LanguageSwitcher() {
                 locale === loc ? 'text-violet-600 font-medium bg-violet-50' : 'text-gray-700'
               }`}
             >
-              <span>{localeFlags[loc]}</span>
+              <img crossOrigin="anonymous" src={localeFlagUrls[loc]} alt={localeNames[loc]} className="w-6 h-4 object-cover rounded" />
               <span>{localeNames[loc]}</span>
             </button>
           ))}
