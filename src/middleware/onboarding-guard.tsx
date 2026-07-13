@@ -15,7 +15,7 @@ const LOCALE_PREFIX = /^\/(fr|en)/;
 const SENSITIVE_ROUTES = [
   '/wallet', '/withdraw', '/paypal', '/history', '/cards', '/crypto',
   '/bank', '/referral', '/payment-page', '/developer', '/admin',
-  '/profile', '/dashboard', '/iban', '/pricing', '/privacy',
+  '/dashboard', '/iban', '/pricing', '/privacy',
   '/terms', '/white-label',
 ];
 
@@ -66,7 +66,7 @@ function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; r
     }
 
     if (user && !status.canAccessDashboard) {
-      const protectedRoutes = ['/dashboard', '/withdraw', '/history', '/profile', '/admin'];
+      const protectedRoutes = ['/dashboard', '/withdraw', '/history', '/admin'];
       if (protectedRoutes.some(r => route.startsWith(r))) {
         router.replace(`/${locale}/${status.nextStep}`);
         return;
