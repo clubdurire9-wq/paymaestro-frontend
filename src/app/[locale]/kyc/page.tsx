@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Upload,
   FileText,
@@ -52,6 +53,7 @@ export default function KYCPage() {
   const [disputeReason, setDisputeReason] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations('kyc');
   const { success, error } = useToast();
 
   useEffect(() => {
@@ -81,17 +83,17 @@ export default function KYCPage() {
   const getStatusBadge = (status: KYCStatus) => {
     switch (status) {
       case 'APPROVED':
-        return <Badge variant="success">Vérifié</Badge>;
+        return <Badge variant="success">{t('status.APPROVED')}</Badge>;
       case 'PENDING_AI':
-        return <Badge variant="warning">Analyse en cours</Badge>;
+        return <Badge variant="warning">{t('status.PENDING_AI')}</Badge>;
       case 'PENDING_HUMAN':
-        return <Badge variant="info">Revue manuelle</Badge>;
+        return <Badge variant="info">{t('status.PENDING_HUMAN')}</Badge>;
       case 'REJECTED':
-        return <Badge variant="error">Rejeté</Badge>;
+        return <Badge variant="error">{t('status.REJECTED')}</Badge>;
       case 'DISPUTED':
-        return <Badge variant="warning">Contestation</Badge>;
+        return <Badge variant="warning">{t('status.DISPUTED')}</Badge>;
       default:
-        return <Badge variant="default">Non soumis</Badge>;
+        return <Badge variant="default">{t('notSubmitted')}</Badge>;
     }
   };
 
@@ -106,7 +108,7 @@ export default function KYCPage() {
 
   const processFile = (file: File, setter: (f: File) => void) => {
     if (file.size > 10 * 1024 * 1024) {
-      alert('Le fichier ne doit pas dépasser 10 Mo.');
+      alert(t('fileTooLarge'));
       return;
     }
     setter(file);
@@ -136,9 +138,9 @@ export default function KYCPage() {
       const details = await api.uploadKYC(docType, selectedFile, needsBack ? selectedBackFile : null);
       setKycDetails(details);
       incrementAttempts();
-      success('Document reçu. Nous analyserons votre dossier sous 24h.');
+      success(t('documentReceived24h'));
     } catch (e: any) {
-      error(e.message || 'Erreur lors de l\'envoi du document.');
+      error(e.message || t('uploadError'));
     } finally {
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -166,9 +168,9 @@ export default function KYCPage() {
       }
       setKycDetails(details);
       incrementAttempts();
-      success('Document reçu. Votre contestation a été transmise à notre équipe.');
+      success(t('contestReceived'));
     } catch (e: any) {
-      error(e.message || 'Erreur lors de l\'envoi du document.');
+      error(e.message || t('uploadError'));
     } finally {
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -204,7 +206,7 @@ export default function KYCPage() {
         <div className="space-y-2">
           <FileCheck className="w-8 h-8 text-emerald-500 mx-auto" />
           <p className="text-sm font-semibold text-slate-700">{file.name}</p>
-          <p className="text-[10px] text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} Mo</p>
+          <p className="text-[10px] text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
         </div>
       ) : (
         <>
@@ -212,7 +214,7 @@ export default function KYCPage() {
             <Upload className="w-5 h-5" />
           </div>
           <p className="text-sm font-semibold text-slate-700">{label}</p>
-          <p className="text-xs text-slate-400 mt-1">Cliquez ou glissez-déposez</p>
+          <p className="text-xs text-slate-400 mt-1">{t('clickOrDrag')}</p>
         </>
       )}
     </div>
@@ -222,13 +224,13 @@ export default function KYCPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Identity Verification</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('title')}</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Vérifiez votre identité pour débloquer les limites de retraits de fonds.
+            {t('verifyIdentity')}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Statut :</span>
+          <span className="text-sm text-slate-400">{t('statusLabel')}</span>
           {getStatusBadge(kycDetails.status)}
         </div>
       </div>
@@ -240,13 +242,13 @@ export default function KYCPage() {
             <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white">
               <CardContent className="p-6 sm:p-8 space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Type de document</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('documentType')}</label>
                   <Select
                     options={[
-                      { value: 'PASSPORT', label: 'Passeport' },
-                      { value: 'NATIONAL_ID', label: 'Carte nationale d\'identité' },
-                      { value: 'DRIVING_LICENSE', label: 'Carte de conducteur' },
-                      { value: 'VOTER_CARD', label: 'Carte d\'électeur' },
+                      { value: 'PASSPORT', label: t('selectType.passport') },
+                      { value: 'NATIONAL_ID', label: t('selectType.nationalId') },
+                      { value: 'DRIVING_LICENSE', label: t('selectType.drivingLicense') },
+                      { value: 'VOTER_CARD', label: t('selectType.voterCard') },
                     ]}
                     value={docType}
                     onChange={(e) => { setDocType(e.target.value); setSelectedBackFile(null); }}
@@ -254,21 +256,21 @@ export default function KYCPage() {
                   {needsBack && (
                     <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                       <HelpCircle className="w-3 h-3" />
-                      Ce document nécessite le recto ET le verso.
+                      {t('needsFrontAndBack')}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs font-semibold text-slate-500 mb-2">Recto (face avant) *</p>
-                    {renderUploadZone('Recto du document', selectedFile, setSelectedFile, dragActive, setDragActive, fileInputRef)}
+                    <p className="text-xs font-semibold text-slate-500 mb-2">{t('frontSide')}</p>
+                    {renderUploadZone(t('frontDocument'), selectedFile, setSelectedFile, dragActive, setDragActive, fileInputRef)}
                   </div>
 
                   {needsBack && (
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 mb-2">Verso (face arrière) *</p>
-                      {renderUploadZone('Verso du document', selectedBackFile, setSelectedBackFile, dragBackActive, setDragBackActive, backFileInputRef)}
+                      <p className="text-xs font-semibold text-slate-500 mb-2">{t('backSide')}</p>
+                      {renderUploadZone(t('backDocument'), selectedBackFile, setSelectedBackFile, dragBackActive, setDragBackActive, backFileInputRef)}
                     </div>
                   )}
                 </div>
@@ -277,7 +279,7 @@ export default function KYCPage() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
-                      Envoi en cours...
+                      {t('submitting')}
                     </div>
                     <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-violet-600 transition-all duration-150 rounded-full" style={{ width: `${uploadProgress}%` }} />
@@ -290,7 +292,7 @@ export default function KYCPage() {
                     className="w-full"
                   >
                     <Upload className="w-4 h-4" />
-                    Envoyer mon document
+                    {t('sendDocument')}
                   </Button>
                 )}
               </CardContent>
@@ -304,9 +306,9 @@ export default function KYCPage() {
                 <Clock className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-800">Document reçu</h3>
+                <h3 className="text-lg font-bold text-slate-800">{t('documentReceived')}</h3>
                 <p className="text-sm text-slate-500 mt-3 leading-relaxed max-w-sm mx-auto">
-                  Merci pour votre patience. Nous analyserons votre document et nous vous répondrons dans un délai de 24h maximum.
+                  {t('pendingMessage')}
                 </p>
               </div>
               <div className="w-full max-w-xs mx-auto h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -322,9 +324,9 @@ export default function KYCPage() {
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-800">En cours de revue</h3>
+                <h3 className="text-lg font-bold text-slate-800">{t('underReview')}</h3>
                 <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-sm mx-auto">
-                  Votre document est en cours de validation manuelle. Vous recevrez une notification par email dès qu&apos;une décision sera prise.
+                  {t('manualReview')}
                 </p>
               </div>
             </Card>
@@ -337,9 +339,9 @@ export default function KYCPage() {
                 <Scale className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Contestation en cours</h3>
+                <h3 className="text-xl font-bold text-slate-800">{t('disputeInProgress')}</h3>
                 <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-md mx-auto">
-                  Votre contestation a été transmise à notre équipe. Un agent va examiner votre dossier manuellement et vous répondre dans les plus brefs délais.
+                  {t('disputeSubmitted')}
                 </p>
               </div>
             </Card>
@@ -352,15 +354,15 @@ export default function KYCPage() {
                 <FileCheck className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Identité vérifiée</h3>
+                <h3 className="text-xl font-bold text-slate-800">{t('identityVerified')}</h3>
                 <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-md mx-auto">
-                  Votre identité a été vérifiée avec succès. Vous pouvez maintenant profiter de toutes les fonctionnalités de PayMaestro.
+                  {t('verifiedSuccess')}
                 </p>
               </div>
               <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 max-w-sm mx-auto text-left flex gap-3 text-sm text-emerald-800">
                 <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold">Limites levées</p>
+                  <p className="font-semibold">{t('limitsLifted')}</p>
                   <p className="mt-0.5 text-emerald-700">You can now withdraw up to $2000 USD per transaction.</p>
                 </div>
               </div>
@@ -378,9 +380,9 @@ export default function KYCPage() {
                         <AlertTriangle className="w-8 h-8" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-slate-800">Document non accepté</h3>
+                        <h3 className="text-xl font-bold text-slate-800">{t('documentNotAccepted')}</h3>
                         <p className="text-sm text-slate-500 mt-1">
-                          {kycDetails.reason || 'Votre document n\'a pas pu être vérifié.'}
+                          {kycDetails.reason || t('verificationFailed')}
                         </p>
                       </div>
                     </div>
@@ -388,26 +390,26 @@ export default function KYCPage() {
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
                       <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
                         <AlertTriangle className="w-4 h-4" />
-                        Tentative {getUsedAttempts() + 1}/3
+                        {t('attempt', { used: getUsedAttempts() + 1 })}
                       </div>
                       <p className="text-xs text-amber-700 leading-relaxed">
-                        Avant de soumettre à nouveau, assurez-vous que :
+                        {t('beforeResubmit')}
                       </p>
                       <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
-                        <li>La photo de votre document est bien nette et lisible</li>
-                        <li>Les informations de votre profil correspondent exactement à celles du document</li>
-                        <li>Le document est valide (non expiré)</li>
+                        <li>{t('resubmitTips.clearPhoto')}</li>
+                        <li>{t('resubmitTips.matchingInfo')}</li>
+                        <li>{t('resubmitTips.validDocument')}</li>
                       </ul>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Type de document</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">{t('documentType')}</label>
                       <Select
                         options={[
-                          { value: 'PASSPORT', label: 'Passeport' },
-                          { value: 'NATIONAL_ID', label: 'Carte nationale d\'identité' },
-                          { value: 'DRIVING_LICENSE', label: 'Carte de conducteur' },
-                          { value: 'VOTER_CARD', label: 'Carte d\'électeur' },
+                        { value: 'PASSPORT', label: t('selectType.passport') },
+                        { value: 'NATIONAL_ID', label: t('selectType.nationalId') },
+                        { value: 'DRIVING_LICENSE', label: t('selectType.drivingLicense') },
+                        { value: 'VOTER_CARD', label: t('selectType.voterCard') },
                         ]}
                         value={docType}
                         onChange={(e) => { setDocType(e.target.value); setSelectedBackFile(null); }}
@@ -415,27 +417,27 @@ export default function KYCPage() {
                       {needsBack && (
                         <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                           <HelpCircle className="w-3 h-3" />
-                          Ce document nécessite le recto ET le verso.
+                          {t('needsFrontAndBack')}
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-4">
                       <div>
-                        <p className="text-xs font-semibold text-slate-500 mb-2">Recto (face avant) *</p>
-                        {renderUploadZone('Recto du document', selectedFile, setSelectedFile, dragActive, setDragActive, fileInputRef)}
+                        <p className="text-xs font-semibold text-slate-500 mb-2">{t('frontSide')}</p>
+                        {renderUploadZone(t('frontDocument'), selectedFile, setSelectedFile, dragActive, setDragActive, fileInputRef)}
                       </div>
                       {needsBack && (
                         <div>
-                          <p className="text-xs font-semibold text-slate-500 mb-2">Verso (face arrière) *</p>
-                          {renderUploadZone('Verso du document', selectedBackFile, setSelectedBackFile, dragBackActive, setDragBackActive, backFileInputRef)}
+                          <p className="text-xs font-semibold text-slate-500 mb-2">{t('backSide')}</p>
+                          {renderUploadZone(t('backDocument'), selectedBackFile, setSelectedBackFile, dragBackActive, setDragBackActive, backFileInputRef)}
                         </div>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 mb-2">
-                        Message (optionnel) <span className="text-slate-400 font-normal">— maximum 80 caractères</span>
+                        {t('messageOptional')}
                       </label>
                       <div className="relative">
                         <textarea
@@ -443,7 +445,7 @@ export default function KYCPage() {
                           onChange={(e) => {
                             if (e.target.value.length <= 80) setDisputeReason(e.target.value);
                           }}
-                          placeholder="Ajoutez un message pour contester..."
+                          placeholder={t('contestPlaceholder')}
                           className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                           rows={2}
                         />
@@ -457,7 +459,7 @@ export default function KYCPage() {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
-                          Envoi en cours...
+                          {t('submitting')}
                         </div>
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div className="h-full bg-violet-600 transition-all duration-150 rounded-full" style={{ width: `${uploadProgress}%` }} />
@@ -470,7 +472,7 @@ export default function KYCPage() {
                         className="w-full"
                       >
                         <Scale className="w-4 h-4" />
-                        Contester et envoyer mon dossier
+                        {t('contestAndSubmit')}
                       </Button>
                     )}
                   </div>
@@ -481,16 +483,16 @@ export default function KYCPage() {
                     <AlertTriangle className="w-8 h-8" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-800">Tentatives épuisées</h3>
+                    <h3 className="text-xl font-bold text-slate-800">{t('attemptsExhausted')}</h3>
                     <p className="text-sm text-slate-500 mt-3 leading-relaxed max-w-md mx-auto">
-                      You have exhausted your 3 verification attempts. Your account is permanently blocked and you can no longer use PayMaestro services.
+                      {t('blockedMessage')}
                     </p>
                   </div>
                   <div className="p-4 bg-red-50 border border-red-200 rounded-2xl max-w-sm mx-auto text-left flex gap-3 text-sm text-red-700">
                     <HelpCircle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold">Besoin d&apos;aide ?</p>
-                      <p className="mt-0.5 text-red-600 text-xs">Contactez notre support client pour toute assistance.</p>
+                      <p className="font-semibold">{t('needHelp')}</p>
+                      <p className="mt-0.5 text-red-600 text-xs">{t('contactSupport')}</p>
                     </div>
                   </div>
                 </Card>
@@ -505,7 +507,7 @@ export default function KYCPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                 <HelpCircle className="w-4 h-4 text-violet-600" />
-                Conseils
+                {t('tips')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -513,29 +515,29 @@ export default function KYCPage() {
                 <li className="flex gap-3 items-start">
                   <div className="w-5 h-5 rounded bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-violet-600 shrink-0 mt-0.5">1</div>
                   <div>
-                    <h5 className="text-xs font-semibold text-slate-800">Photo nette</h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Évitez les photos floues ou de mauvaise qualité.</p>
+                    <h5 className="text-xs font-semibold text-slate-800">{t('tipsTitle.clearPhoto')}</h5>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{t('tipsDesc.clearPhoto')}</p>
                   </div>
                 </li>
                 <li className="flex gap-3 items-start">
                   <div className="w-5 h-5 rounded bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-violet-600 shrink-0 mt-0.5">2</div>
                   <div>
-                    <h5 className="text-xs font-semibold text-slate-800">Document visible</h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Le document entier doit être visible à l&apos;écran.</p>
+                    <h5 className="text-xs font-semibold text-slate-800">{t('tipsTitle.visibleDocument')}</h5>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{t('tipsDesc.visibleDocument')}</p>
                   </div>
                 </li>
                 <li className="flex gap-3 items-start">
                   <div className="w-5 h-5 rounded bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-violet-600 shrink-0 mt-0.5">3</div>
                   <div>
-                    <h5 className="text-xs font-semibold text-slate-800">Sans flash</h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Les reflets lumineux gênent la reconnaissance.</p>
+                    <h5 className="text-xs font-semibold text-slate-800">{t('tipsTitle.noFlash')}</h5>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{t('tipsDesc.noFlash')}</p>
                   </div>
                 </li>
                 <li className="flex gap-3 items-start">
                   <div className="w-5 h-5 rounded bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-violet-600 shrink-0 mt-0.5">4</div>
                   <div>
-                    <h5 className="text-xs font-semibold text-slate-800">Document valide</h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">La date d&apos;expiration ne doit pas être dépassée.</p>
+                    <h5 className="text-xs font-semibold text-slate-800">{t('tipsTitle.validDocument')}</h5>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{t('tipsDesc.validDocument')}</p>
                   </div>
                 </li>
               </ul>
@@ -546,7 +548,7 @@ export default function KYCPage() {
             <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl flex gap-3 text-sm text-amber-800">
               <HelpCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
               <div>
-                <p className="font-semibold">Recto et verso requis</p>
+                <p className="font-semibold">{t('frontAndBackRequired')}</p>
                 <p className="text-xs mt-1 text-amber-700">For National ID Card and Voter Card, please provide both sides of the document.</p>
               </div>
             </div>
@@ -554,7 +556,7 @@ export default function KYCPage() {
 
           <div className="flex items-center gap-2 p-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs text-slate-400 leading-relaxed">
             <ShieldCheck className="w-8 h-8 text-emerald-500 shrink-0" />
-            <span>PayMaestro est enregistré auprès des autorités financières et s&apos;engage à protéger la confidentialité de vos données personnelles.</span>
+            <span>{t('privacyNotice')}</span>
           </div>
         </div>
       </div>

@@ -273,7 +273,8 @@
       "PENDING_AI": "Analyse en cours...",
       "PENDING_HUMAN": "En attente de validation",
       "APPROVED": "Vérifié",
-      "REJECTED": "Rejeté"
+      "REJECTED": "Rejeté",
+      "DISPUTED": "Contestation"
     },
     "upload": {
       "title": "Téléchargez votre pièce d'identité",
@@ -319,7 +320,62 @@
       "unverifiedMessage": "Profil incomplet ou non vérifié : Assurez-vous que les informations de votre profil correspondent exactement à vos pièces d'identité.",
       "contestDecision": "Contester la décision",
       "verifyNow": "Vérifier maintenant"
-    }
+    },
+    "verifyIdentity": "Vérifiez votre identité pour débloquer les limites de retraits de fonds.",
+    "statusLabel": "Statut :",
+    "notSubmitted": "Non soumis",
+    "documentType": "Type de document",
+    "needsFrontAndBack": "Ce document nécessite le recto ET le verso.",
+    "frontSide": "Recto (face avant) *",
+    "frontDocument": "Recto du document",
+    "backSide": "Verso (face arrière) *",
+    "backDocument": "Verso du document",
+    "clickOrDrag": "Cliquez ou glissez-déposez",
+    "sendDocument": "Envoyer mon document",
+    "documentReceived": "Document reçu",
+    "pendingMessage": "Merci pour votre patience. Nous analyserons votre document et nous vous répondrons dans un délai de 24h maximum.",
+    "underReview": "En cours de revue",
+    "manualReview": "Votre document est en cours de validation manuelle. Vous recevrez une notification par email dès qu'une décision sera prise.",
+    "disputeInProgress": "Contestation en cours",
+    "disputeSubmitted": "Votre contestation a été transmise à notre équipe. Un agent va examiner votre dossier manuellement et vous répondre dans les plus brefs délais.",
+    "identityVerified": "Identité vérifiée",
+    "verifiedSuccess": "Votre identité a été vérifiée avec succès. Vous pouvez maintenant profiter de toutes les fonctionnalités de PayMaestro.",
+    "limitsLifted": "Limites levées",
+    "documentNotAccepted": "Document non accepté",
+    "verificationFailed": "Votre document n'a pas pu être vérifié.",
+    "attempt": "Tentative {used}/3",
+    "beforeResubmit": "Avant de soumettre à nouveau, assurez-vous que :",
+    "resubmitTips": {
+      "clearPhoto": "La photo de votre document est bien nette et lisible",
+      "matchingInfo": "Les informations de votre profil correspondent exactement à celles du document",
+      "validDocument": "Le document est valide (non expiré)"
+    },
+    "messageOptional": "Message (optionnel) — maximum 80 caractères",
+    "contestPlaceholder": "Ajoutez un message pour contester...",
+    "contestAndSubmit": "Contester et envoyer mon dossier",
+    "attemptsExhausted": "Tentatives épuisées",
+    "blockedMessage": "Vous avez épuisé vos 3 tentatives de vérification. Votre compte est définitivement bloqué et vous ne pouvez plus utiliser les services PayMaestro.",
+    "needHelp": "Besoin d'aide ?",
+    "contactSupport": "Contactez notre support client pour toute assistance.",
+    "tips": "Conseils",
+    "tipsTitle": {
+      "clearPhoto": "Photo nette",
+      "visibleDocument": "Document visible",
+      "noFlash": "Sans flash",
+      "validDocument": "Document valide"
+    },
+    "tipsDesc": {
+      "clearPhoto": "Évitez les photos floues ou de mauvaise qualité.",
+      "visibleDocument": "Le document entier doit être visible à l'écran.",
+      "noFlash": "Les reflets lumineux gênent la reconnaissance.",
+      "validDocument": "La date d'expiration ne doit pas être dépassée."
+    },
+    "frontAndBackRequired": "Recto et verso requis",
+    "privacyNotice": "PayMaestro est enregistré auprès des autorités financières et s'engage à protéger la confidentialité de vos données personnelles.",
+    "documentReceived24h": "Document reçu. Nous analyserons votre dossier sous 24h.",
+    "contestReceived": "Document reçu. Votre contestation a été transmise à notre équipe.",
+    "uploadError": "Erreur lors de l'envoi du document.",
+    "fileTooLarge": "Le fichier ne doit pas dépasser 10 Mo."
   },
   "lock": {
     "title": "Session verrouillée",

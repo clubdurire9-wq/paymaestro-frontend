@@ -238,7 +238,8 @@
       "PENDING_AI": "Analyzing...",
       "PENDING_HUMAN": "Pending Review",
       "APPROVED": "Verified",
-      "REJECTED": "Rejected"
+      "REJECTED": "Rejected",
+      "DISPUTED": "Disputed"
     },
     "upload": {
       "title": "Upload your ID document",
@@ -284,7 +285,62 @@
       "unverifiedMessage": "Incomplete or unverified profile: Make sure your profile information matches your ID documents.",
       "contestDecision": "Contest decision",
       "verifyNow": "Verify now"
-    }
+    },
+    "verifyIdentity": "Verify your identity to unlock withdrawal limits.",
+    "statusLabel": "Status:",
+    "notSubmitted": "Not submitted",
+    "documentType": "Document Type",
+    "needsFrontAndBack": "This document requires the front AND the back.",
+    "frontSide": "Front side *",
+    "frontDocument": "Front of document",
+    "backSide": "Back side *",
+    "backDocument": "Back of document",
+    "clickOrDrag": "Click or drag and drop",
+    "sendDocument": "Send my document",
+    "documentReceived": "Document received",
+    "pendingMessage": "Thank you for your patience. We will analyze your document and get back to you within 24 hours maximum.",
+    "underReview": "Under review",
+    "manualReview": "Your document is being manually reviewed. You will receive an email notification once a decision is made.",
+    "disputeInProgress": "Dispute in progress",
+    "disputeSubmitted": "Your dispute has been submitted to our team. An agent will review your case manually and get back to you as soon as possible.",
+    "identityVerified": "Identity verified",
+    "verifiedSuccess": "Your identity has been successfully verified. You can now enjoy all PayMaestro features.",
+    "limitsLifted": "Limits lifted",
+    "documentNotAccepted": "Document not accepted",
+    "verificationFailed": "Your document could not be verified.",
+    "attempt": "Attempt {used}/3",
+    "beforeResubmit": "Before submitting again, make sure:",
+    "resubmitTips": {
+      "clearPhoto": "The photo of your document is clear and readable",
+      "matchingInfo": "Your profile information exactly matches the document",
+      "validDocument": "The document is valid (not expired)"
+    },
+    "messageOptional": "Message (optional) — maximum 80 characters",
+    "contestPlaceholder": "Add a message to contest...",
+    "contestAndSubmit": "Contest and submit my file",
+    "attemptsExhausted": "Attempts exhausted",
+    "blockedMessage": "You have exhausted your 3 verification attempts. Your account is permanently blocked and you can no longer use PayMaestro services.",
+    "needHelp": "Need help?",
+    "contactSupport": "Contact our customer support for assistance.",
+    "tips": "Tips",
+    "tipsTitle": {
+      "clearPhoto": "Clear photo",
+      "visibleDocument": "Visible document",
+      "noFlash": "No flash",
+      "validDocument": "Valid document"
+    },
+    "tipsDesc": {
+      "clearPhoto": "Avoid blurry or low quality photos.",
+      "visibleDocument": "The entire document must be visible on screen.",
+      "noFlash": "Light reflections interfere with recognition.",
+      "validDocument": "The expiration date must not have passed."
+    },
+    "frontAndBackRequired": "Front and back required",
+    "privacyNotice": "PayMaestro is registered with financial authorities and is committed to protecting the confidentiality of your personal data.",
+    "documentReceived24h": "Document received. We will analyze your file within 24 hours.",
+    "contestReceived": "Document received. Your dispute has been forwarded to our team.",
+    "uploadError": "Error sending document.",
+    "fileTooLarge": "The file must not exceed 10 MB."
   },
   "profile": {
     "title": "My Profile",
