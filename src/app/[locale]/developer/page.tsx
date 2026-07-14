@@ -230,7 +230,7 @@ export default function DeveloperPage() {
         <CardHeader><CardTitle>{t('integrationExample')}</CardTitle></CardHeader>
         <CardContent>
           <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-6 rounded-xl font-mono text-sm overflow-x-auto">
-            <p className="text-slate-400">// Initialiser un paiement PayMaestro</p>
+            <p className="text-slate-400">{t('codeExampleComment')}</p>
             <p className="text-yellow-400">const</p> <span className="text-blue-400">API_KEY</span> = <span className="text-green-300">"pm_test_..."</span>;
             <br /><br />
             <p className="text-yellow-400">const</p> <span className="text-blue-400">response</span> = <span className="text-yellow-400">await</span> <span className="text-purple-400">fetch</span>(<span className="text-green-300">'https://api.paymaestro.com/api/v1/public/payments'</span>, {'{'});

@@ -674,6 +674,7 @@
     "outgoingInactive": "Submit your Business Registration to enable outgoing transfers",
     "becomeRegistered": "Become Registered",
     "integrationExample": "Integration example",
+    "codeExampleComment": "// Initialize a PayMaestro payment",
     "upgradeModalTitle": "Upgrade your account",
     "upgradePrompt": "Upgrade from {starter} to {registered}",
     "registeredRequired": "A {registered} status is required to make outgoing transfers.",

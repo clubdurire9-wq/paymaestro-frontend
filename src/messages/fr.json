@@ -208,6 +208,7 @@
     "outgoingInactive": "Soumettez votre Registre du Commerce pour activer les transferts sortants",
     "becomeRegistered": "Devenir Enregistré",
     "integrationExample": "🚀 Exemple d'intégration",
+    "codeExampleComment": "// Initialiser un paiement PayMaestro",
     "upgradeModalTitle": "Faire évoluer votre compte",
     "upgradePrompt": "Passez de {starter} à {registered}",
     "registeredRequired": "Le statut {registered} est nécessaire pour effectuer des transferts sortants.",
