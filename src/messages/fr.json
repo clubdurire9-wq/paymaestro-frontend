@@ -32,45 +32,59 @@
     "admin": "Administration"
   },
   "home": {
-    "heroTitle": "PayPal vers Mobile Money",
-    "heroSubtitle": "Retirez vos fonds PayPal instantanément vers votre compte Mobile Money en Afrique",
+    "heroBadge": "⚡ La plateforme financière panafricaine",
+    "heroTitle": "L'argent sans frontières, <highlight>pour toute l'Afrique.</highlight>",
+    "heroSubtitle": "Stockez, envoyez et retirez vos fonds vers Mobile Money, comptes bancaires et plus dans 54 pays africains.",
+    "heroSubtitleStrong": "Tout passe par votre portefeuille sécurisé.",
     "heroCTA": "Commencer maintenant",
-    "features": {
-      "title": "Pourquoi choisir PayMaestro ?",
-      "fast": {
-        "title": "Transfert Rapide",
-        "description": "Recevez votre argent en moins de 5 minutes"
-      },
-      "secure": {
-        "title": "100% Sécurisé",
-        "description": "Vérification d'identité et cryptage de bout en bout"
-      },
-      "rates": {
-        "title": "Taux Réels",
-        "description": "Taux de change en temps réel, sans majoration cachée"
-      },
-      "support": {
-        "title": "Support 24/7",
-        "description": "Une équipe dédiée pour vous accompagner"
-      }
-    },
+    "seeRates": "Voir nos tarifs",
+    "heroSecurityBadge": "Sécurité bancaire",
+    "heroCountriesBadge": "54 pays africains",
+    "heroRealtimeBadge": "Taux en temps réel",
     "calculator": {
-      "title": "Calculez votre retrait",
-      "amount": "Montant en USD",
-      "currency": "Devise",
-      "youReceive": "Vous recevez",
-      "fee": "Frais PayMaestro (7%)",
-      "rate": "Taux de change"
+      "title": "Calculateur Wallet",
+      "currency": "Devise (54 pays)",
+      "amount": "Montant (USD)",
+      "depositFee": "Frais de dépôt (5%)",
+      "exchangeRate": "Taux de change",
+      "onWallet": "Sur votre wallet",
+      "openWallet": "Ouvrir mon Wallet"
     },
-    "countries": {
-      "title": "Disponible dans 12 pays africains",
-      "subtitle": "Et bientôt plus..."
+    "flowBadge": "Flux sécurisé",
+    "flowTitle": "Tout passe par votre Wallet",
+    "flowSubtitle": "Déposez, stockez, retirez. Votre argent est suivi et sécurisé à chaque étape.",
+    "flowEntries": "Entrées (Dépôts)",
+    "flowExits": "Sorties (Retraits)",
+    "walletHubTitle": "💰 Portefeuille PayMaestro",
+    "walletHubDesc": "Sécurisé • Suivi • Gelable • Multi-devises",
+    "walletHubCTA": "Accéder au Wallet",
+    "whyTitle": "Pourquoi choisir PayMaestro",
+    "whySubtitle": "La plateforme conçue pour les créateurs, entrepreneurs et familles africains.",
+    "countriesTitle": "Disponible dans 54 pays africains",
+    "countriesSubtitle": "Et nous étendons notre couverture",
+    "ctaTitle": "Prêt à commencer ?",
+    "ctaSubtitle": "Rejoignez des milliers d'utilisateurs qui font confiance à PayMaestro.",
+    "ctaLogin": "Se connecter",
+    "ctaSeeRates": "Voir nos tarifs",
+    "services": {
+      "paypalWallet": { "title": "PayPal → Portefeuille", "desc": "Déposez depuis PayPal vers votre portefeuille." },
+      "mobileMoneyWallet": { "title": "Mobile Money → Portefeuille", "desc": "Rechargez depuis Orange, MTN, Airtel..." },
+      "bankWallet": { "title": "Banque → Portefeuille", "desc": "Virement SEPA/SWIFT vers votre IBAN." },
+      "cryptoWallet": { "title": "Crypto → Portefeuille", "desc": "BTC, USDT, ETH directement dans votre portefeuille." },
+      "stripeIbanWallet": { "title": "Stripe/IBAN → Portefeuille", "desc": "Virement SEPA, Stripe vers votre portefeuille." },
+      "pmWallet": { "title": "PM → Portefeuille (Gratuit)", "desc": "Recevez d'un autre utilisateur PayMaestro." },
+      "walletMobileMoney": { "title": "Portefeuille → Mobile Money", "desc": "Retirez vers Orange, MTN, Airtel..." },
+      "walletBank": { "title": "Portefeuille → Banque", "desc": "Retirez vers un compte bancaire international." },
+      "walletPayPal": { "title": "Portefeuille → PayPal", "desc": "Retirez de votre portefeuille vers PayPal." },
+      "walletCrypto": { "title": "Portefeuille → Crypto", "desc": "Achetez BTC, USDT, ETH depuis votre portefeuille." },
+      "walletCard": { "title": "Portefeuille → Carte Virtuelle", "desc": "Carte Visa/Mastercard liée à votre portefeuille." },
+      "walletPm": { "title": "Portefeuille → PM (Gratuit)", "desc": "Transférez gratuitement à un autre utilisateur." }
     },
-    "featuresList": {
-      "transferFast": "Transfert en moins de 5 min",
-      "secureTransactions": "Transactions 100% sécurisées",
-      "africanCountries": "54 pays africains supportés",
-      "realTimeRates": "Taux de change en temps réel"
+    "features": {
+      "countries": { "title": "54 Pays Africains", "desc": "Présent dans tous les pays africains. Envoyez et recevez partout." },
+      "security": { "title": "Sécurité Bancaire", "desc": "Protection des fonds conforme aux normes internationales." },
+      "rates": { "title": "Taux Transparents", "desc": "Frais affichés avant chaque transaction. Aucun frais caché." },
+      "support": { "title": "Support Humain", "desc": "Des conseillers disponibles pour vous assister à tout moment." }
     }
   },
   "auth": {

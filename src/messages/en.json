@@ -32,45 +32,59 @@
     "admin": "Administration"
   },
   "home": {
-    "heroTitle": "PayPal to Mobile Money",
-    "heroSubtitle": "Withdraw your PayPal funds instantly to your Mobile Money account in Africa",
+    "heroBadge": "⚡ The pan-African financial platform",
+    "heroTitle": "Money without borders, <highlight>for all of Africa.</highlight>",
+    "heroSubtitle": "Store, send and withdraw your funds to Mobile Money, bank accounts and more in 54 African countries.",
+    "heroSubtitleStrong": "Everything goes through your secure wallet.",
     "heroCTA": "Get Started",
-    "features": {
-      "title": "Why choose PayMaestro?",
-      "fast": {
-        "title": "Fast Transfer",
-        "description": "Receive your money in less than 5 minutes"
-      },
-      "secure": {
-        "title": "100% Secure",
-        "description": "Identity verification and end-to-end encryption"
-      },
-      "rates": {
-        "title": "Real Rates",
-        "description": "Real-time exchange rates, no hidden markup"
-      },
-      "support": {
-        "title": "24/7 Support",
-        "description": "A dedicated team to assist you"
-      }
-    },
+    "seeRates": "See our rates",
+    "heroSecurityBadge": "Bank security",
+    "heroCountriesBadge": "54 African countries",
+    "heroRealtimeBadge": "Real-time rates",
     "calculator": {
-      "title": "Calculate your withdrawal",
-      "amount": "Amount in USD",
-      "currency": "Currency",
-      "youReceive": "You receive",
-      "fee": "PayMaestro fee (7%)",
-      "rate": "Exchange rate"
+      "title": "Wallet Calculator",
+      "currency": "Currency (54 countries)",
+      "amount": "Amount (USD)",
+      "depositFee": "Deposit fee (5%)",
+      "exchangeRate": "Exchange rate",
+      "onWallet": "On your wallet",
+      "openWallet": "Open my Wallet"
     },
-    "countries": {
-      "title": "Available in 12 African countries",
-      "subtitle": "And more coming soon..."
+    "flowBadge": "Secure flow",
+    "flowTitle": "Everything goes through your Wallet",
+    "flowSubtitle": "Deposit, store, withdraw. Your money is tracked and secured at every step.",
+    "flowEntries": "Entries (Deposits)",
+    "flowExits": "Exits (Withdrawals)",
+    "walletHubTitle": "💰 PayMaestro Wallet",
+    "walletHubDesc": "Secure • Tracked • Freezable • Multi-currency",
+    "walletHubCTA": "Access Wallet",
+    "whyTitle": "Why choose PayMaestro",
+    "whySubtitle": "The platform built for African creators, entrepreneurs and families.",
+    "countriesTitle": "Available in 54 African countries",
+    "countriesSubtitle": "And we keep expanding our coverage",
+    "ctaTitle": "Ready to get started?",
+    "ctaSubtitle": "Join thousands of users who trust PayMaestro.",
+    "ctaLogin": "Log in",
+    "ctaSeeRates": "See our rates",
+    "services": {
+      "paypalWallet": { "title": "PayPal → Wallet", "desc": "Deposit from PayPal to your wallet." },
+      "mobileMoneyWallet": { "title": "Mobile Money → Wallet", "desc": "Top up from Orange, MTN, Airtel..." },
+      "bankWallet": { "title": "Bank → Wallet", "desc": "SEPA/SWIFT transfer to your IBAN." },
+      "cryptoWallet": { "title": "Crypto → Wallet", "desc": "BTC, USDT, ETH directly to wallet." },
+      "stripeIbanWallet": { "title": "Stripe/IBAN → Wallet", "desc": "SEPA transfer, Stripe to your wallet." },
+      "pmWallet": { "title": "PM → Wallet (Free)", "desc": "Receive from another PayMaestro user." },
+      "walletMobileMoney": { "title": "Wallet → Mobile Money", "desc": "Withdraw to Orange, MTN, Airtel..." },
+      "walletBank": { "title": "Wallet → Bank", "desc": "Withdraw to an international bank account." },
+      "walletPayPal": { "title": "Wallet → PayPal", "desc": "Withdraw from your wallet to PayPal." },
+      "walletCrypto": { "title": "Wallet → Crypto", "desc": "Buy BTC, USDT, ETH from your wallet." },
+      "walletCard": { "title": "Wallet → Virtual Card", "desc": "Visa/Mastercard linked to your wallet." },
+      "walletPm": { "title": "Wallet → PM (Free)", "desc": "Transfer for free to another user." }
     },
-    "featuresList": {
-      "transferFast": "Transfer in less than 5 min",
-      "secureTransactions": "100% secure transactions",
-      "africanCountries": "54 African countries supported",
-      "realTimeRates": "Real-time exchange rates"
+    "features": {
+      "countries": { "title": "54 African Countries", "desc": "Present in all African countries. Send and receive everywhere." },
+      "security": { "title": "Bank-Grade Security", "desc": "Fund protection compliant with international standards." },
+      "rates": { "title": "Transparent Rates", "desc": "Fees displayed before every transaction. No hidden fees." },
+      "support": { "title": "Human Support", "desc": "Advisors available to assist you at any time." }
     }
   },
   "auth": {
