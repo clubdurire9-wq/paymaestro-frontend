@@ -839,7 +839,8 @@
     "cardCreated": "Carte créée !",
     "rechargeToUse": "Rechargez-la depuis votre wallet pour l'utiliser",
     "number": "N°",
-    "expire": "Expire",
+    "expire": "Expiration",
+    "status": "Statut",
     "holder": "Titulaire",
     "balance": "Solde",
     "infoStoredSecurely": "Vos informations sont stockées de manière sécurisée. Vous pourrez les révéler à tout moment.",
@@ -890,6 +891,8 @@
     "yourTitle": "Votre titre",
     "yourDescription": "Votre description",
     "insufficientBalance": "Solde insuffisant. Vous avez besoin de 3$ dans votre wallet pour le plan Premium.",
+    "perMonth": "/mois",
+    "yourPageSlug": "votre-page",
     "createFree": "Créer ma page (Gratuit)",
     "activatePremium": "Activer Premium — {domain} (3$/mois)"
   }

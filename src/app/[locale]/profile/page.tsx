@@ -103,9 +103,10 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
 }
 
 export default function ProfilePage() {
-  const t = useTranslations('profile');
+      const t = useTranslations('profile');
   const tCommon = useTranslations('common');
   const tErrors = useTranslations('errors');
+
   const locale = useLocale();
   const { success, error: showError } = useToast();
 
@@ -165,17 +166,15 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Vérifier la taille (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      showError('Image trop volumineuse. Maximum 2MB.');
-      return;
-    }
+      if (file.size > 2 * 1024 * 1024) {
+        showError(t('avatarTooLarge'));
+        return;
+      }
 
-    // Vérifier le format
-    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
-      showError('Format invalide. Utilisez PNG, JPEG, WebP ou GIF.');
-      return;
-    }
+      if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+        showError(t('avatarInvalidFormat'));
+        return;
+      }
 
     setAvatarUploading(true);
     try {
@@ -184,12 +183,12 @@ export default function ProfilePage() {
         const base64 = event.target?.result as string;
         const result = await api.auth.uploadAvatar(base64);
         setUser((prev: any) => ({ ...prev, avatar: result.data.avatar }));
-        success('Photo de profil mise à jour !');
+        success(t('avatarUpdated'));
         setAvatarUploading(false);
       };
       reader.readAsDataURL(file);
     } catch (err: any) {
-      showError(err.message || 'Erreur lors du téléchargement');
+      showError(err.message || t('avatarUploadError'));
       setAvatarUploading(false);
     }
   };
@@ -248,22 +247,21 @@ export default function ProfilePage() {
     setErrors({});
     setIsAdding(true);
 
-    // Validate phone & operator
-    if (!newPhone || newPhone.length < 8) {
-      setErrors({ phone: 'Numéro trop court' });
-      setIsAdding(false);
-      return;
-    }
-    if (!newCountry) {
-      setErrors({ country: 'Sélectionnez un pays' });
-      setIsAdding(false);
-      return;
-    }
-    if (!newOperator) {
-      setErrors({ operator: 'Sélectionnez un opérateur' });
-      setIsAdding(false);
-      return;
-    }
+      if (!newPhone || newPhone.length < 8) {
+        setErrors({ phone: t('phoneTooShort') });
+        setIsAdding(false);
+        return;
+      }
+      if (!newCountry) {
+        setErrors({ country: t('legal.countryPlaceholder') });
+        setIsAdding(false);
+        return;
+      }
+      if (!newOperator) {
+        setErrors({ operator: t('wallets.selectOperator') });
+        setIsAdding(false);
+        return;
+      }
 
     try {
       const added = await api.addWallet({
@@ -275,29 +273,29 @@ export default function ProfilePage() {
       setNewCountry('');
       setNewOperator('');
       setErrors({});
-      success('Numéro Mobile Money ajouté avec succès !');
-    } catch (err) {
-      showError('Impossible d\'ajouter ce numéro.');
-      setErrors({ general: 'Impossible d\'ajouter ce numéro.' });
+      success(t('walletAdded'));
+      } catch (err) {
+        showError(t('walletAddError'));
+        setErrors({ general: t('walletAddError') });
     } finally {
       setIsAdding(false);
     }
   };
 
   const handleDeleteWallet = async (id: string) => {
-    if (confirm('Voulez-vous vraiment supprimer ce portefeuille ?')) {
-      await api.deleteWallet(id);
-      const updated = await api.getWallets();
-      setWallets(updated);
-      success('Portefeuille supprimé.');
-    }
+      if (confirm(t('confirmDeleteWallet'))) {
+        await api.deleteWallet(id);
+        const updated = await api.getWallets();
+        setWallets(updated);
+        success(t('walletDeleted'));
+      }
   };
 
   const handleSetDefault = async (id: string) => {
     await api.setDefaultWallet(id);
     const updated = await api.getWallets();
     setWallets(updated);
-    success('Portefeuille par défaut mis à jour !');
+      success(t('defaultWalletUpdated'));
   };
 
   // Password management
@@ -310,14 +308,14 @@ export default function ProfilePage() {
   const handleCreatePassword = async () => {
     if (!newPassword) { showError(tErrors('pleaseEnterPassword')); return; }
     if (!validatePasswordStrength(newPassword)) {
-      showError('Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.');
+      showError(tErrors('passwordStrength'));
       return;
     }
-    if (newPassword !== confirmPassword) { showError('Les mots de passe ne correspondent pas'); return; }
+    if (newPassword !== confirmPassword) { showError(tErrors('passwordMismatch')); return; }
     setPasswordLoading(true);
     try {
       await api.auth.createPassword(newPassword, confirmPassword);
-      success('Mot de passe créé avec succès');
+      success(t('passwordCreated'));
       setHasPassword(true);
       setPasswordTab('change');
       setNewPassword('');
@@ -330,14 +328,14 @@ export default function ProfilePage() {
     if (!oldPassword) { showError(tErrors('pleaseEnterPassword')); return; }
     if (!newPassword) { showError(tErrors('pleaseEnterPassword')); return; }
     if (!validatePasswordStrength(newPassword)) {
-      showError('Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.');
+      showError(tErrors('passwordStrength'));
       return;
     }
-    if (newPassword !== confirmPassword) { showError('Les mots de passe ne correspondent pas'); return; }
+    if (newPassword !== confirmPassword) { showError(tErrors('passwordMismatch')); return; }
     setPasswordLoading(true);
     try {
       await api.auth.changePassword(oldPassword, newPassword, confirmPassword);
-      success('Mot de passe modifié avec succès');
+      success(t('passwordChanged'));
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -356,11 +354,11 @@ export default function ProfilePage() {
   };
 
   const handleEnable2FA = async () => {
-    if (!twoFAToken || twoFAToken.length !== 6) { showError('Entrez un code à 6 chiffres'); return; }
-    setTwoFALoading(true);
-    try {
-      await api.twoFactor.enable(twoFAToken);
-      success('2FA activé avec succès');
+      if (!twoFAToken || twoFAToken.length !== 6) { showError(t('enter2FACode')); return; }
+      setTwoFALoading(true);
+      try {
+        await api.twoFactor.enable(twoFAToken);
+        success(t('twoFAEnabled'));
       setTwoFAStatus({ enabled: true, enabledAt: new Date().toISOString(), method: 'totp' });
       setTwoFASecret(null);
       setTwoFAToken('');
@@ -369,11 +367,11 @@ export default function ProfilePage() {
   };
 
   const handleDisable2FA = async () => {
-    if (!twoFAToken || twoFAToken.length !== 6) { showError('Entrez votre code 2FA à 6 chiffres'); return; }
-    setTwoFALoading(true);
-    try {
-      await api.twoFactor.disable(twoFAToken);
-      success('2FA désactivé');
+      if (!twoFAToken || twoFAToken.length !== 6) { showError(t('enter2FADisableCode')); return; }
+      setTwoFALoading(true);
+      try {
+        await api.twoFactor.disable(twoFAToken);
+        success(t('twoFADisabled'));
       setTwoFAStatus({ enabled: false });
       setTwoFAToken('');
     } catch (e: any) { showError(e.message); }
@@ -384,18 +382,18 @@ export default function ProfilePage() {
     setTwoFALoading(true);
     try {
       await api.twoFactor.sendOTP();
-      setTwoFAOTPSent(true);
-      success('Code OTP envoyé par email');
+        setTwoFAOTPSent(true);
+        success(t('otpSent'));
     } catch (e: any) { showError(e.message); }
     setTwoFALoading(false);
   };
 
   const handleEnable2FAOTP = async () => {
-    if (!twoFAToken || twoFAToken.length !== 6) { showError('Entrez le code à 6 chiffres reçu par email'); return; }
-    setTwoFALoading(true);
-    try {
-      await api.twoFactor.enableOTP(twoFAToken);
-      success('2FA activé avec succès');
+      if (!twoFAToken || twoFAToken.length !== 6) { showError(t('enterOTPCode')); return; }
+      setTwoFALoading(true);
+      try {
+        await api.twoFactor.enableOTP(twoFAToken);
+        success(t('twoFAEnabled'));
       setTwoFAStatus({ enabled: true, enabledAt: new Date().toISOString(), method: 'otp' });
       setTwoFAMethodChoice(null);
       setTwoFAOTPSent(false);
@@ -422,9 +420,9 @@ export default function ProfilePage() {
         ...profileForm,
         postName: profileForm.middleName,
       }));
-      success('Informations légales mises à jour avec succès.');
-    } catch (e: any) {
-      showError(e.message || 'Erreur lors de la mise à jour du profil.');
+      success(t('profileUpdated'));
+      } catch (e: any) {
+        showError(e.message || t('profileUpdateError'));
       setProfileSaving(false);
       return;
     }
@@ -709,61 +707,57 @@ export default function ProfilePage() {
               {isKycTriggered && (
                 <div className="p-3 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-2">
                   <ShieldAlert className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-violet-800">
-                    <strong>Étape 1 :</strong> Vérifiez et enregistrez vos informations légales ici. Vous serez ensuite automatiquement redirigé vers l'envoi de vos documents.
-                  </p>
+                  <p className="text-xs text-violet-800" dangerouslySetInnerHTML={{ __html: t('legal.kycTrigger') }} />
                 </div>
               )}
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                This information will be used for KYC verification. Make sure it exactly matches your ID documents.
-              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t('legal.description')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Input
-                  label="Nom"
-                  required
-                  value={profileForm.lastName}
-                  onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
-                />
-                <Input
-                  label="Post-nom"
-                  value={profileForm.middleName}
-                  onChange={(e) => setProfileForm({ ...profileForm, middleName: e.target.value })}
-                />
-                <Input
-                  label="Prénom"
-                  required
-                  value={profileForm.firstName}
-                  onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
-                />
+                  <Input
+                    label={t('legal.lastName')}
+                    required
+                    value={profileForm.lastName}
+                    onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                  />
+                  <Input
+                    label={t('legal.middleName')}
+                    value={profileForm.middleName}
+                    onChange={(e) => setProfileForm({ ...profileForm, middleName: e.target.value })}
+                  />
+                  <Input
+                    label={t('legal.firstName')}
+                    required
+                    value={profileForm.firstName}
+                    onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                  />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Date de naissance"
-                  type="date"
-                  required
-                  value={profileForm.dateOfBirth}
-                  onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
-                />
-                <SearchableSelect
-                  label="Pays"
-                  required
-                  value={profileForm.country}
-                  onChange={(value) => setProfileForm({ ...profileForm, country: value })}
-                  options={ALL_WORLD_COUNTRIES}
-                  placeholder="Sélectionnez votre pays"
-                />
+                  <Input
+                    label={t('legal.dateOfBirth')}
+                    type="date"
+                    required
+                    value={profileForm.dateOfBirth}
+                    onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
+                  />
+                  <SearchableSelect
+                    label={t('legal.country')}
+                    required
+                    value={profileForm.country}
+                    onChange={(value) => setProfileForm({ ...profileForm, country: value })}
+                    options={ALL_WORLD_COUNTRIES}
+                    placeholder={t('legal.countryPlaceholder')}
+                  />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Ville"
-                  value={profileForm.city}
-                  onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                />
-                <Input
-                  label="Adresse"
-                  value={profileForm.address}
-                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                />
+                  <Input
+                    label={t('legal.city')}
+                    value={profileForm.city}
+                    onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                  />
+                  <Input
+                    label={t('legal.address')}
+                    value={profileForm.address}
+                    onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                  />
               </div>
               <Button
                 variant="primary"
@@ -772,7 +766,7 @@ export default function ProfilePage() {
                 loading={profileSaving}
                 onClick={handleSaveProfile}
               >
-                Enregistrer les informations
+                  {t('legal.save')}
               </Button>
             </CardContent>
           </Card>
@@ -867,7 +861,7 @@ export default function ProfilePage() {
                   {/* Country + Operator row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Pays</label>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">{t('wallets.country')}</label>
                     <CountrySelect
                       value={newCountry}
                       onChange={(code) => { setNewCountry(code); setNewOperator(''); setNewPhone(''); setErrors({}); }}
@@ -876,7 +870,7 @@ export default function ProfilePage() {
                     {errors.country && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.country}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Opérateur</label>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">{t('wallets.operator')}</label>
                     <div className="relative">
                       <select
                         value={newOperator}
@@ -890,7 +884,7 @@ export default function ProfilePage() {
                           font-semibold
                         `}
                       >
-                        <option value="">{newCountry ? 'Choisissez...' : 'Sélectionnez d\'abord le pays'}</option>
+                        <option value="">{newCountry ? t('wallets.selectOperator') : t('wallets.selectCountryFirst')}</option>
                         {getOperatorsByCountryCode(newCountry).map((op) => (
                           <option key={op.value} value={op.value}>{op.label}</option>
                         ))}
@@ -903,7 +897,7 @@ export default function ProfilePage() {
 
                 {/* Phone number */}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">Numéro de téléphone</label>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider mb-1.5">{t('wallets.phoneNumber')}</label>
                   <input
                     type="tel"
                     placeholder={
@@ -936,7 +930,7 @@ export default function ProfilePage() {
                   loading={isAdding}
                   icon={<Plus className="w-4 h-4" />}
                 >
-                  Ajouter le numéro
+                  {t('wallets.addButton')}
                 </Button>
               </form>
             </CardContent>
@@ -945,20 +939,18 @@ export default function ProfilePage() {
       </div>
 
       {/* Confirmation Modal */}
-      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirm update" size="sm">
+      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title={t('legal.confirmTitle')} size="sm">
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-800 dark:text-amber-200">
-              <strong>Warning:</strong> Updating your legal information is only allowed <strong>once per month</strong>. Make sure all data is correct before confirming.
-            </p>
+            <p className="text-xs text-amber-800 dark:text-amber-200" dangerouslySetInnerHTML={{ __html: t('legal.confirmWarning') }} />
           </div>
           <div className="flex gap-3">
             <Button variant="outline" fullWidth size="sm" onClick={() => setShowConfirmModal(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button variant="primary" fullWidth size="sm" onClick={confirmSaveProfile}>
-              Confirm
+              {tCommon('confirm')}
             </Button>
           </div>
         </div>

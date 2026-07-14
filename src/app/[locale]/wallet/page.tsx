@@ -147,7 +147,7 @@ export default function WalletPage() {
       <div className="flex items-center gap-3">
         <Wallet className="w-8 h-8 text-violet-600" />
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-          {t('wallet.title') || 'Mon Portefeuille'}
+          {t('wallet.title')}
         </h1>
       </div>
 
@@ -155,7 +155,7 @@ export default function WalletPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-violet-600 to-indigo-600 text-white">
           <CardContent className="p-6">
-            <p className="text-sm opacity-80">{t('wallet.usdBalance') || 'Solde USD'}</p>
+            <p className="text-sm opacity-80">{t('wallet.usdBalance')}</p>
             <p className="text-3xl font-bold">${balance?.USD?.toFixed(2) || '0.00'}</p>
             <p className="text-xs mt-2 opacity-60">
               EUR: €{balance?.EUR?.toFixed(2) || '0.00'} | GBP: £{balance?.GBP?.toFixed(2) || '0.00'}
@@ -307,7 +307,7 @@ export default function WalletPage() {
             <div className="text-center py-12">
               <Wallet className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-slate-400 dark:text-slate-500">
-                {t('wallet.noTransactions') || 'Aucune transaction'}
+                {t('wallet.noTransactions')}
               </p>
             </div>
           ) : (

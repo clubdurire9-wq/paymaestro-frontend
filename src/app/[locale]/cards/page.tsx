@@ -241,7 +241,7 @@ export default function VirtualCardsPage() {
               {/* Infos */}
               <div className="flex justify-between">
                 <div>
-                  <p className="text-[10px] opacity-70 uppercase">Expire</p>
+                  <p className="text-[10px] opacity-70 uppercase">{t('expire')}</p>
                   <p className="font-mono">{details ? details.expiry : `${card.exp_month}/${card.exp_year}`}</p>
                 </div>
                 <div>
@@ -249,7 +249,7 @@ export default function VirtualCardsPage() {
                   <p className="font-mono">{details ? details.cvv : '•••'}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] opacity-70 uppercase">Statut</p>
+                  <p className="text-[10px] opacity-70 uppercase">{t('status')}</p>
                   <Badge className={card.status === 'active' ? 'bg-green-500' : card.status === 'frozen' ? 'bg-blue-500' : 'bg-red-500'}>
                     {card.status === 'active' ? t('statusActive') : card.status === 'frozen' ? t('statusFrozen') : t('statusCancelled')}
                   </Badge>

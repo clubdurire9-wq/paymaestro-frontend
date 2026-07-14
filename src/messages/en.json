@@ -842,6 +842,7 @@
     "rechargeToUse": "Top it up from your wallet to use it",
     "number": "Number",
     "expire": "Expiry",
+    "status": "Status",
     "holder": "Cardholder",
     "balance": "Balance",
     "infoStoredSecurely": "Your information is stored securely. You can reveal it at any time.",
@@ -892,6 +893,8 @@
     "yourTitle": "Your title",
     "yourDescription": "Your description",
     "insufficientBalance": "Insufficient balance. You need $3 in your wallet for the Premium plan.",
+    "perMonth": "/month",
+    "yourPageSlug": "your-page",
     "createFree": "Create my page (Free)",
     "activatePremium": "Activate Premium — {domain} ($3/month)"
   }

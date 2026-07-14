@@ -134,7 +134,7 @@ export default function PaymentPageSetup() {
             <li>{t('premiumFeature2')}</li>
             <li>{t('premiumFeature3')}</li>
           </ul>
-          <p className="mt-4 text-2xl font-bold text-amber-500">3$<span className="text-sm font-normal text-slate-400">/mois</span></p>
+          <p className="mt-4 text-2xl font-bold text-amber-500">3$<span className="text-sm font-normal text-slate-400">{t('perMonth')}</span></p>
         </button>
       </div>
 
@@ -220,7 +220,7 @@ export default function PaymentPageSetup() {
               <p className="font-bold text-lg dark:text-white">{title || t('yourTitle')}</p>
               <p className="text-xs text-slate-400 dark:text-slate-500">{description || t('yourDescription')}</p>
               <p className="text-xs text-slate-300 dark:text-slate-600 mt-2 font-mono">
-                {plan === 'free' ? `${subdomain || 'votre-page'}.paymaestro.me` : meDomain}
+                {plan === 'free' ? `${subdomain || t('yourPageSlug')}.paymaestro.me` : meDomain}
               </p>
             </div>
           </div>
