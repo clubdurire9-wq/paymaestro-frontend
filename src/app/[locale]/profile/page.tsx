@@ -42,6 +42,8 @@ import { logger } from '@/lib/logger';
 
 function CountrySelect({ value, onChange, error }: { value: string; onChange: (code: string) => void; error?: boolean }) {
   const [open, setOpen] = useState(false);
+  const locale = useLocale();
+  const tProfile = useTranslations('profile');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +55,7 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
   }, []);
 
   const selected = MOBILE_MONEY_COUNTRIES.find(c => c.code === value);
+  const displayName = (c: typeof selected) => locale === 'en' ? (c?.nameEn || c?.name) : c?.name;
 
   return (
     <div ref={ref} className="relative">
@@ -68,11 +71,11 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
       >
         {selected ? (
           <>
-            <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${selected.code.toLowerCase()}.png`} alt={selected.name} className="w-5 h-4 rounded object-cover" />
-            <span className="flex-1 text-left">{selected.name} ({selected.dialCode})</span>
+            <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${selected.code.toLowerCase()}.png`} alt={displayName(selected) || ''} className="w-5 h-4 rounded object-cover" />
+            <span className="flex-1 text-left">{displayName(selected)} ({selected.dialCode})</span>
           </>
         ) : (
-          <span className="flex-1 text-left text-slate-400">Sélectionnez un pays</span>
+          <span className="flex-1 text-left text-slate-400">{tProfile('selectCountry')}</span>
         )}
         <span className="text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
       </button>
@@ -88,8 +91,8 @@ function CountrySelect({ value, onChange, error }: { value: string; onChange: (c
                 ${value === c.code ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-bold' : 'text-slate-800 dark:text-white font-semibold'}
               `}
             >
-              <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`} alt={c.name} className="w-5 h-4 rounded object-cover" />
-              <span className="flex-1">{c.name}</span>
+              <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`} alt={displayName(c) || ''} className="w-5 h-4 rounded object-cover" />
+              <span className="flex-1">{displayName(c)}</span>
               <span className="text-slate-400 text-[10px]">{c.dialCode}</span>
             </button>
           ))}
@@ -443,7 +446,7 @@ export default function ProfilePage() {
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-300">
       <div className="border-b border-slate-100 dark:border-slate-700 pb-5">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('title')}</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez vos informations de compte et portefeuilles de retrait.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -472,7 +475,7 @@ export default function ProfilePage() {
                   className="hidden"
                   onChange={handleAvatarChange}
                 />
-                <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white" title="Identité vérifiée">✓</span>
+                <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white" title={t('identityVerified')}>✓</span>
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-800 dark:text-white">{user?.name}</h3>
@@ -489,8 +492,8 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400 dark:text-slate-300">Niveau de compte :</span>
-                  <span className="font-semibold text-violet-600">Premium (Illimité)</span>
+                  <span className="text-slate-400 dark:text-slate-300">{t('accountLevel')}</span>
+                  <span className="font-semibold text-violet-600">{t('accountLevelValue')}</span>
                 </div>
               </div>
             </CardContent>
@@ -501,7 +504,7 @@ export default function ProfilePage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Key className="w-3.5 h-3.5 text-violet-600" />
-                Mot de passe
+                {t('password.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3 text-sm">
@@ -510,48 +513,48 @@ export default function ProfilePage() {
               ) : hasPassword ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Mot de passe actuel</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('password.currentPassword')}</label>
                     <div className="relative mt-1">
-                      <input type={showOldPassword ? 'text' : 'password'} value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="Entrez votre mot de passe" />
+                      <input type={showOldPassword ? 'text' : 'password'} value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder={t('password.currentPlaceholder')} />
                       <button onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-300"><Eye className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Nouveau mot de passe</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('password.newPassword')}</label>
                     <div className="relative mt-1">
-                      <input type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé." />
+                      <input type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder={t('password.newPlaceholder')} />
                       <button onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-300"><Eye className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Confirmer</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('password.confirmPassword')}</label>
                     <div className="relative mt-1">
-                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="Répétez le mot de passe" />
+                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder={t('password.confirmPlaceholder')} />
                       <button onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-300"><Eye className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                   <Button variant="primary" fullWidth size="sm" loading={passwordLoading} onClick={handleChangePassword}>
-                    Modifier le mot de passe
+                    {t('password.changeButton')}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Nouveau mot de passe</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('password.newPassword')}</label>
                     <div className="relative mt-1">
-                      <input type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="Min. 8 car., 1 maj., 1 min., 1 chiffre, 1 spé." />
+                      <input type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder={t('password.newPlaceholder')} />
                       <button onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-300"><Eye className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Confirmer</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('password.confirmPassword')}</label>
                     <div className="relative mt-1">
-                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="Répétez le mot de passe" />
+                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder={t('password.confirmPlaceholder')} />
                       <button onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-300"><Eye className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                   <Button variant="primary" fullWidth size="sm" loading={passwordLoading} onClick={handleCreatePassword}>
-                    Créer un mot de passe
+                    {t('password.createButton')}
                   </Button>
                 </div>
               )}
@@ -563,7 +566,7 @@ export default function ProfilePage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Smartphone className="w-3.5 h-3.5 text-violet-600" />
-                Authentification à deux facteurs (2FA)
+                {t('twoFactor.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3 text-sm">
@@ -575,24 +578,24 @@ export default function ProfilePage() {
                     <ShieldCheck className="w-5 h-5 text-emerald-500" />
                     <div>
                       <p className="text-xs font-semibold text-emerald-800">
-                        2FA Activé
-                        {twoFAStatus.method === 'otp' && <span className="ml-1 text-[10px] text-emerald-600">(Code par email)</span>}
-                        {twoFAStatus.method === 'totp' && <span className="ml-1 text-[10px] text-emerald-600">(Application)</span>}
+                        {t('twoFactor.enabled')}
+                        {twoFAStatus.method === 'otp' && <span className="ml-1 text-[10px] text-emerald-600">{t('twoFactor.otpMethod')}</span>}
+                        {twoFAStatus.method === 'totp' && <span className="ml-1 text-[10px] text-emerald-600">{t('twoFactor.totpMethod')}</span>}
                       </p>
-                      {twoFAStatus.enabledAt && <p className="text-[10px] text-emerald-600">Depuis le {new Date(twoFAStatus.enabledAt).toLocaleDateString()}</p>}
+                      {twoFAStatus.enabledAt && <p className="text-[10px] text-emerald-600">{t('twoFactor.since', { date: new Date(twoFAStatus.enabledAt).toLocaleDateString() })}</p>}
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Code 2FA pour désactiver</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('twoFactor.disableCode')}</label>
                     <div className="flex gap-2 mt-1">
                       <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500" placeholder="000000" maxLength={6} />
-                      <Button variant="outline" size="sm" loading={twoFALoading} onClick={handleDisable2FA}>Désactiver</Button>
+                      <Button variant="outline" size="sm" loading={twoFALoading} onClick={handleDisable2FA}>{t('twoFactor.disable')}</Button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Ajoutez une couche de sécurité supplémentaire à votre compte.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{t('twoFactor.description')}</p>
 
                   {!twoFAMethodChoice && !twoFASecret && (
                     <div className="grid grid-cols-1 gap-2">
@@ -603,8 +606,8 @@ export default function ProfilePage() {
                       >
                         <Mail className="w-5 h-5 text-violet-500 shrink-0" />
                         <div>
-                          <p className="text-xs font-bold text-slate-800 dark:text-white">Code par email</p>
-                          <p className="text-[10px] text-slate-500">Recevez un code PayMaestro-XXXXXX par email</p>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">{t('twoFactor.emailMethod')}</p>
+                          <p className="text-[10px] text-slate-500">{t('twoFactor.emailMethodDesc')}</p>
                         </div>
                       </button>
                       <button
@@ -614,8 +617,8 @@ export default function ProfilePage() {
                       >
                         <Smartphone className="w-5 h-5 text-violet-500 shrink-0" />
                         <div>
-                          <p className="text-xs font-bold text-slate-800 dark:text-white">Application d'authentification</p>
-                          <p className="text-[10px] text-slate-500">Google Authenticator, Authy, etc.</p>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">{t('twoFactor.appMethod')}</p>
+                          <p className="text-[10px] text-slate-500">{t('twoFactor.appMethodDesc')}</p>
                         </div>
                       </button>
                     </div>
@@ -624,20 +627,20 @@ export default function ProfilePage() {
                   {twoFAMethodChoice === 'otp' && (
                     <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
                       <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Un code à 6 chiffres vous sera envoyé par email à chaque connexion.
+                        {t('twoFactor.otpDesc')}
                       </p>
                       {!twoFAOTPSent ? (
                         <Button variant="primary" fullWidth size="sm" loading={twoFALoading} onClick={handleSend2FAOTP}>
-                          <Mail className="w-3.5 h-3.5 mr-1" /> Send verification code
+                          <Mail className="w-3.5 h-3.5 mr-1" /> {t('twoFactor.sendCode')}
                         </Button>
                       ) : (
                         <div className="space-y-2">
-                          <p className="text-[10px] font-bold text-emerald-600">Code envoyé ! Vérifiez votre boîte email.</p>
+                          <p className="text-[10px] font-bold text-emerald-600">{t('twoFactor.codeSent')}</p>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Verification code received by email</label>
+                            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('twoFactor.verifyCodeLabel')}</label>
                             <div className="flex gap-2 mt-1">
                               <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 bg-white dark:bg-slate-800" placeholder="000000" maxLength={6} />
-                              <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FAOTP}>Activer</Button>
+                              <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FAOTP}>{t('twoFactor.enable')}</Button>
                             </div>
                           </div>
                           <button
@@ -645,7 +648,7 @@ export default function ProfilePage() {
                             onClick={handleSend2FAOTP}
                             className="text-[10px] text-violet-600 hover:underline font-semibold"
                           >
-                            Renvoyer le code
+                            {t('twoFactor.resendCode')}
                           </button>
                         </div>
                       )}
@@ -654,7 +657,7 @@ export default function ProfilePage() {
                         onClick={() => { setTwoFAMethodChoice(null); setTwoFAOTPSent(false); setTwoFAToken(''); }}
                         className="text-[10px] text-slate-400 hover:underline"
                       >
-                        Retour
+                        {t('twoFactor.back')}
                       </button>
                     </div>
                   )}
@@ -667,14 +670,14 @@ export default function ProfilePage() {
                         </div>
                       )}
                       <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase mb-1">Clé secrète</p>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase mb-1">{t('twoFactor.secretKey')}</p>
                         <p className="font-mono text-xs break-all select-all">{twoFASecret.secret}</p>
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">Code de vérification</label>
+                        <label className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase">{t('twoFactor.verifyCode')}</label>
                         <div className="flex gap-2 mt-1">
                           <input type="text" value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} className="flex-1 px-3 py-2 text-xs text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 bg-white dark:bg-slate-800" placeholder="000000" maxLength={6} />
-                          <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FA}>Vérifier</Button>
+                          <Button variant="primary" size="sm" loading={twoFALoading} onClick={handleEnable2FA}>{t('twoFactor.verify')}</Button>
                         </div>
                       </div>
                       <button
@@ -682,7 +685,7 @@ export default function ProfilePage() {
                         onClick={() => setTwoFASecret(null)}
                         className="text-[10px] text-slate-400 hover:underline"
                       >
-                        Retour
+                        {t('twoFactor.back')}
                       </button>
                     </div>
                   )}
@@ -699,7 +702,7 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <FileText className="w-5 h-5 text-violet-600" />
-                Informations légales
+                {t('legal.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-4">

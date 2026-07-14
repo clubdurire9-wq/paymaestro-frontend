@@ -5,6 +5,7 @@ import { Building, Copy, CheckCircle2, Loader2, Globe, Shield, Trash2, ToggleLef
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ToastContainer, Toast } from '@/components/ui/toast';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 
@@ -19,22 +20,24 @@ interface IbanRecord {
 
 const SEPA_COUNTRIES = [
   { code: 'FR', label: 'France' },
-  { code: 'DE', label: 'Allemagne' },
-  { code: 'BE', label: 'Belgique' },
-  { code: 'ES', label: 'Espagne' },
-  { code: 'IT', label: 'Italie' },
-  { code: 'NL', label: 'Pays-Bas' },
+  { code: 'DE', label: 'Germany' },
+  { code: 'BE', label: 'Belgium' },
+  { code: 'ES', label: 'Spain' },
+  { code: 'IT', label: 'Italy' },
+  { code: 'NL', label: 'Netherlands' },
   { code: 'PT', label: 'Portugal' },
-  { code: 'IE', label: 'Irlande' },
-  { code: 'AT', label: 'Autriche' },
-  { code: 'PL', label: 'Pologne' },
-  { code: 'GB', label: 'Royaume-Uni' },
-  { code: 'CH', label: 'Suisse' },
+  { code: 'IE', label: 'Ireland' },
+  { code: 'AT', label: 'Austria' },
+  { code: 'PL', label: 'Poland' },
+  { code: 'GB', label: 'United Kingdom' },
+  { code: 'CH', label: 'Switzerland' },
   { code: 'LU', label: 'Luxembourg' },
   { code: 'MC', label: 'Monaco' },
 ];
 
 export default function IBANPage() {
+  const t = useTranslations('iban');
+  const locale = useLocale();
   const { user } = useAuth();
   const [ibans, setIbans] = useState<IbanRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +68,7 @@ export default function IBANPage() {
       }
       setShowConfirm(true);
     } catch (e: any) {
-      setToast({ message: e.message || 'Erreur lors de la création du compte', type: 'error' });
+      setToast({ message: e.message || t('createAccountError'), type: 'error' });
     }
     setCreating(false);
   };
@@ -76,9 +79,9 @@ export default function IBANPage() {
       await api.stripe.createIBAN(selectedCountry);
       await loadIBANs();
       setShowConfirm(false);
-      setToast({ message: 'Nouvel IBAN créé avec succès !', type: 'success' });
+      setToast({ message: t('createSuccess'), type: 'success' });
     } catch (e: any) {
-      setToast({ message: e.message || 'Erreur lors de la création de l\'IBAN', type: 'error' });
+      setToast({ message: e.message || t('createIbanError'), type: 'error' });
     }
     setCreating(false);
   };
@@ -93,7 +96,7 @@ export default function IBANPage() {
     try {
       await api.stripe.deactivateIBAN(id);
       setIbans(prev => prev.map(i => i.id === id ? { ...i, status: 'INACTIVE' } : i));
-      setToast({ message: 'IBAN désactivé', type: 'info' });
+      setToast({ message: t('deactivated'), type: 'info' });
     } catch (e: any) {
       setToast({ message: e.message, type: 'error' });
     }
@@ -103,18 +106,18 @@ export default function IBANPage() {
     try {
       await api.stripe.activateIBAN(id);
       setIbans(prev => prev.map(i => i.id === id ? { ...i, status: 'ACTIVE' } : i));
-      setToast({ message: 'IBAN activé', type: 'success' });
+      setToast({ message: t('activated'), type: 'success' });
     } catch (e: any) {
       setToast({ message: e.message, type: 'error' });
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Supprimer cet IBAN ? Cette action est irréversible.')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     try {
       await api.stripe.deleteIBAN(id);
       setIbans(prev => prev.filter(i => i.id !== id));
-      setToast({ message: 'IBAN supprimé', type: 'info' });
+      setToast({ message: t('deleted'), type: 'info' });
     } catch (e: any) {
       setToast({ message: e.message, type: 'error' });
     }
@@ -134,10 +137,10 @@ export default function IBANPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Building className="w-8 h-8 text-violet-600" />
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Mes IBANs</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
         </div>
         <Button onClick={handleCreateIBAN} disabled={creating}>
-          {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4" /> Nouvel IBAN</>}
+          {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4" /> {t('newIban')}</>}
         </Button>
       </div>
 
@@ -145,19 +148,18 @@ export default function IBANPage() {
         <Card className="border-2 border-dashed border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/20">
           <CardContent className="p-8 text-center space-y-4">
             <Globe className="w-16 h-16 text-violet-400 mx-auto" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Obtenez votre IBAN européen</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('getEuropeanIban')}</h2>
             <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-              Recevez des virements SEPA de vos clients européens directement sur votre compte PayMaestro.
-              L&apos;argent sera automatiquement converti et crédité sur votre portefeuille.
+              {t('sepaDescription')}
             </p>
             <ul className="text-xs text-slate-500 dark:text-slate-400 space-y-1 text-left max-w-xs mx-auto">
-              <li>✅ Virements SEPA gratuits</li>
-              <li>✅ IBAN personnel sécurisé</li>
-              <li>✅ Conversion automatique en USD</li>
-              <li>✅ Premier IBAN gratuit</li>
+              <li>{t('freeSepa')}</li>
+              <li>{t('secureIban')}</li>
+              <li>{t('autoConversion')}</li>
+              <li>{t('firstFree')}</li>
             </ul>
             <Button onClick={handleCreateIBAN} disabled={creating} size="lg">
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Générer mon premier IBAN'}
+              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : t('generateFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -172,11 +174,11 @@ export default function IBANPage() {
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isActive ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
-                          {isActive ? 'ACTIF' : 'INACTIF'}
+                          {isActive ? t('active') : t('inactive')}
                         </span>
                         {record.is_first && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">
-                            GRATUIT
+                            {t('free')}
                           </span>
                         )}
                         <span className="text-xs text-slate-400 dark:text-slate-500">{record.country}</span>
@@ -185,7 +187,7 @@ export default function IBANPage() {
                         {formatIban(record.iban)}
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">
-                        Créé le {new Date(record.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {t('createdOn')} {new Date(record.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
                         {!record.is_first && ` · 5$`}
                       </p>
                     </div>
@@ -193,7 +195,7 @@ export default function IBANPage() {
                       <button
                         onClick={() => handleCopy(record.id, record.iban)}
                         className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                        title="Copier l'IBAN"
+                        title={t('copyIban')}
                       >
                         {copiedId === record.id ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
                       </button>
@@ -201,7 +203,7 @@ export default function IBANPage() {
                         <button
                           onClick={() => handleDeactivate(record.id)}
                           className="p-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-400 hover:text-amber-600 transition-colors"
-                          title="Désactiver"
+                          title={t('deactivate')}
                         >
                           <ToggleRight className="w-5 h-5" />
                         </button>
@@ -209,7 +211,7 @@ export default function IBANPage() {
                         <button
                           onClick={() => handleActivate(record.id)}
                           className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-slate-400 hover:text-green-600 transition-colors"
-                          title="Activer"
+                          title={t('activate')}
                         >
                           <ToggleLeft className="w-5 h-5" />
                         </button>
@@ -217,7 +219,7 @@ export default function IBANPage() {
                       <button
                         onClick={() => handleDelete(record.id)}
                         className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-colors"
-                        title="Supprimer"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -234,17 +236,17 @@ export default function IBANPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <Shield className="w-12 h-12 text-blue-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white text-center">Nouvel IBAN</h3>
+            <h3 className="font-bold text-lg text-slate-900 dark:text-white text-center">{t('newIban')}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-4">
               {ibans.length === 0
-                ? 'Gratuit — Premier IBAN'
-                : '5$ seront déduits de votre solde'
+                ? t('firstFreeLabel')
+                : t('deductMessage')
               }
             </p>
 
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500 dark:text-slate-400">Pays de l&apos;IBAN :</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{t('ibanCountry')}:</span>
                 <select
                   value={selectedCountry}
                   onChange={e => setSelectedCountry(e.target.value)}
@@ -256,21 +258,21 @@ export default function IBANPage() {
                 </select>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-500 dark:text-slate-400">Frais</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{t('fee')}</span>
                 <span className={`font-bold ${ibans.length === 0 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {ibans.length === 0 ? 'GRATUIT' : '5$'}
+                  {ibans.length === 0 ? t('free') : '5$'}
                 </span>
               </div>
             </div>
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-200 mb-4">
-              ⚠️ Assurez-vous que ces informations sont correctes.
+              {t('confirmInfo')}
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setShowConfirm(false)}>Cancel</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowConfirm(false)}>{t('cancel')}</Button>
               <Button fullWidth onClick={handleConfirmCreateIBAN} disabled={creating}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm and create'}
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : t('confirmAndCreate')}
               </Button>
             </div>
           </div>
@@ -289,66 +291,66 @@ export default function IBANPage() {
             </button>
             <div className="text-center mb-4">
               <Building className="w-12 h-12 text-blue-500 mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Détails du virement</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">L'argent sera reçu sur ce compte :</p>
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('transferDetails')}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('moneyReceivedHere')}</p>
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2 text-sm mb-4">
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Titulaire :</span>
-                <span className="font-bold text-slate-800 dark:text-white">{user?.name || 'Votre nom'}</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('accountHolder')}:</span>
+                <span className="font-bold text-slate-800 dark:text-white">{user?.name || t('yourName')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Email :</span>
-                <span className="font-bold text-slate-800 dark:text-white">{user?.email || 'Votre email'}</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('email')}:</span>
+                <span className="font-bold text-slate-800 dark:text-white">{user?.email || t('yourEmail')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">IBAN :</span>
                 <span className="font-mono font-bold text-slate-800 dark:text-white text-xs">{formatIban(selectedIban.iban)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Pays :</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('country')}:</span>
                 <span className="font-bold text-slate-800 dark:text-white">{selectedIban.country}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Frais :</span>
-                <span className="font-bold text-slate-800 dark:text-white">2% de conversion</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('fee')}:</span>
+                <span className="font-bold text-slate-800 dark:text-white">{t('conversionFee')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Délai :</span>
-                <span className="text-yellow-600 dark:text-yellow-400 font-semibold">1-5 jours ouvrés</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('delay')}:</span>
+                <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{t('delayDays')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Devises :</span>
-                <span className="text-green-600 dark:text-green-400 font-semibold">Multi-devises (EUR, USD, GBP...)</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('currencies')}:</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold">{t('multiCurrency')}</span>
               </div>
             </div>
 
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-3 text-xs text-green-800 dark:text-green-400 mb-4">
-              ✅ Crédité automatiquement dès réception
+              {t('autoCreditNotice')}
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-2 mb-4">
-              <p className="font-semibold">📋 Instructions :</p>
-              <p>1. Copiez votre IBAN ci-dessus</p>
-              <p>2. Faites un virement SEPA ou SWIFT depuis votre banque vers cet IBAN</p>
-              <p>3. Le montant sera crédité automatiquement sur votre wallet</p>
+              <p className="font-semibold">{t('instructions')}</p>
+              <p>1. {t('instruction1')}</p>
+              <p>2. {t('instruction2')}</p>
+              <p>3. {t('instruction3')}</p>
             </div>
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-xs text-yellow-800 dark:text-yellow-400 space-y-1 mb-4">
-              <p><strong>⚠️ Délais :</strong></p>
-              <p>• Virement SEPA (Europe) : 1-2 jours ouvrés</p>
-              <p>• Virement SWIFT (International) : 3-5 jours ouvrés</p>
-              <p><strong>💰 Frais :</strong> 2% de conversion</p>
+              <p>{t('delayTitle')}</p>
+              <p>{t('sepaDelay')}</p>
+              <p>{t('swiftDelay')}</p>
+              <p>{t('feeDetailLabel')}</p>
             </div>
 
             <div className="flex gap-3">
               <Button variant="outline" fullWidth onClick={() => { setShowDetailsModal(false); setSelectedIban(null); }}>
-                Fermer
+                {t('close')}
               </Button>
               <Button fullWidth onClick={() => { handleCopy(selectedIban.id, selectedIban.iban); }}>
                 <Copy className="w-4 h-4 mr-2" />
-                {copiedId === selectedIban.id ? 'Copié !' : "Copier l'IBAN"}
+                {copiedId === selectedIban.id ? t('copied') : t('copyIban')}
               </Button>
             </div>
           </div>

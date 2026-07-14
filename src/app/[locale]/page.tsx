@@ -261,7 +261,7 @@ export default function HomePage() {
           {countries.map((c: any) => (
             <div key={c.name} className="flex items-center gap-3 p-3 border border-slate-100 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-600 transition-all">
               <img src={getFlagUrl(c.countryCode)} alt={c.name} className="w-6 h-4 object-cover rounded-sm" />
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{c.name}</span>
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{locale === 'en' ? (c.nameEn || c.name) : c.name}</span>
             </div>
           ))}
         </div>

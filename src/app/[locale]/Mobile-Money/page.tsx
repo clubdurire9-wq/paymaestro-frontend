@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Loader2, CheckCircle2, AlertTriangle, ArrowDown, ArrowUp, Phone, Snowflake } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,17 +58,19 @@ const currencies: Currency[] = [
 
 function CountrySelect({ value, onChange, className }: { value: CountryData; onChange: (c: CountryData) => void; className?: string }) {
   const [open, setOpen] = useState(false);
+  const locale = useLocale();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+  const displayName = (c: CountryData) => locale === 'en' ? c.countryEn : c.country;
   return (
     <div ref={ref} className={`relative ${className || ''}`}>
       <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-3 py-2 border dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-white text-left">
         <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${value.iso2}.png`} alt={value.country} className="w-5 h-4 rounded object-cover" />
-        <span className="flex-1">{value.country}</span>
+        <span className="flex-1">{displayName(value)}</span>
         <span className="text-slate-400">{open ? '▲' : '▼'}</span>
       </button>
       {open && (
@@ -76,7 +78,7 @@ function CountrySelect({ value, onChange, className }: { value: CountryData; onC
           {ALL_COUNTRIES.map(c => (
             <button key={c.country} type="button" onClick={() => { onChange(c); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white text-left">
               <img crossOrigin="anonymous" src={`https://flagcdn.com/w20/${c.iso2}.png`} alt={c.country} className="w-5 h-4 rounded object-cover" />
-              <span>{c.country}</span>
+              <span>{displayName(c)}</span>
             </button>
           ))}
         </div>

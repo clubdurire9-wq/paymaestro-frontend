@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { 
   CreditCard, Plus, Eye, EyeOff, Copy, Snowflake as SnowflakeIcon, 
   XCircle, Loader2, Shield, Zap, Globe, Lock,
@@ -16,6 +16,7 @@ import { api } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
 export default function VirtualCardsPage() {
+  const t = useTranslations('cards');
   const locale = useLocale();
 
   const [cards, setCards] = useState<any[]>([]);
@@ -80,7 +81,7 @@ export default function VirtualCardsPage() {
       setShowCreate(false);
       loadCards();
     } catch (e: any) {
-      setCreateError(e.message || 'Erreur lors de la création de la carte');
+      setCreateError(e.message || t('createError'));
     }
     setCreating(false);
   };
@@ -99,7 +100,7 @@ export default function VirtualCardsPage() {
       loadCards();
     } catch (e: any) {
       setCancelTarget(null);
-      showToast(e.message || "Erreur lors de l'annulation", 'error');
+      showToast(e.message || t('cancelError'), 'error');
     }
   };
 
@@ -109,12 +110,12 @@ export default function VirtualCardsPage() {
     setRecharging(true);
     try {
       await api.cards.recharge(rechargeTarget.id, parseFloat(rechargeAmount));
-      showToast(`Carte rechargée de ${rechargeAmount}$`, 'success');
+      showToast(t('recharged', { amount: rechargeAmount }), 'success');
       setRechargeTarget(null);
       setRechargeAmount('');
       loadCards();
     } catch (e: any) {
-      showToast(e.message || 'Erreur de recharge', 'error');
+      showToast(e.message || t('rechargeError'), 'error');
     }
     setRecharging(false);
   };
@@ -134,7 +135,7 @@ export default function VirtualCardsPage() {
       setRevealedDetails(prev => ({ ...prev, [card.id]: details }));
       setShowNumber(card.id);
     } catch (e: any) {
-      showToast(e.message || 'Impossible de récupérer les détails', 'error');
+      showToast(e.message || t('detailsError'), 'error');
     }
     setLoadingDetails(prev => ({ ...prev, [card.id]: false }));
   };
@@ -171,7 +172,7 @@ export default function VirtualCardsPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Prepaid virtual Visa/Mastercard cards</p>
         </div>
         <Button onClick={() => setShowCreate(true)} icon={<Plus className="w-4 h-4" />}>
-          Nouvelle carte
+          {t('newCard')}
         </Button>
       </div>
 
@@ -181,23 +182,23 @@ export default function VirtualCardsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div>
               <Zap className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Instantanée</p>
-              <p className="text-xs text-violet-600">Création immédiate</p>
+              <p className="font-bold text-violet-800">{t('instant')}</p>
+              <p className="text-xs text-violet-600">{t('instantDesc')}</p>
             </div>
             <div>
               <Globe className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Internationale</p>
-              <p className="text-xs text-violet-600">Acceptée partout</p>
+              <p className="font-bold text-violet-800">{t('international')}</p>
+              <p className="text-xs text-violet-600">{t('internationalDesc')}</p>
             </div>
             <div>
               <Shield className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Sécurisée</p>
-              <p className="text-xs text-violet-600">Gel/dégel en 1 clic</p>
+              <p className="font-bold text-violet-800">{t('secure')}</p>
+              <p className="text-xs text-violet-600">{t('secureDesc')}</p>
             </div>
             <div>
               <Wallet className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800">Prépayée</p>
-              <p className="text-xs text-violet-600">Rechargez depuis votre wallet</p>
+              <p className="font-bold text-violet-800">{t('prepaid')}</p>
+              <p className="text-xs text-violet-600">{t('prepaidDesc')}</p>
             </div>
           </div>
         </CardContent>
@@ -206,8 +207,8 @@ export default function VirtualCardsPage() {
       {/* Tarifs */}
       <Card className="bg-yellow-50 border-yellow-200">
         <CardContent className="p-4">
-          <p className="text-sm text-yellow-800 font-bold">💰 Tarifs</p>
-          <p className="text-xs text-yellow-700">Création : 2$ • Recharge : Gratuit • Paiement international : 2% (change)</p>
+          <p className="text-sm text-yellow-800 font-bold">{t('pricing')}</p>
+          <p className="text-xs text-yellow-700">{t('pricingDetail')}</p>
         </CardContent>
       </Card>
 
@@ -250,7 +251,7 @@ export default function VirtualCardsPage() {
                 <div>
                   <p className="text-[10px] opacity-70 uppercase">Statut</p>
                   <Badge className={card.status === 'active' ? 'bg-green-500' : card.status === 'frozen' ? 'bg-blue-500' : 'bg-red-500'}>
-                    {card.status === 'active' ? 'Active' : card.status === 'frozen' ? 'Gelée' : 'Annulée'}
+                    {card.status === 'active' ? t('statusActive') : card.status === 'frozen' ? t('statusFrozen') : t('statusCancelled')}
                   </Badge>
                 </div>
               </div>
@@ -259,8 +260,8 @@ export default function VirtualCardsPage() {
               {card.spending_limit && (
                 <div className="mt-4 pt-3 border-t border-white/20">
                   <div className="flex justify-between text-xs">
-                    <span>Dépensé : ${card.total_spent?.toFixed(2)}</span>
-                    <span>Limite : ${card.spending_limit}</span>
+                    <span>{t('spent')}: ${card.total_spent?.toFixed(2)}</span>
+                    <span>{t('limit')}: ${card.spending_limit}</span>
                   </div>
                   <div className="w-full bg-white/30 rounded-full h-1.5 mt-1">
                     <div 
@@ -273,7 +274,7 @@ export default function VirtualCardsPage() {
 
               {/* Solde */}
               <div className="mt-4 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-xs opacity-70">Solde disponible</span>
+                <span className="text-xs opacity-70">{t('availableBalance')}</span>
                 <span className="font-bold text-lg">${parseFloat(card.balance || 0).toFixed(2)}</span>
               </div>
             </div>
@@ -283,34 +284,34 @@ export default function VirtualCardsPage() {
               {card.status === 'active' && (
                 <>
                   <button onClick={() => handleToggleCard(card.id, 'freeze')} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                    <SnowflakeIcon className="w-3 h-3" /> Geler
+                    <SnowflakeIcon className="w-3 h-3" /> {t('freeze')}
                   </button>
                   <button onClick={() => handleToggleShow(card)} disabled={isLoading} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
                     {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : showNumber === card.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    {showNumber === card.id ? 'Masquer' : 'Afficher'}
+                    {showNumber === card.id ? t('hide') : t('show')}
                   </button>
                   {details && (
                     <>
                       <button onClick={() => handleCopy(details.cardNumber, 'number')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                        <Copy className="w-3 h-3" /> {copied === 'number' ? 'Copié !' : 'N°'}
+                        <Copy className="w-3 h-3" /> {copied === 'number' ? t('copied') : t('numberShort')}
                       </button>
                       <button onClick={() => handleCopy(details.cvv, 'cvv')} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 hover:underline">
-                        <Copy className="w-3 h-3" /> {copied === 'cvv' ? 'Copié !' : 'CVV'}
+                        <Copy className="w-3 h-3" /> {copied === 'cvv' ? t('copied') : t('cvv')}
                       </button>
                     </>
                   )}
                   <button onClick={() => setRechargeTarget(card)} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                    <RefreshCw className="w-3 h-3" /> Recharger
+                    <RefreshCw className="w-3 h-3" /> {t('recharge')}
                   </button>
                 </>
               )}
               {card.status === 'frozen' && (
                 <button onClick={() => handleToggleCard(card.id, 'unfreeze')} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                  <SnowflakeIcon className="w-3 h-3" /> Dégeler
+                  <SnowflakeIcon className="w-3 h-3" /> {t('unfreeze')}
                 </button>
               )}
               <button onClick={() => setCancelTarget(card)} className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto">
-                  <XCircle className="w-3 h-3" /> Cancel
+                  <XCircle className="w-3 h-3" /> {t('cancel')}
               </button>
             </div>
           </div>
@@ -321,10 +322,10 @@ export default function VirtualCardsPage() {
         {cards.length === 0 && (
           <div className="col-span-full text-center py-12">
             <CreditCard className="w-16 h-16 text-slate-300 dark:text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 text-lg">Aucune carte virtuelle</p>
-            <p className="text-sm text-slate-400 mt-1">Créez votre première carte Visa ou Mastercard</p>
+            <p className="text-slate-500 dark:text-slate-400 text-lg">{t('noCards')}</p>
+            <p className="text-sm text-slate-400 mt-1">{t('noCardsDesc')}</p>
             <Button className="mt-4" onClick={() => setShowCreate(true)}>
-              Créer une carte
+              {t('createCard')}
             </Button>
           </div>
         )}
@@ -334,11 +335,11 @@ export default function VirtualCardsPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Nouvelle carte virtuelle</h2>
+            <h2 className="text-xl font-bold mb-4">{t('newVirtualCard')}</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold">Type de carte</label>
+                <label className="text-sm font-semibold">{t('cardType')}</label>
                 <div className="flex gap-3 mt-1">
                   <button onClick={() => setSelectedBrand('visa')}
                     className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
@@ -356,9 +357,9 @@ export default function VirtualCardsPage() {
               </div>
 
               <div className="bg-yellow-50 rounded-xl p-3 text-sm text-yellow-800">
-                <p> Frais de création : <strong>2$</strong></p>
-                <p> Recharge : <strong>Gratuite</strong></p>
-                <p> Paiement international : <strong>2%</strong></p>
+                <p>{t('creationFee')} <strong>2$</strong></p>
+                <p>{t('freeRecharge')}</p>
+                <p>{t('intPayment')} <strong>2%</strong></p>
               </div>
 
               {createError && (
@@ -369,9 +370,9 @@ export default function VirtualCardsPage() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>{t('cancel')}</Button>
               <Button fullWidth onClick={handleCreateCard} disabled={creating}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Créer (2$)'}
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : t('createWithFee')}
               </Button>
             </div>
           </div>
@@ -385,23 +386,23 @@ export default function VirtualCardsPage() {
             <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-7 h-7 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Cancel card</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('cancelCard')}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-              Are you sure you want to permanently cancel the card <strong>{cancelTarget.brand?.toUpperCase()} •••• {cancelTarget.last_four}</strong>?
+              {t('cancelQuestion')} <strong>{cancelTarget.brand?.toUpperCase()} •••• {cancelTarget.last_four}</strong>?
             </p>
-            <p className="text-xs text-red-500 mt-2 font-semibold">Cette action est irréversible.</p>
+            <p className="text-xs text-red-500 mt-2 font-semibold">{t('irreversible')}</p>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setCancelTarget(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Non, conserver
+                {t('noKeep')}
               </button>
               <button
                 onClick={() => handleCancelCard(cancelTarget.id)}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
               >
-                Yes, cancel
+                {t('yesCancel')}
               </button>
             </div>
           </div>
@@ -412,16 +413,16 @@ export default function VirtualCardsPage() {
       {rechargeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Recharger la carte</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('rechargeCard')}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               {rechargeTarget.brand?.toUpperCase()} •••• {rechargeTarget.last_four}
             </p>
 
             <div className="bg-violet-50 dark:bg-violet-950/30 rounded-xl p-4 mb-4">
               <p className="text-sm text-violet-700 dark:text-violet-300">
-                Solde actuel : <strong>${parseFloat(rechargeTarget.balance || 0).toFixed(2)}</strong>
+                {t('currentBalance')}: <strong>${parseFloat(rechargeTarget.balance || 0).toFixed(2)}</strong>
               </p>
-              <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">Recharge gratuite depuis votre wallet</p>
+              <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">{t('rechargeFreeFromWallet')}</p>
             </div>
 
             <input
@@ -429,17 +430,17 @@ export default function VirtualCardsPage() {
               value={rechargeAmount}
               onChange={(e) => setRechargeAmount(e.target.value)}
               className="w-full px-4 py-3 border rounded-xl text-lg font-bold text-center dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              placeholder="Montant en USD"
+              placeholder={t('amountUSD')}
               min="1"
               max="10000"
             />
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" fullWidth onClick={() => { setRechargeTarget(null); setRechargeAmount(''); }}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button fullWidth onClick={handleRecharge} disabled={recharging || !rechargeAmount || parseFloat(rechargeAmount) <= 0}>
-                {recharging ? <Loader2 className="w-4 h-4 animate-spin" /> : `Recharger ${rechargeAmount ? `${parseFloat(rechargeAmount).toFixed(2)}$` : ''}`}
+                {recharging ? <Loader2 className="w-4 h-4 animate-spin" /> : `${t('recharge')} ${rechargeAmount ? `${parseFloat(rechargeAmount).toFixed(2)}$` : ''}`}
               </Button>
             </div>
           </div>
@@ -456,7 +457,7 @@ export default function VirtualCardsPage() {
       {isCardRechargeFrozen && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
           <SnowflakeIcon className="w-5 h-5 shrink-0" />
-          Recharge de carte bloquée — compte suspendu
+          {t('frozenRechargeBlocked')}
         </div>
       )}
 
@@ -467,31 +468,31 @@ export default function VirtualCardsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CreditCard className="w-12 h-12 text-green-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg">Carte créée !</h3>
-            <p className="text-sm text-amber-600 font-bold mt-2"> Rechargez-la depuis votre wallet pour l'utiliser</p>
+            <h3 className="font-bold text-lg">{t('cardCreated')}</h3>
+            <p className="text-sm text-amber-600 font-bold mt-2">{t('rechargeToUse')}</p>
 
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mt-4 space-y-2 text-left">
-              <p><strong>N° :</strong> <span className="font-mono">{formatCardNumber(newCard.cardNumber)}</span></p>
-              <p><strong>CVV :</strong> <span className="font-mono">{newCard.cvv}</span></p>
-              <p><strong>Expire :</strong> {newCard.expiry}</p>
-              <p><strong>Titulaire :</strong> {newCard.cardholderName}</p>
-              <p><strong>Solde :</strong> $0.00</p>
+              <p><strong>{t('number')}:</strong> <span className="font-mono">{formatCardNumber(newCard.cardNumber)}</span></p>
+              <p><strong>{t('cvv')}:</strong> <span className="font-mono">{newCard.cvv}</span></p>
+              <p><strong>{t('expire')}:</strong> {newCard.expiry}</p>
+              <p><strong>{t('holder')}:</strong> {newCard.cardholderName}</p>
+              <p><strong>{t('balance')}:</strong> $0.00</p>
             </div>
 
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
-              Vos informations sont stockées de manière sécurisée. Vous pourrez les révéler à tout moment.
+              {t('infoStoredSecurely')}
             </p>
 
             <div className="flex gap-2 mt-4">
               <Button variant="outline" fullWidth onClick={() => handleCopy(newCard.cardNumber, 'new-number')}>
-                {copied === 'new-number' ? ' Copié' : ' Copier N°'}
+                {copied === 'new-number' ? t('copied') : t('copyNumber')}
               </Button>
               <Button variant="outline" fullWidth onClick={() => handleCopy(newCard.cvv, 'new-cvv')}>
-                {copied === 'new-cvv' ? ' Copié' : ' Copier CVV'}
+                {copied === 'new-cvv' ? t('copied') : t('copyCvv')}
               </Button>
             </div>
 
-            <Button fullWidth className="mt-3" onClick={() => setNewCard(null)}>Fermer</Button>
+            <Button fullWidth className="mt-3" onClick={() => setNewCard(null)}>{t('close')}</Button>
           </div>
         </div>
       )}
