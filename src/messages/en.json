@@ -9,6 +9,8 @@
     "edit": "Edit",
     "search": "Search",
     "noResults": "No results found",
+    "typeToSearch": "Type country name...",
+    "noCountryFound": "No country found",
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
@@ -402,8 +404,9 @@
       "countryPlaceholder": "Select your country",
       "city": "City",
       "address": "Address",
-      "save": "Save information",
-      "confirmTitle": "Confirm update",
+    "save": "Save information",
+    "dateFormat": "mm/dd/yyyy",
+    "confirmTitle": "Confirm update",
       "confirmWarning": "<strong>Warning:</strong> Updating your legal information is only allowed <strong>once per month</strong>. Make sure all data is correct before confirming."
     },
     "wallets": {

@@ -9,6 +9,8 @@
     "edit": "Modifier",
     "search": "Rechercher",
     "noResults": "Aucun résultat trouvé",
+    "typeToSearch": "Tapez le nom du pays...",
+    "noCountryFound": "Aucun pays trouvé",
     "back": "Retour",
     "next": "Suivant",
     "previous": "Précédent",
@@ -446,8 +448,9 @@
       "countryPlaceholder": "Sélectionnez votre pays",
       "city": "Ville",
       "address": "Adresse",
-      "save": "Enregistrer les informations",
-      "confirmTitle": "Confirmer la mise à jour",
+    "save": "Enregistrer les informations",
+    "dateFormat": "jj/mm/aaaa",
+    "confirmTitle": "Confirmer la mise à jour",
       "confirmWarning": "<strong>Attention :</strong> La mise à jour de vos informations légales n'est autorisée qu'<strong>une fois par mois</strong>. Assurez-vous que toutes les données sont correctes avant de confirmer."
     },
     "wallets": {

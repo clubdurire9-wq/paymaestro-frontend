@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Search, ChevronDown } from 'lucide-react';
 
 export interface SearchableOption {
@@ -24,10 +25,11 @@ export default function SearchableSelect({
   value,
   onChange,
   options,
-  placeholder = 'Rechercher...',
+  placeholder,
   required = false,
   error,
 }: SearchableSelectProps) {
+  const tCommon = useTranslations('common');
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,13 +113,13 @@ export default function SearchableSelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Tapez le nom du pays..."
+              placeholder={tCommon('typeToSearch')}
               className="flex-1 text-xs text-slate-800 dark:text-slate-100 bg-transparent outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
           <div className="overflow-y-auto flex-1">
             {filtered.length === 0 ? (
-              <div className="px-3 py-4 text-xs text-slate-400 dark:text-slate-500 text-center">Aucun pays trouvé</div>
+              <div className="px-3 py-4 text-xs text-slate-400 dark:text-slate-500 text-center">{tCommon('noCountryFound')}</div>
             ) : (
               filtered.map((option) => (
                 <button

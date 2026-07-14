@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
@@ -118,6 +118,14 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isKycTriggered = searchParams.get('trigger') === 'kyc';
+
+  const localizedCountries = useMemo(() => {
+    const displayNames = new Intl.DisplayNames([locale], { type: 'region' });
+    return ALL_WORLD_COUNTRIES.map(c => ({
+      ...c,
+      label: displayNames.of(c.value.toUpperCase()) || c.label,
+    }));
+  }, [locale]);
 
   // Wallet form state
   const [newPhone, setNewPhone] = useState('');
@@ -733,17 +741,20 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label={t('legal.dateOfBirth')}
-                    type="date"
+                    type="text"
                     required
                     value={profileForm.dateOfBirth}
                     onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
+                    placeholder={t('legal.dateFormat')}
+                    onFocus={(e) => e.target.type = 'date'}
+                    onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                   />
                   <SearchableSelect
                     label={t('legal.country')}
                     required
                     value={profileForm.country}
                     onChange={(value) => setProfileForm({ ...profileForm, country: value })}
-                    options={ALL_WORLD_COUNTRIES}
+                    options={localizedCountries}
                     placeholder={t('legal.countryPlaceholder')}
                   />
               </div>
