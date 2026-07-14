@@ -996,5 +996,128 @@
     "yourPageSlug": "votre-page",
     "createFree": "Créer ma page (Gratuit)",
     "activatePremium": "Activer Premium — {domain} (3$/mois)"
+  },
+  "terms": {
+    "pageTitle": "Conditions d'utilisation",
+    "pageSubtitle": "Dernière mise à jour : Juin 2026",
+    "footer": "En utilisant PayMaestro, vous acceptez ces conditions d'utilisation.",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptation des Conditions",
+        "content": "En accédant et en utilisant PayMaestro, vous acceptez d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services."
+      },
+      "service": {
+        "title": "2. Description du Service",
+        "content": "PayMaestro est une plateforme financière qui permet aux utilisateurs de stocker, envoyer et retirer des fonds via un portefeuille sécurisé centralisé dans 54 pays africains. Déposez depuis PayPal, Mobile Money, banque ou crypto, puis retirez vers Mobile Money, banque, PayPal, crypto ou carte virtuelle."
+      },
+      "fees": {
+        "title": "3. Frais et Commissions",
+        "content": "Nos frais sont transparents et affichés avant chaque transaction : PayPal → Portefeuille (5%), Mobile Money → Portefeuille (3%), Banque → Portefeuille (2%), Crypto → Portefeuille (2%), Portefeuille → Mobile Money (3%), Portefeuille → Banque (2-5%), Portefeuille → PayPal (3%), Portefeuille → Carte (1%+2%FX). Tous les frais sont calculés sur le montant brut en USD."
+      },
+      "dataProtection": {
+        "title": "4. Protection des Données",
+        "content": "Nous collectons uniquement les données nécessaires à la fourniture de nos services (email, numéro de téléphone, pièce d'identité pour le KYC). Vos données sont chiffrées et stockées de manière sécurisée. Nous ne partageons jamais vos données avec des tiers sans votre consentement explicite."
+      },
+      "kyc": {
+        "title": "5. Vérification d'Identité (KYC)",
+        "content": "Pour utiliser tous les services PayMaestro, vous devez vérifier votre identité en fournissant une pièce d'identité valide (passeport, CNI, permis de conduire ou carte d'électeur). Cette vérification est requise pour les retraits et transferts."
+      },
+      "liability": {
+        "title": "6. Limitation de Responsabilité",
+        "content": "PayMaestro agit en tant qu'intermédiaire de paiement. Nous ne sommes pas responsables des numéros de téléphone ou coordonnées bancaires incorrects saisis par l'utilisateur. En cas d'erreur, contactez immédiatement notre support pour un remboursement."
+      },
+      "refunds": {
+        "title": "7. Remboursements",
+        "content": "Les demandes de remboursement sont traitées au cas par cas par notre équipe. Un remboursement peut être effectué sur votre portefeuille, Mobile Money, compte PayPal ou compte bancaire. Les frais de service ne sont pas remboursables."
+      },
+      "security": {
+        "title": "8. Sécurité du Compte",
+        "content": "Vous êtes responsable de la sécurité de vos identifiants de connexion. Activez l'authentification à deux facteurs lorsqu'elle est disponible. PayMaestro ne vous demandera jamais votre mot de passe par email ou téléphone."
+      },
+      "modifications": {
+        "title": "9. Modification des Conditions",
+        "content": "PayMaestro se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés des changements importants par email. L'utilisation continue de nos services après modification constitue une acceptation."
+      },
+      "contact": {
+        "title": "10. Contact",
+        "content": "Pour toute question concernant ces conditions, contactez notre équipe support via le chatbot sur notre plateforme ou par email à support@paymaestro.com."
+      }
+    }
+  },
+  "privacy": {
+    "pageTitle": "Politique de Confidentialité",
+    "pageSubtitle": "Dernière mise à jour : Juin 2026",
+    "banner": "Chez PayMaestro, protéger vos données est notre priorité. Nous nous engageons à traiter vos informations personnelles avec le plus grand soin.",
+    "footer": "Pour toute question concernant notre politique de confidentialité : support@paymaestro.com",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Données Collectées",
+        "content": "Nous collectons les informations suivantes : email (via Google OAuth), prénom et nom, numéro de téléphone Mobile Money, pièce d'identité (pour le KYC), historique des transactions, adresse IP et données de navigation."
+      },
+      "useOfData": {
+        "title": "2. Utilisation des Données",
+        "content": "Vos données sont utilisées pour : traiter vos transactions, vérifier votre identité (KYC), prévenir la fraude, améliorer nos services, vous contacter en cas de problème, et respecter nos obligations légales."
+      },
+      "storage": {
+        "title": "3. Stockage et Sécurité",
+        "content": "Vos données sont stockées sur des serveurs sécurisés avec chiffrement AES-256. Les mots de passe sont hachés avec bcrypt. Les connexions sont sécurisées par SSL/TLS. Nous effectuons des audits de sécurité réguliers."
+      },
+      "international": {
+        "title": "4. Transfert International",
+        "content": "Vos données peuvent être transférées et stockées dans différents pays où nous opérons. Ces transferts sont effectués conformément aux lois applicables sur la protection des données."
+      },
+      "sharing": {
+        "title": "5. Partage avec des Tiers",
+        "content": "Nous partageons vos données uniquement avec : Flutterwave (pour les transferts Mobile Money), PayPal (pour les retraits), Google (pour l'authentification OAuth). Ces partenaires sont tenus de maintenir la confidentialité de vos données."
+      },
+      "retention": {
+        "title": "6. Conservation et Suppression",
+        "content": "Vos données sont conservées pendant la durée de votre compte plus 5 ans (obligation légale). Vous pouvez demander la suppression de votre compte à tout moment. Les données de transaction sont anonymisées après 10 ans."
+      },
+      "rights": {
+        "title": "7. Vos Droits",
+        "content": "Vous avez le droit d'accéder, de rectifier et de supprimer vos données. Vous pouvez également vous opposer au traitement et demander la portabilité. Contactez support@paymaestro.com pour exercer ces droits."
+      }
+    }
+  },
+  "refund": {
+    "pageTitle": "Politique de Remboursement et de Résolution des Litiges",
+    "pageSubtitle": "Dernière mise à jour : Juillet 2026",
+    "banner": "Chez PayMaestro, nous nous efforçons de fournir une infrastructure de paiement transparente, sécurisée et fiable. Cette politique définit les conditions, limites de responsabilité et procédures applicables aux demandes de remboursement et à la gestion des litiges au sein de notre plateforme.",
+    "footer": "Pour les signalements urgents : support@paymaestro.com",
+    "sections": {
+      "general": {
+        "title": "1. Principes Généraux de Remboursement",
+        "content": "En raison de la nature instantanée et automatisée des réseaux de transfert de fonds (Mobile Money, passerelles bancaires et transactions Blockchain), toute transaction exécutée et validée avec succès par les réseaux partenaires est, en principe, définitive et irrévocable."
+      },
+      "responsibility": {
+        "title": "2. Responsabilité de l'Utilisateur et Validation des Informations",
+        "content": "Avant de confirmer chaque transaction, une modale d'avertissement apparaît sur l'interface pour récapituler les informations saisies. L'utilisateur est strictement et exclusivement responsable de la vérification de l'exactitude des détails fournis (numéro de téléphone Mobile Money, adresse email PayPal, numéro de compte bancaire/SWIFT, adresse crypto). Si une transaction est envoyée vers des coordonnées externes incorrectes saisies par l'utilisateur, PayMaestro ne peut être tenu responsable, et aucun remboursement externe ne peut être effectué. Nos systèmes n'ont aucun contrôle ni pouvoir de retrait sur les comptes bancaires ou numéros Mobile Money gérés par des opérateurs tiers."
+      },
+      "internalTypo": {
+        "title": "3. Cas Spécial — Erreur de Saisie Interne",
+        "content": "Si l'utilisateur fait une erreur de frappe et saisit le numéro ou l'identifiant d'un autre utilisateur déjà inscrit sur PayMaestro, il doit contacter le support immédiatement. Si la réclamation est reçue à temps, PayMaestro interviendra de manière conservatoire pour geler temporairement le compte PayMaestro du destinataire erroné afin de bloquer les fonds et initier une procédure de médiation interne. Si les fonds ont déjà été retirés de la plateforme par ce destinataire, PayMaestro ne peut plus intervenir."
+      },
+      "eligibility": {
+        "title": "4. Éligibilité au Remboursement Interne",
+        "content": "Un utilisateur peut demander un remboursement uniquement dans les cas techniques internes suivants : Erreur technique exclusive du système (double débit involontaire généré par l'application, ou fonds effectivement débités de la source externe mais non crédités sur le wallet PayMaestro dans les délais de traitement réglementaires). Défaillance technique d'un canal tiers (transaction marquée comme définitivement échouée ou suspendue par un partenaire de distribution alors que le compte source de l'utilisateur a été débité)."
+      },
+      "fees": {
+        "title": "5. Traitement des Frais et Commissions",
+        "content": "Frais de service non remboursables : lorsqu'un geste commercial ou une résolution amiable est accordé suite à une erreur commise par l'utilisateur, les commissions de transaction et frais de service PayMaestro (frais d'opérateur, commissions de change) ne sont pas remboursés. Ils couvrent les frais techniques facturés par nos partenaires d'infrastructure. Erreur imputable à PayMaestro : si le problème provient exclusivement d'une défaillance technique interne de PayMaestro, le montant brut total (frais inclus) sera recrédité sur le compte de l'utilisateur."
+      },
+      "method": {
+        "title": "6. Mode de Restitution Unique : Le Wallet PayMaestro",
+        "content": "Tout remboursement validé par notre équipe d'administration est effectué exclusivement sous forme de crédit sur le wallet PayMaestro de l'utilisateur. Aucune rétrocession directe vers un compte bancaire externe, un compte PayPal externe ou un réseau Mobile Money externe ne sera effectuée par nos administrateurs. Le crédit sur le Wallet PayMaestro est immédiat dès que l'équipe de conformité valide l'anomalie sur la console d'administration. Il appartient ensuite à l'utilisateur de réinitier son retrait en s'assurant de la saisie correcte des détails."
+      },
+      "antifraud": {
+        "title": "7. Anti-Fraude et Prévention des Contestations",
+        "content": "PayMaestro applique une politique de tolérance zéro envers les fausses déclarations et les contestations abusives. Toute tentative d'initier un litige injustifié avec PayPal ou un émetteur bancaire pour une transaction correctement traitée sur notre plateforme entraînera la suspension immédiate et définitive du compte PayMaestro, le gel total des actifs restants pour enquête, et l'enregistrement de l'identité de l'utilisateur sur nos listes de surveillance anti-fraude."
+      },
+      "claim": {
+        "title": "8. Procédure de Réclamation et Contact",
+        "content": "L'utilisateur doit initier une réclamation officielle via le chatbot de la plateforme ou par écrit à support@paymaestro.com dans un délai maximum de 30 jours calendaires suivant la date de la transaction. Le ticket doit contenir l'identifiant unique de la transaction (Order ID), la preuve de débit originale du canal émetteur (SMS opérateur, reçu bancaire) et le motif clair de la demande. L'équipe support s'engage à analyser le dossier et fournir une réponse définitive sous 48 à 72 heures ouvrées."
+      }
+    }
   }
 }
