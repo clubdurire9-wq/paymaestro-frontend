@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 
 export default function DeveloperPage() {
-  const tDeveloper = useTranslations('developer');
+  const t = useTranslations('developer');
+  const tCommon = useTranslations('common');
 
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ export default function DeveloperPage() {
   };
 
   const handleCreateKey = async () => {
-    if (!newKeyName.trim()) { alert('Donnez un nom à votre clé'); return; }
+    if (!newKeyName.trim()) { alert(t('keyNameRequired')); return; }
     setCreating(true);
     try {
       const data = await api.auth.createApiKey(newKeyName.trim(), newKeyType);
@@ -62,7 +63,7 @@ export default function DeveloperPage() {
   };
 
   const handleRevokeKey = async (keyId: number) => {
-    if (!confirm('Révoquer cette clé ? Toutes les intégrations l\'utilisant cesseront de fonctionner.')) return;
+    if (!confirm(t('revokeConfirm'))) return;
     try {
       await api.auth.revokeApiKey(String(keyId));
       loadKeys();
@@ -87,9 +88,9 @@ export default function DeveloperPage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Code className="w-8 h-8 text-violet-600" />
-            Portail Développeur
+            {t('title')}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez vos clés API et intégrez PayMaestro à votre application</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -99,18 +100,18 @@ export default function DeveloperPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <BookOpen className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800 dark:text-violet-300">Documentation API</p>
-              <p className="text-xs text-violet-600 dark:text-violet-400">Guide complet d'intégration</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">{t('docApi')}</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">{t('docApiDesc')}</p>
             </div>
             <div className="text-center">
               <Zap className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800 dark:text-violet-300">Quick Start</p>
-              <p className="text-xs text-violet-600 dark:text-violet-400">Intégrez en 5 minutes</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">{t('quickStart')}</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">{t('quickStartDesc')}</p>
             </div>
             <div className="text-center">
               <Shield className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="font-bold text-violet-800 dark:text-violet-300">Sécurisé</p>
-              <p className="text-xs text-violet-600 dark:text-violet-400">Authentification par clé API</p>
+              <p className="font-bold text-violet-800 dark:text-violet-300">{t('secure')}</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">{t('secureDesc')}</p>
             </div>
           </div>
         </CardContent>
@@ -122,10 +123,10 @@ export default function DeveloperPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Key className="w-5 h-5 text-violet-600" />
-              Vos clés API
+              {t('yourKeys')}
             </CardTitle>
             <Button onClick={() => setShowCreate(true)} icon={<Plus className="w-4 h-4" />}>
-              Nouvelle clé
+              {t('newKey')}
             </Button>
           </div>
         </CardHeader>
@@ -133,10 +134,10 @@ export default function DeveloperPage() {
           {apiKeys.length === 0 ? (
             <div className="text-center py-12">
               <Key className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500 dark:text-slate-400">Aucune clé API</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Créez votre première clé pour commencer</p>
+              <p className="text-slate-500 dark:text-slate-400">{t('noKeys')}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{t('noKeysDesc')}</p>
               <Button className="mt-4" onClick={() => setShowCreate(true)}>
-                Créer une clé API
+                {t('createKey')}
               </Button>
             </div>
           ) : (
@@ -156,10 +157,10 @@ export default function DeveloperPage() {
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={key.type === 'live' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'}>
-                          {key.type === 'live' ? 'Production' : 'Test'}
+                          {key.type === 'live' ? t('keyTypeLive') : t('keyTypeTest')}
                         </Badge>
                         <Badge className={key.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'}>
-                          {key.status === 'active' ? 'Active' : 'Révoquée'}
+                          {key.status === 'active' ? t('statusActive') : t('statusRevoked')}
                         </Badge>
                       </div>
                     </div>
@@ -168,13 +169,13 @@ export default function DeveloperPage() {
                     {key.last_used_at ? (
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {new Date(key.last_used_at).toLocaleDateString('fr-FR')}
+                        {new Date(key.last_used_at).toLocaleDateString()}
                       </span>
                     ) : (
-                      <span>Jamais utilisée</span>
+                      <span>{t('neverUsed')}</span>
                     )}
                     {key.status === 'active' && (
-                      <button onClick={() => handleRevokeKey(key.id)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:text-red-300 rounded-lg transition-colors" title="Révoquer">
+                      <button onClick={() => handleRevokeKey(key.id)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:text-red-300 rounded-lg transition-colors" title={t('revoke')}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -192,7 +193,7 @@ export default function DeveloperPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-violet-600" />
-              Statut compte marchand
+              {t('businessTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -205,18 +206,18 @@ export default function DeveloperPage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {businessType === 'REGISTERED' ? tDeveloper('registeredAccount') : tDeveloper('starterAccount')}
+                    {businessType === 'REGISTERED' ? t('registeredAccount') : t('starterAccount')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {businessType === 'REGISTERED'
-                      ? 'Transferts sortants activés'
-                      : 'Soumettez votre Registre du Commerce pour activer les transferts sortants'}
+                      ? t('outgoingActive')
+                      : t('outgoingInactive')}
                   </p>
                 </div>
               </div>
               {businessType !== 'REGISTERED' && (
                 <Button variant="outline" onClick={() => setShowBusinessModal(true)}>
-                  Devenir Enregistré
+                  {t('becomeRegistered')}
                 </Button>
               )}
             </div>
@@ -226,7 +227,7 @@ export default function DeveloperPage() {
 
       {/* Quick Start Code */}
       <Card>
-        <CardHeader><CardTitle>🚀 Exemple d'intégration</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('integrationExample')}</CardTitle></CardHeader>
         <CardContent>
           <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-6 rounded-xl font-mono text-sm overflow-x-auto">
             <p className="text-slate-400">// Initialiser un paiement PayMaestro</p>
@@ -266,22 +267,22 @@ export default function DeveloperPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-slate-100">
-              <Plus className="w-5 h-5 text-violet-600" /> Nouvelle clé API
+              <Plus className="w-5 h-5 text-violet-600" /> {t('newKeyModalTitle')}
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nom de la clé</label>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('keyName')}</label>
                 <input
                   type="text"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
-                  placeholder="Ex: Mon site e-commerce"
+                  placeholder={t('keyNamePlaceholder')}
                   className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm mt-1"
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Type de clé</label>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('keyType')}</label>
                 <div className="flex gap-3 mt-1">
                   <button
                     onClick={() => setNewKeyType('test')}
@@ -289,8 +290,8 @@ export default function DeveloperPage() {
                       newKeyType === 'test' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30' : 'border-slate-200 dark:border-slate-600 dark:text-slate-300'
                     }`}
                   >
-                    <p className="font-bold">🧪 Test</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Pour les tests</p>
+                    <p className="font-bold">🧪 {t('keyTypeTest')}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{t('keyTypeTestDesc')}</p>
                   </button>
                   <button
                     onClick={() => setNewKeyType('live')}
@@ -298,17 +299,17 @@ export default function DeveloperPage() {
                       newKeyType === 'live' ? 'border-green-500 bg-green-50 dark:bg-green-900/30' : 'border-slate-200 dark:border-slate-600 dark:text-slate-300'
                     }`}
                   >
-                    <p className="font-bold">🚀 Production</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Transactions réelles</p>
+                    <p className="font-bold">🚀 {t('keyTypeLive')}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{t('keyTypeLiveDesc')}</p>
                   </button>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button variant="outline" fullWidth onClick={() => setShowCreate(false)}>{t('cancel')}</Button>
               <Button fullWidth onClick={handleCreateKey} disabled={creating}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Générer la clé'}
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : t('generateKey')}
               </Button>
             </div>
           </div>
@@ -320,8 +321,8 @@ export default function DeveloperPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-            <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">Clé API générée !</h3>
-            <p className="text-sm text-red-600 dark:text-red-400 font-bold mt-2">⚠️ Conservez cette clé — elle ne sera plus affichée</p>
+            <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{t('keyGenerated')}</h3>
+            <p className="text-sm text-red-600 dark:text-red-400 font-bold mt-2">{t('keyWarning')}</p>
 
             <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 mt-4 font-mono text-sm break-all text-left text-slate-800 dark:text-slate-200">
               {showKey ? newKey.apiKey : '•'.repeat(40)}
@@ -329,14 +330,14 @@ export default function DeveloperPage() {
 
             <div className="flex gap-2 mt-4">
               <Button variant="outline" fullWidth onClick={() => setShowKey(!showKey)} icon={showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}>
-                {showKey ? 'Cacher' : 'Afficher'}
+                {showKey ? t('hide') : t('show')}
               </Button>
               <Button fullWidth onClick={() => handleCopy(newKey.apiKey)} icon={copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}>
-                {copied ? 'Copié !' : 'Copier'}
+                {copied ? t('copied') : t('copy')}
               </Button>
             </div>
 
-            <Button fullWidth className="mt-3" onClick={() => setNewKey(null)}>Fermer</Button>
+            <Button fullWidth className="mt-3" onClick={() => setNewKey(null)}>{t('close')}</Button>
           </div>
         </div>
       )}
@@ -357,43 +358,43 @@ export default function DeveloperPage() {
                 <Shield className="w-8 h-8 text-violet-600 dark:text-violet-400" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                Faire évoluer votre compte
+                {t('upgradeModalTitle')}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                {tDeveloper('upgradePrompt', { starter: tDeveloper('starterAccount'), registered: tDeveloper('registeredAccount') })}
+                {t('upgradePrompt', { starter: t('starterAccount'), registered: t('registeredAccount') })}
               </p>
             </div>
 
             <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
               <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
-                <p>{tDeveloper('registeredRequired', { registered: tDeveloper('registeredAccount') })}</p>
+                <p>{t('registeredRequired', { registered: t('registeredAccount') })}</p>
               </div>
 
               <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl space-y-2">
-                <p className="font-semibold text-slate-800 dark:text-slate-200">Pièces requises :</p>
+                <p className="font-semibold text-slate-800 dark:text-slate-200">{t('requiredDocs')}</p>
                 <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
-                  <li>Registre du Commerce (RCCM)</li>
-                  <li>Pièce d'identité du dirigeant</li>
-                  <li>Justificatif de domicile</li>
+                  <li>{t('docRccm')}</li>
+                  <li>{t('docId')}</li>
+                  <li>{t('docProof')}</li>
                 </ul>
               </div>
 
               <p className="text-slate-500 dark:text-slate-400">
-                Notre équipe vérifiera vos documents sous 24 à 48 heures ouvrées.
+                {t('verificationTime')}
               </p>
             </div>
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" fullWidth onClick={() => setShowBusinessModal(false)}>
-                Plus tard
+                {t('later')}
               </Button>
               <Button
                 fullWidth
                 icon={<ArrowUpRight className="w-4 h-4" />}
                 onClick={() => window.location.href = `/${window.location.pathname.split('/')[1]}/contact`}
               >
-                Contacter le support
+                {t('contactSupport')}
               </Button>
             </div>
           </div>
