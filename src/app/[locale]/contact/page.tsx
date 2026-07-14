@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Mail, MessageSquare, User, Loader2, AlertTriangle, Send, Clock, CheckCircle2, HeadphonesIcon, Paperclip, X, Expand, Minimize2, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,8 @@ interface ChatMessage {
 
 export default function ContactPage() {
   const locale = useLocale();
+  const t = useTranslations('contact');
+  const tCommon = useTranslations('common');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -85,11 +87,11 @@ export default function ContactPage() {
         ticket_id: res.ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: 'Please wait a few minutes, an agent will handle your request.',
+        message: t('botWelcome'),
         created_at: new Date().toISOString(),
       }]);
     } catch (err: any) {
-      setError(err?.message || 'Error sending message. Try again later.');
+      setError(err?.message || t('sendError'));
     } finally {
       setSending(false);
     }
@@ -152,7 +154,7 @@ export default function ContactPage() {
         ticket_id: ticketId,
         sender_type: 'BOT',
         sender_email: null,
-        message: 'Error sending message. Try again.',
+        message: t('sendErrorRetry'),
         created_at: new Date().toISOString(),
       }]);
     } finally {
@@ -184,14 +186,14 @@ export default function ContactPage() {
               )}
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              {isResolved ? 'Ticket resolved' : 'Live Support'}
+              {isResolved ? t('chatTitleResolved') : t('chatTitle')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {isResolved
-                ? 'This ticket is closed. Thank you for contacting us.'
+                ? t('chatResolved')
                 : agentName
-                  ? `You are chatting with ${agentName}`
-                  : `Ticket #${ticketId} — Waiting for an agent...`}
+                  ? t('chatWithAgent', { name: agentName })
+                  : t('chatWaiting', { id: ticketId })}
             </p>
           </div>
 
@@ -248,7 +250,7 @@ export default function ContactPage() {
                         <p className={`text-[10px] mt-1 ${
                           msg.sender_type === 'USER' ? 'text-violet-200' : 'text-slate-400 dark:text-slate-500'
                         }`}>
-                          {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.created_at).toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
@@ -257,7 +259,7 @@ export default function ContactPage() {
                 {!isResolved && !agentName && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-300">
                     <Clock className="w-4 h-4 shrink-0" />
-                    An agent will join you shortly...
+                    {t('chatAgentJoining')}
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -299,7 +301,7 @@ export default function ContactPage() {
                         value={chatInput}
                         onChange={e => setChatInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={pendingPreviews.length > 0 ? 'Ajouter un message...' : 'Tapez votre message...'}
+                        placeholder={pendingPreviews.length > 0 ? t('chatInputPlaceholderWithImages') : t('chatInputPlaceholder')}
                         disabled={chatLoading}
                         className="w-full bg-transparent border-0 outline-none text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 p-0"
                       />
@@ -310,7 +312,7 @@ export default function ContactPage() {
                         onClick={() => fileInputRef.current?.click()}
                         disabled={pendingFiles.length >= 10}
                         className="p-2 text-slate-400 dark:text-slate-400 hover:text-violet-500 disabled:opacity-30 transition-colors"
-                        title="Ajouter des fichiers (images, PDF)"
+                        title={t('chatAttachTitle')}
                       >
                         <Paperclip className="w-5 h-5" />
                       </button>
@@ -327,7 +329,7 @@ export default function ContactPage() {
               ) : (
                 <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    This ticket is closed. If you need help, create a new ticket.
+                    {t('chatClosed')}
                   </p>
                 </div>
               )}
@@ -335,7 +337,7 @@ export default function ContactPage() {
           </Card>
 
           <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
-            Ticket #{ticketId} · {ticketStatus === 'OPEN' ? 'Pending' : ticketStatus === 'IN_PROGRESS' ? 'In progress' : 'Resolved'}
+            {tCommon('ticket')} #{ticketId} · {ticketStatus === 'OPEN' ? t('statusOpen') : ticketStatus === 'IN_PROGRESS' ? t('statusInProgress') : t('statusResolved')}
           </p>
         </div>
 
@@ -371,9 +373,9 @@ export default function ContactPage() {
           <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-4">
             <HeadphonesIcon className="w-8 h-8 text-violet-600 dark:text-violet-400" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Contact Support</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-            A question or issue? Tell us everything and an agent will answer you live.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -381,29 +383,29 @@ export default function ContactPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nom <span className="text-slate-400 dark:text-slate-500">(optionnel)</span></label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('nameLabel')} <span className="text-slate-400 dark:text-slate-500">{t('nameOptional')}</span></label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom" className="pl-10" />
+                  <Input value={name} onChange={e => setName(e.target.value)} placeholder={t('namePlaceholder')} className="pl-10" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('emailLabel')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" required className="pl-10" />
+                  <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('emailPlaceholder')} required className="pl-10" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Subject <span className="text-slate-400 dark:text-slate-500">(optional)</span></label>
-                <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. Withdrawal issue" />
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('subjectLabel')} <span className="text-slate-400 dark:text-slate-500">{t('subjectOptional')}</span></label>
+                <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t('subjectPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Message <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('messageLabel')} <span className="text-red-500">*</span></label>
                 <textarea
                   value={message}
                   onChange={e => setMessage(e.target.value)}
-                  placeholder="Describe your request in a few lines..."
+                  placeholder={t('messagePlaceholder')}
                   required rows={4}
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-colors resize-none"
                 />
@@ -415,12 +417,12 @@ export default function ContactPage() {
                 </div>
               )}
               <Button type="submit" disabled={sending || !email.trim() || !message.trim()} className="w-full">
-                {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sending...</> : 'Send'}
+                {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> {t('sending')}</> : t('send')}
               </Button>
             </form>
           </CardContent>
         </Card>
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">Notre équipe est disponible 24h/24 et 7j/7.</p>
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">{t('footer')}</p>
       </div>
     </div>
   );
