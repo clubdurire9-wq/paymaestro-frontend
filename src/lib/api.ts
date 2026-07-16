@@ -219,7 +219,7 @@ export const api = {
       }),
 
     completeLogin: (body: { loginToken: string; password?: string; createPassword?: boolean; twoFactorCode?: string }) =>
-      request<{ token: string; user: any; status: string; loginToken?: string; geo?: { country: string; city: string; region: string; isp: string; ip: string } }>(`${API_URL}/auth/complete-login`, {
+      request<{ token: string; user: any; status: string; loginToken?: string; geo?: { country: string; city: string; region: string; isp: string; ip: string }; qrCode?: string; secret?: string; otpauthUrl?: string; methods?: string[] }>(`${API_URL}/auth/complete-login`, {
         method: 'POST',
         body: JSON.stringify(body),
       }),
