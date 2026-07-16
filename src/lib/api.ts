@@ -785,7 +785,23 @@ export const api = {
         body: JSON.stringify({ email, password }),
       }).then(async (res) => {
         const data = await res.json().catch(() => ({}));
-        if (!res.ok || data.success === false) throw new Error(data.error || 'Identifiants d\'administration incorrects.');
+        if (!res.ok || data.success === false) {
+          const err: any = new Error(data.error || 'Identifiants d\'administration incorrects.');
+          err.status = res.status;
+          throw err;
+        }
+        return data;
+      }),
+
+    setup: (email: string, password: string, name?: string) =>
+      fetch(`${API_URL}/admin/auth/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, name }),
+      }).then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) throw new Error(data.error || 'Échec de la création du compte admin.');
         return data;
       }),
 
