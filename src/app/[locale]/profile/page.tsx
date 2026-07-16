@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
@@ -715,7 +716,7 @@ export default function ProfilePage() {
               {isKycTriggered && (
                 <div className="p-3 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-2">
                   <ShieldAlert className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-violet-800" dangerouslySetInnerHTML={{ __html: t('legal.kycTrigger') }} />
+                  <p className="text-xs text-violet-800" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(t('legal.kycTrigger')) }} />
                 </div>
               )}
               <p className="text-xs text-slate-500 dark:text-slate-400">{t('legal.description')}</p>
@@ -954,7 +955,7 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-800 dark:text-amber-200" dangerouslySetInnerHTML={{ __html: t('legal.confirmWarning') }} />
+            <p className="text-xs text-amber-800 dark:text-amber-200" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(t('legal.confirmWarning')) }} />
           </div>
           <div className="flex gap-3">
             <Button variant="outline" fullWidth size="sm" onClick={() => setShowConfirmModal(false)}>
