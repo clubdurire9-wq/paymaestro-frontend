@@ -203,7 +203,8 @@ export default function LoginPasswordPage() {
 
   const handleSubmit2FASetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!setupCode || setupCode.length < 6) { setError(tErrors('invalid2FACode')); return; }
+    const cleanCode = setupCode.replace(/\D/g, '');
+    if (!cleanCode || cleanCode.length < 6) { setError(tErrors('invalid2FACode')); return; }
     setError('');
     setLoading(true);
 
@@ -211,7 +212,7 @@ export default function LoginPasswordPage() {
     const method = setupMethod || 'totp';
 
     try {
-      const res = await api.auth.verify2FASetup({ loginToken: currentToken, token: setupCode, method });
+      const res = await api.auth.verify2FASetup({ loginToken: currentToken, token: cleanCode, method });
 
       if (res.token && res.user) {
         handleCompleteSuccess(res);
@@ -230,14 +231,15 @@ export default function LoginPasswordPage() {
 
   const handleSubmit2FA = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!twoFactorCode) { setError(tErrors('invalid2FACode')); return; }
+    const cleanCode = twoFactorCode.replace(/\D/g, '');
+    if (!cleanCode || cleanCode.length < 6) { setError(tErrors('invalid2FACode')); return; }
     setError('');
     setLoading(true);
 
     const currentToken = sessionStorage.getItem('pm_login_token') || loginToken;
 
     try {
-      const res = await api.auth.completeLogin({ loginToken: currentToken, twoFactorCode });
+      const res = await api.auth.completeLogin({ loginToken: currentToken, twoFactorCode: cleanCode });
 
       if (res.status === 'NEW_LOCATION_REQUIRED') {
         sessionStorage.setItem('pm_login_token', res.loginToken);
