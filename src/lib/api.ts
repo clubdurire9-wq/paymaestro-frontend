@@ -95,6 +95,40 @@ export function getMemoryToken(): string | null {
   return _memoryToken;
 }
 
+// ==========================================
+// ADMIN SESSION TOKEN — séparé du token utilisateur
+// ==========================================
+
+const ADMIN_TOKEN_KEY = 'paymaestro_admin_token';
+let _adminToken: string | null = null;
+
+if (typeof window !== 'undefined') {
+  try {
+    const saved = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    if (saved) _adminToken = saved;
+  } catch {}
+}
+
+export function setAdminToken(token: string | null): void {
+  _adminToken = token;
+  if (typeof window !== 'undefined') {
+    try {
+      if (token) sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+      else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    } catch {}
+  }
+}
+
+export function getAdminToken(): string | null {
+  return _adminToken;
+}
+
+function adminAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (_adminToken) headers['X-Admin-Authorization'] = `Bearer ${_adminToken}`;
+  return headers;
+}
+
 function sanitizeErrorMessage(msg: string): string {
   if (!msg || typeof msg !== 'string') return 'An error occurred';
   const safe = msg.substring(0, 200);
@@ -148,6 +182,36 @@ async function requestFormData<T>(url: string, formData: FormData): Promise<T> {
   const data = await res.json();
   if (!res.ok || data.success === false) {
     throw new Error(data.error || data.message || `Erreur ${res.status}`);
+  }
+  return data.data !== undefined ? data.data : data;
+}
+
+// Requête admin étanche : inclut le admin_session_token (X-Admin-Authorization)
+async function adminrequest<T>(url: string, options?: RequestInit): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+        ...adminAuthHeaders(),
+        ...options?.headers,
+      },
+      credentials: 'include',
+    });
+  } catch (e: any) {
+    throw new Error('Impossible de contacter le serveur.');
+  }
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    const text = await res.text().catch(() => '');
+    throw new Error(sanitizeErrorMessage(text || `Erreur ${res.status}`));
+  }
+  if (!res.ok || data.success === false) {
+    throw new Error(sanitizeErrorMessage(data.error || data.message || `Erreur ${res.status}`));
   }
   return data.data !== undefined ? data.data : data;
 }
@@ -706,6 +770,36 @@ export const api = {
     listAllUsers: () => request<any[]>(`${API_URL}/admin/users/all`),
     sendMassEmail: (data: { subject: string; message: string; recipientEmails: string[] }) =>
       request<any>(`${API_URL}/admin/send-mass-email`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  // ==========================================
+  // ADMIN AUTH — BARRIÈRE ÉTANCHE (login + OTP)
+  // ==========================================
+
+  adminAuth: {
+    login: (email: string, password: string) =>
+      fetch(`${API_URL}/admin/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      }).then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) throw new Error(data.error || 'Identifiants d\'administration incorrects.');
+        return data;
+      }),
+
+    verifyOtp: (pendingToken: string, otp: string) =>
+      fetch(`${API_URL}/admin/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', Authorization: `Bearer ${pendingToken}` },
+        credentials: 'include',
+        body: JSON.stringify({ pendingToken, otp }),
+      }).then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) throw new Error(data.error || 'Code OTP invalide.');
+        return data;
+      }),
   },
 
   // ==========================================

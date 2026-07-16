@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
@@ -28,6 +29,9 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminAuthModal } from '@/components/admin/AdminAuthModal';
+import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   isExpanded: boolean;
@@ -39,8 +43,17 @@ interface SidebarProps {
 export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileClose }: SidebarProps) {
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
+  const adminAuth = useAdminAuth();
+
+  // Rediriger vers l'admin uniquement après authentification admin réussie
+  React.useEffect(() => {
+    if (adminAuth.authenticated && adminAuth.open === false) {
+      router.push(`/${locale}/admin`);
+    }
+  }, [adminAuth.authenticated, adminAuth.open, locale, router]);
 
   const navItems = [
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
@@ -71,6 +84,24 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
         const active = isActive(item.href);
         const Icon = item.icon;
         const isAdminLink = item.href.includes('/admin');
+        if (isAdminLink) {
+          return (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => { onMobileClose(); adminAuth.openModal(); }}
+              className={`
+                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 w-full text-left
+                ${isExpanded ? '' : 'justify-center px-0'}
+                text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20
+              `}
+              title={!isExpanded ? item.label : undefined}
+            >
+              <Icon className="w-5 h-5 shrink-0 text-amber-500 dark:text-amber-400" />
+              {isExpanded && <span className="truncate">{item.label}</span>}
+            </button>
+          );
+        }
         return (
           <Link
             key={item.href}
@@ -80,15 +111,13 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
               flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
               ${active
                 ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
-                : isAdminLink
-                  ? 'text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
               }
               ${!isExpanded && 'justify-center px-0'}
             `}
             title={!isExpanded ? item.label : undefined}
           >
-            <Icon className={`w-5 h-5 shrink-0 ${isAdminLink ? 'text-amber-500 dark:text-amber-400' : ''}`} />
+            <Icon className="w-5 h-5 shrink-0" />
             {isExpanded && <span className="truncate">{item.label}</span>}
           </Link>
         );
@@ -159,6 +188,8 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
 
         {sidebarContent}
       </aside>
+
+      <AdminAuthModal />
     </>
   );
 }
