@@ -236,6 +236,18 @@ export const api = {
         body: JSON.stringify({ loginToken }),
       }),
 
+    sendSetupOTP: (loginToken: string) =>
+      request<{ status: string; message: string }>(`${API_URL}/auth/send-setup-otp`, {
+        method: 'POST',
+        body: JSON.stringify({ loginToken }),
+      }),
+
+    verify2FASetup: (body: { loginToken: string; token: string; method?: string }) =>
+      request<{ token: string; user: any; status: string; loginToken?: string; geo?: any }>(`${API_URL}/auth/verify-2fa-setup`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
     getPasswordStatus: () =>
       request<{ hasPassword: boolean }>(`${API_URL}/auth/password-status`),
     forgotPassword: (email: string) =>
