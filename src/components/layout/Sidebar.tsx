@@ -20,7 +20,6 @@ import {
   UserCheck,
   User,
   Code,
-  ShieldAlert,
   ChevronLeft,
   PanelLeftClose,
   PanelLeft,
@@ -29,8 +28,6 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/AdminAuthContext';
-import { AdminAuthModal } from '@/components/admin/AdminAuthModal';
 import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
@@ -45,15 +42,6 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
-  const adminAuth = useAdminAuth();
-
-  // Rediriger vers l'admin uniquement après authentification admin réussie
-  React.useEffect(() => {
-    if (adminAuth.authenticated && adminAuth.open === false) {
-      router.push(`/${locale}/admin`);
-    }
-  }, [adminAuth.authenticated, adminAuth.open, locale, router]);
 
   const navItems = [
     { href: `/${locale}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
@@ -73,7 +61,6 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
     { href: `/${locale}/developer`, label: 'Developer', icon: Code },
     { href: `/${locale}/docs`, label: 'Documentation', icon: BookOpen },
     { href: `/${locale}/contact`, label: 'Contact Support', icon: LifeBuoy },
-    ...(isAdmin ? [{ href: `/${locale}/admin`, label: 'Admin', icon: ShieldAlert }] : []),
   ];
 
   const isActive = (href: string) => pathname === href || (href !== `/${locale}/dashboard` && pathname.startsWith(href));
@@ -84,25 +71,6 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
       {navItems.map((item) => {
         const active = isActive(item.href);
         const Icon = item.icon;
-        const isAdminLink = item.href.includes('/admin');
-        if (isAdminLink) {
-          return (
-            <button
-              key={item.href}
-              type="button"
-              onClick={() => { onMobileClose(); adminAuth.openModal(); }}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 w-full text-left
-                ${isExpanded ? '' : 'justify-center px-0'}
-                text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20
-              `}
-              title={!isExpanded ? item.label : undefined}
-            >
-              <Icon className="w-5 h-5 shrink-0 text-amber-500 dark:text-amber-400" />
-              {isExpanded && <span className="truncate">{item.label}</span>}
-            </button>
-          );
-        }
         return (
           <Link
             key={item.href}
@@ -191,7 +159,6 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
         {sidebarContent}
       </aside>
 
-      <AdminAuthModal />
     </>
   );
 }
