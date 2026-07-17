@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { Shield, Zap, Globe2, CheckCircle2, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import Turnstile from '@/components/ui/Turnstile';
+import Turnstile, { TurnstileRef } from '@/components/ui/Turnstile';
 
 export default function LoginPage() {
   const locale = useLocale();
@@ -26,7 +26,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileRef>(null);
+  const turnstileResolveRef = useRef<((token: string) => void) | null>(null);
 
   // Déjà connecté → rediriger vers dashboard
   useEffect(() => {
@@ -46,21 +47,27 @@ export default function LoginPage() {
 
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
-    if (!acceptedTerms || !turnstileToken) return;
-    sessionStorage.setItem('pm_turnstile_token', turnstileToken);
+    if (!acceptedTerms) return;
     setIsGoogleLoading(true);
+
     try {
+      const token = await new Promise<string>((resolve, reject) => {
+        turnstileResolveRef.current = resolve;
+        turnstileRef.current?.execute();
+        setTimeout(() => {
+          if (turnstileResolveRef.current) {
+            turnstileResolveRef.current = null;
+            reject(new Error('Turnstile challenge timeout'));
+          }
+        }, 15000);
+      });
+
+      sessionStorage.setItem('pm_turnstile_token', token);
       await login();
 
       // Ne PAS remettre isGoogleLoading à false ici :
       // le composant sera démonté par la navigation, et le spinner
       // évite un flash visuel pendant la transition.
-
-      // DEBUG
-      const debugToken = sessionStorage.getItem('pm_login_token');
-      const debugStatus = sessionStorage.getItem('pm_login_status');
-      const debugUser = sessionStorage.getItem('pm_login_user');
-
 
       // Vérifier si une étape intermédiaire est requise
       const loginStatus = sessionStorage.getItem('pm_login_status');
@@ -79,6 +86,11 @@ export default function LoginPage() {
       setIsGoogleLoading(false);
     }
   };
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    turnstileResolveRef.current?.(token);
+    turnstileResolveRef.current = null;
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900 flex flex-col items-center justify-center p-6">
@@ -126,16 +138,17 @@ export default function LoginPage() {
             </span>
           </label>
 
-          {/* Widget Turnstile */}
+          {/* Widget Turnstile (invisible) */}
           <Turnstile
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken(null)}
+            ref={turnstileRef}
+            onVerify={handleTurnstileVerify}
+            onExpire={() => {}}
           />
 
           {/* Vrai bouton Google OAuth */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isGoogleLoading || !acceptedTerms || !turnstileToken}
+            disabled={isGoogleLoading || !acceptedTerms}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 rounded-2xl text-base font-semibold hover:bg-slate-100 active:scale-[0.98] transition-all duration-200 shadow-md shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
