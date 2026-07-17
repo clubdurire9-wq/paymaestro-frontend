@@ -29,7 +29,7 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuth } from '@/hooks/AdminAuthContext';
 import { AdminAuthModal } from '@/components/admin/AdminAuthModal';
 import { useRouter } from 'next/navigation';
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import { ShieldAlert, Mail, Lock, KeyRound, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuth } from '@/hooks/AdminAuthContext';
 
 export function AdminAuthModal() {
   const {
