@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
+import Turnstile from '@/components/ui/Turnstile';
 
 export default function LoginPage() {
   const locale = useLocale();
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Déjà connecté → rediriger vers dashboard
   useEffect(() => {
@@ -44,7 +46,8 @@ export default function LoginPage() {
 
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
-    if (!acceptedTerms) return;
+    if (!acceptedTerms || !turnstileToken) return;
+    sessionStorage.setItem('pm_turnstile_token', turnstileToken);
     setIsGoogleLoading(true);
     try {
       await login();
@@ -123,10 +126,16 @@ export default function LoginPage() {
             </span>
           </label>
 
+          {/* Widget Turnstile */}
+          <Turnstile
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken(null)}
+          />
+
           {/* Vrai bouton Google OAuth */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isGoogleLoading || !acceptedTerms}
+            disabled={isGoogleLoading || !acceptedTerms || !turnstileToken}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 rounded-2xl text-base font-semibold hover:bg-slate-100 active:scale-[0.98] transition-all duration-200 shadow-md shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (

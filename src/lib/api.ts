@@ -282,7 +282,7 @@ export const api = {
         body: JSON.stringify({ password, confirmPassword }),
       }),
 
-    completeLogin: (body: { loginToken: string; password?: string; createPassword?: boolean; twoFactorCode?: string }) =>
+    completeLogin: (body: { loginToken: string; password?: string; createPassword?: boolean; twoFactorCode?: string; turnstileToken?: string }) =>
       request<{ token: string; user: any; status: string; loginToken?: string; geo?: { country: string; city: string; region: string; isp: string; ip: string }; qrCode?: string; secret?: string; otpauthUrl?: string; methods?: string[] }>(`${API_URL}/auth/complete-login`, {
         method: 'POST',
         body: JSON.stringify(body),

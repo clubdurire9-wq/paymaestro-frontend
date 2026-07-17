@@ -64,7 +64,8 @@ export default function OnboardingPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await api.auth.completeLogin({ loginToken, createPassword: true, password });
+      const turnstileToken = sessionStorage.getItem('pm_turnstile_token') || undefined;
+      const res = await api.auth.completeLogin({ loginToken, createPassword: true, password, turnstileToken });
 
       if (res.status === '2FA_REQUIRED' || res.status === '2FA_OTP_REQUIRED') {
         sessionStorage.setItem('pm_login_token', res.loginToken || loginToken);
