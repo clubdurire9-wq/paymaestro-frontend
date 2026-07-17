@@ -1,9 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { getTokenFromStorage } from '@/hooks/useAuth';
+import { getTokenFromStorage, removeUserFromStorage } from '@/hooks/useAuth';
+import { useLocale } from 'next-intl';
 
-const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+const LOCK_TIMEOUT = 15 * 60 * 1000;
+const LOGOUT_TIMEOUT = 30 * 60 * 1000;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1';
 
 interface ActivityState {
@@ -32,33 +34,51 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   const [isLocked, setIsLocked] = useState(false);
   const [unlockError, setUnlockError] = useState('');
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locale = useLocale();
 
-  const resetTimer = useCallback(() => {
+  const forceLogout = useCallback(() => {
+    sessionStorage.clear();
+    removeUserFromStorage();
+    window.location.href = `/${locale}/login?reason=timeout`;
+  }, [locale]);
+
+  const resetTimers = useCallback(() => {
     setLastActivity(Date.now());
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
+    if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+
+    lockTimerRef.current = setTimeout(() => {
       const token = getTokenFromStorage();
       if (token) {
         setIsLocked(true);
+        // Démarrer le timer de déconnexion (palier 2)
+        logoutTimerRef.current = setTimeout(() => {
+          forceLogout();
+        }, LOGOUT_TIMEOUT - LOCK_TIMEOUT);
       }
-    }, IDLE_TIMEOUT);
-  }, []);
+    }, LOCK_TIMEOUT);
+  }, [forceLogout]);
 
   useEffect(() => {
     const events = ['mousedown', 'keydown', 'mousemove', 'touchstart', 'scroll', 'click'];
-    const handler = () => { if (!isLocked) resetTimer(); };
+    const handler = () => { if (!isLocked) resetTimers(); };
     events.forEach(ev => window.addEventListener(ev, handler, { passive: true }));
-    resetTimer();
+    resetTimers();
     return () => {
       events.forEach(ev => window.removeEventListener(ev, handler));
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
-  }, [resetTimer, isLocked]);
+  }, [resetTimers, isLocked]);
 
   const lock = useCallback(() => {
     setIsLocked(true);
-  }, []);
+    logoutTimerRef.current = setTimeout(() => {
+      forceLogout();
+    }, LOGOUT_TIMEOUT - LOCK_TIMEOUT);
+  }, [forceLogout]);
 
   const unlock = useCallback(async (password: string): Promise<boolean> => {
     try {
@@ -79,7 +99,8 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       if (res.ok && data.success) {
         setIsLocked(false);
         setUnlockError('');
-        resetTimer();
+        if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+        resetTimers();
         return true;
       }
 
@@ -89,7 +110,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       setUnlockError('Mot de passe incorrect');
       return false;
     }
-  }, [resetTimer]);
+  }, [resetTimers]);
 
   return (
     <ActivityContext.Provider value={{ isLocked, lock, unlock, unlockError, lastActivity }}>
