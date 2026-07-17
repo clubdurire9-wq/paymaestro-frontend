@@ -65,6 +65,19 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError('');
     setMessage('');
+
+    const currentUserRaw = sessionStorage.getItem('pm_auth_user');
+    if (currentUserRaw) {
+      try {
+        const currentUser = JSON.parse(currentUserRaw);
+        if (currentUser.email && currentUser.email.toLowerCase().trim() === String(email).toLowerCase().trim()) {
+          setError('Erreur : Vous ne pouvez pas utiliser l\'email de votre compte utilisateur standard pour l\'accès Admin. Utilisez vos identifiants d\'administration dédiés.');
+          setLoading(false);
+          return;
+        }
+      } catch { /* ignore parse error */ }
+    }
+
     try {
       const res: any = await api.adminAuth.login(email.trim(), password);
       setPendingToken(res.pendingToken);
@@ -87,6 +100,19 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError('');
     setMessage('');
+
+    const currentUserRaw = sessionStorage.getItem('pm_auth_user');
+    if (currentUserRaw) {
+      try {
+        const currentUser = JSON.parse(currentUserRaw);
+        if (currentUser.email && currentUser.email.toLowerCase().trim() === String(email).toLowerCase().trim()) {
+          setError('Erreur : Vous ne pouvez pas utiliser l\'email de votre compte utilisateur standard. Utilisez un email d\'administration dédié.');
+          setLoading(false);
+          return;
+        }
+      } catch { /* ignore parse error */ }
+    }
+
     try {
       const res: any = await api.adminAuth.setup(email.trim(), password, name.trim());
       setPendingToken(res.pendingToken);

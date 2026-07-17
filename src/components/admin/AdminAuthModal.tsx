@@ -17,27 +17,27 @@ export function AdminAuthModal() {
       <div className="space-y-5">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30">
           <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-700 dark:text-amber-300">
-            Zone sécurisée. Utilisez votre <strong>compte d&apos;administration dédié</strong> (email + mot de passe admin), distinct de votre compte utilisateur.
-          </p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Zone sécurisée. Utilisez vos <strong>identifiants d&apos;administration dédiés</strong> (Email admin + Mot de passe admin), strictement distincts de votre compte utilisateur standard.
+            </p>
         </div>
 
         {step === 'credentials' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Email du compte utilisateur</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Email du compte ADMIN dédié</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@paymaestro.com"
+                  placeholder="admin@paymaestro.com"
                   autoFocus
                   className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-violet-500 outline-none"
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-2">Utilisez l&apos;email de votre compte principal (celui avec lequel vous vous connectez partout).</p>
+              <p className="text-xs text-slate-400 mt-2">Entrez l&apos;adresse email spécifiquement créée pour l&apos;administration. Elle doit être différente de celle de votre compte principal.</p>
             </div>
 
             <div>
@@ -53,7 +53,7 @@ export function AdminAuthModal() {
                   className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-violet-500 outline-none"
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-2">Ce mot de passe est <strong>distinct</strong> de votre mot de passe utilisateur. Il sera demandé à chaque accès admin.</p>
+              <p className="text-xs text-slate-400 mt-2">Ce mot de passe est strictement lié au compte admin. Il sera demandé à chaque accès à la console d&apos;administration.</p>
             </div>
 
             {error && (
