@@ -79,7 +79,8 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
   const isActive = (href: string) => pathname === href || (href !== `/${locale}/dashboard` && pathname.startsWith(href));
 
   const sidebarContent = (
-    <nav className="flex flex-col gap-1 py-4 px-2">
+    <nav className="flex-1 overflow-y-auto scroll-smooth">
+      <div className="flex flex-col gap-1 py-4 px-2">
       {navItems.map((item) => {
         const active = isActive(item.href);
         const Icon = item.icon;
@@ -122,6 +123,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 
@@ -131,7 +133,7 @@ export default function Sidebar({ isExpanded, onToggle, isMobileOpen, onMobileCl
       <aside
         className={`
           hidden md:flex flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900
-          transition-all duration-300 ease-in-out shrink-0
+          transition-all duration-300 ease-in-out shrink-0 h-screen
           ${isExpanded ? 'w-56' : 'w-16'}
         `}
       >
