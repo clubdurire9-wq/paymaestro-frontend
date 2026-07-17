@@ -125,8 +125,7 @@ export default function LoginPasswordPage() {
     setLoading(true);
 
     try {
-      const turnstileToken = sessionStorage.getItem('pm_turnstile_token') || undefined;
-      const res = await api.auth.completeLogin({ loginToken, password, turnstileToken });
+      const res = await api.auth.completeLogin({ loginToken, password });
 
       if (res.status === '2FA_SETUP_REQUIRED') {
         sessionStorage.setItem('pm_login_token', res.loginToken);
