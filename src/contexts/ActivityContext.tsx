@@ -65,7 +65,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       const token = getTokenFromStorage();
       if (!token) { setUnlockError('Session expirée'); return false; }
 
-      const res = await fetch(`${API_URL}/auth/step-up`, {
+      const res = await fetch(`${API_URL}/auth/unlock-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
