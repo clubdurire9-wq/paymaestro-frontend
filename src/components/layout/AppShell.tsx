@@ -34,14 +34,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col min-h-screen bg-slate-50/50 dark:bg-[#0b1120]">
       <Header onMenuToggle={openMobile} />
       <KYCWarningBanner />
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar
           isExpanded={isExpanded}
           onToggle={toggleSidebar}
           isMobileOpen={isMobileOpen}
           onMobileClose={closeMobile}
         />
-        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 transition-colors">
+        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 overflow-y-auto transition-colors">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
