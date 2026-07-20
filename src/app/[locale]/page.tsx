@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { 
+import {
   ShieldCheck, Zap, Percent, MessageSquare, ArrowRight, Loader2,
   Wallet, Send, Building, Phone, Globe, Users, ArrowLeftRight, Clock,
   Bitcoin, CreditCard
@@ -20,6 +21,8 @@ export default function HomePage() {
   const t = useTranslations('home');
   const tAuth = useTranslations('auth');
   const locale = useLocale();
+  const router = useRouter();
+  const params = useParams();
   const { user } = useAuth();
   const isGatewayAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
   const [currency, setCurrency] = useState('XOF');

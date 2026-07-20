@@ -11,6 +11,7 @@ import { ActivityProvider } from '@/contexts/ActivityContext';
 import LockScreen from '@/components/auth/LockScreen';
 import ChatWidget from '@/components/chatbot/ChatWidget';
 import { OnboardingGuard } from '@/middleware/onboarding-guard';
+import BotFightGate from '@/components/bot-fight/BotFightGate';
 import '../globals.css';
 
 export const metadata: Metadata = {
@@ -56,12 +57,13 @@ export default async function LocaleLayout({
       <NextIntlClientProvider messages={messages} locale={locale}>
         <GoogleAuthProvider>
           <ActivityProvider>
-            <ToastProvider>
-              <OnboardingGuard>
+          <ToastProvider>
+            <OnboardingGuard>
+              <BotFightGate>
                 <AppShell>{children}</AppShell>
-                <LockScreen />
-              </OnboardingGuard>
-              <ChatWidget />
+              </BotFightGate>
+            </OnboardingGuard>
+            <ChatWidget />
             </ToastProvider>
           </ActivityProvider>
         </GoogleAuthProvider>

@@ -225,6 +225,13 @@ async function adminrequest<T>(url: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   auth: {
+    verifyTurnstile: async (token: string) => {
+      return request<{ success: boolean }>(`${API_URL}/auth/verify-turnstile`, {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+    },
+
     google: async (accessToken: string) => {
       const res = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',

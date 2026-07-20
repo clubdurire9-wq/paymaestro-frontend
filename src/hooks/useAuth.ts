@@ -221,7 +221,7 @@ export async function handleGoogleAuthSuccess(
       headers: { 
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ accessToken, turnstileToken: sessionStorage.getItem('pm_turnstile_token') || undefined }),
+      body: JSON.stringify({ accessToken }),
     });
 
     if (!response.ok) {
