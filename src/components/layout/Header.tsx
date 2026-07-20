@@ -11,6 +11,7 @@ import {
   Loader2,
   ShieldCheck,
   User,
+  ShieldAlert,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
@@ -26,6 +27,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const locale = useLocale();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { user, isAuthenticated, isLoading, login, logout } = useAuth();
+
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
@@ -112,7 +115,12 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
                   <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
-
+                  {isAdmin && (
+                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-medium">
+                      <ShieldAlert className="w-3 h-3" />
+                      Admin
+                    </span>
+                  )}
                 </div>
                 <div className="p-1.5">
                   <Link
@@ -122,7 +130,15 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                     <User className="w-4 h-4" />
                     Mon profil
                   </Link>
-
+                  {isAdmin && (
+                    <Link
+                      href={`/${locale}/admin`}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+                    >
+                      <ShieldAlert className="w-4 h-4" />
+                      Administration
+                    </Link>
+                  )}
                   <button
                     onClick={logout}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
