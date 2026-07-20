@@ -5,19 +5,24 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { AuthContext } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { checkAuthState } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
-// Routes accessibles sans authentification
-const PUBLIC_ROUTES = ['/login', '/login/password', '/login/2fa', '/login/location', '/', '/terms', '/privacy', '/refund', '/auth/google/callback', '/contact', '/docs', '/bot-fight'];
-const LOCALE_PREFIX = /^\/(fr|en)/;
-
-// Routes sensibles nécessitant un KYC valide
-const SENSITIVE_ROUTES = [
-  '/wallet', '/withdraw', '/paypal', '/history', '/cards', '/crypto',
-  '/bank', '/referral', '/payment-page', '/developer', '/admin',
-  '/dashboard', '/iban', '/pricing', '/privacy',
-  '/terms', '/white-label',
+const PUBLIC_ROUTES = [
+  '/login',
+  '/login/password',
+  '/login/2fa',
+  '/login/location',
+  '/',
+  '/terms',
+  '/privacy',
+  '/refund',
+  '/auth/google/callback',
+  '/contact',
+  '/docs',
+  '/bot-fight',
 ];
+const LOCALE_PREFIX = /^\/(fr|en)/;
 
 function getRemainingKYCAttempts(user: any): number {
   return typeof (user as any)?.kycRemainingAttempts === 'number' ? (user as any).kycRemainingAttempts : 3;
@@ -43,6 +48,7 @@ function PublicRouteGuard({ children, route }: { children: React.ReactNode; rout
 
   useEffect(() => {
     if (loading || !status) return;
+
     if (status.canAccessDashboard && route === '/login') {
       router.replace(`/${locale}/dashboard`);
     }
@@ -60,15 +66,18 @@ function PublicRouteGuard({ children, route }: { children: React.ReactNode; rout
 }
 
 function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; route: string }) {
-  const { user, isLoading: authLoading } = useContext(AuthContext);
-  const { status, loading } = useOnboarding();
-  const locale = useLocale();
   const router = useRouter();
+  const locale = useLocale();
+  const { status, loading: onboardingLoading } = useOnboarding();
+
+  const auth = checkAuthState();
+  const isAuthenticated = auth.isAuthenticated;
+  const user = auth.user;
 
   useEffect(() => {
-    if (authLoading || loading || !status) return;
+    if (onboardingLoading || !status) return;
 
-    if (!user) {
+    if (!isAuthenticated || !user) {
       router.replace(`/${locale}/login`);
       return;
     }
@@ -85,20 +94,28 @@ function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; r
       user &&
       status.kycStatus === 'REJECTED' &&
       getRemainingKYCAttempts(user) === 0 &&
-      SENSITIVE_ROUTES.some(r => route.startsWith(r))
+      (route === '/wallet' || route === '/withdraw' || route === '/history' || route === '/admin')
     ) {
       router.replace(`/${locale}/kyc`);
       return;
     }
-  }, [user, authLoading, status, loading, locale, router, route]);
+  }, [isAuthenticated, user, onboardingLoading, status, locale, router, route]);
 
-  if (authLoading || loading || !status) {
+  if (onboardingLoading || !status) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-10 h-10 animate-spin text-violet-600 mx-auto mb-4" />
           <p className="text-sm text-gray-500">Chargement...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-10 h-10 animate-spin text-violet-600" />
       </div>
     );
   }
