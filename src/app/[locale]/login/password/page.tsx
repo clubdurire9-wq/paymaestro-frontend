@@ -48,6 +48,10 @@ export default function LoginPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
+    setPassword('');
+  }, []);
+
+  useEffect(() => {
     const token = sessionStorage.getItem('pm_login_token');
     const userRaw = sessionStorage.getItem('pm_login_user');
     const status = sessionStorage.getItem('pm_login_status');
@@ -353,16 +357,17 @@ export default function LoginPasswordPage() {
                 )}
               </div>
 
-              <form onSubmit={handleSubmitPassword} className="space-y-5">
+              <form onSubmit={handleSubmitPassword} className="space-y-5" autoComplete="off">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">{t('password')}</label>
                   <div className="relative">
-                    <input
+                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={e => { setPassword(e.target.value); setError(''); }}
                       placeholder={t('enterPassword')}
                       autoFocus
+                      autoComplete="new-password"
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
                     />
                     <button
