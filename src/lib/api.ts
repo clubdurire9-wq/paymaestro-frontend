@@ -3,6 +3,7 @@
 // ==========================================
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://paymaestro-backend.onrender.com/api/v1').replace(/\/$/, '');
+import { getDeviceIdSync } from './device-id';
 
 // ==========================================
 // VALIDATION HELPERS
@@ -125,6 +126,7 @@ export function getAdminToken(): string | null {
 
 function adminAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
+  headers['X-Device-ID'] = getDeviceIdSync();
   if (_adminToken) headers['X-Admin-Authorization'] = `Bearer ${_adminToken}`;
   return headers;
 }
@@ -140,6 +142,7 @@ function sanitizeErrorMessage(msg: string): string {
 
 function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
+  headers['X-Device-ID'] = getDeviceIdSync();
   if (_memoryToken) headers['Authorization'] = `Bearer ${_memoryToken}`;
   headers['X-Requested-With'] = 'XMLHttpRequest';
   return headers;
