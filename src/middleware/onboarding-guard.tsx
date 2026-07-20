@@ -78,7 +78,7 @@ function ProtectedRouteGuard({ children, route }: { children: React.ReactNode; r
     if (onboardingLoading || !status) return;
 
     if (!isAuthenticated || !user) {
-      router.replace(`/${locale}/login`);
+      router.replace(`/${locale}/bot-fight`);
       return;
     }
 
