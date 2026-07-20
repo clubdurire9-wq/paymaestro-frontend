@@ -105,7 +105,7 @@ export default function HomePage() {
               if (user) {
                 router.push(`/${locale}/dashboard`);
               } else {
-                router.push(`/${locale}/wallet`);
+                router.push(`/${locale}/login`);
               }
             }}>{t('heroCTA')} <ArrowRight className="w-5 h-5 ml-2" /></Button>
             <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">{t('seeRates')}</Button></Link>
