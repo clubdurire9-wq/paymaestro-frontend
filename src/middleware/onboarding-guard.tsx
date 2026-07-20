@@ -48,6 +48,14 @@ function PublicRouteGuard({ children, route }: { children: React.ReactNode; rout
     }
   }, [status, loading, locale, router, route]);
 
+  if (loading || !status) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-10 h-10 animate-spin text-violet-600" />
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
 

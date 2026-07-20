@@ -101,7 +101,13 @@ export default function HomePage() {
             {t('heroSubtitle')} <strong>{t('heroSubtitleStrong')}</strong>
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href={`/${locale}/wallet`}><Button size="lg">{t('heroCTA')} <ArrowRight className="w-5 h-5 ml-2" /></Button></Link>
+            <Button size="lg" onClick={() => {
+              if (user) {
+                router.push(`/${locale}/dashboard`);
+              } else {
+                router.push(`/${locale}/wallet`);
+              }
+            }}>{t('heroCTA')} <ArrowRight className="w-5 h-5 ml-2" /></Button>
             <Link href={`/${locale}/pricing`}><Button variant="outline" size="lg">{t('seeRates')}</Button></Link>
           </div>
           <div className="flex items-center gap-6 pt-4 text-xs text-slate-400 dark:text-slate-500">

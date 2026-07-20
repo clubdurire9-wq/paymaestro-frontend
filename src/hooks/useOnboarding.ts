@@ -44,14 +44,15 @@ export function useOnboarding() {
       setStatus(data.data);
     } catch (err) {
       // Si le token existe mais l'API est injoignable (Render cold start, timeout),
-      // on laisse passer — les pages individuelles vérifieront via /auth/me
+      // on ne présume pas que l'utilisateur peut accéder au dashboard.
+      // Les pages individuelles vérifieront via /auth/me ou useAuth.
       if (token) {
         setStatus({
           isAuthenticated: true,
-          isPhoneVerified: true,
-          kycStatus: 'APPROVED',
-          canAccessDashboard: true,
-          nextStep: 'dashboard',
+          isPhoneVerified: false,
+          kycStatus: 'NONE',
+          canAccessDashboard: false,
+          nextStep: 'kyc',
         });
       } else {
         setStatus({

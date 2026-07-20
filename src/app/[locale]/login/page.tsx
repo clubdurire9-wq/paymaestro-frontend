@@ -25,13 +25,24 @@ export default function LoginPage() {
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Déjà connecté → rediriger vers dashboard
   useEffect(() => {
-    if (sessionStorage.getItem('paymaestro_token')) {
-      window.location.href = `/${locale}/dashboard`;
+    const token = sessionStorage.getItem('paymaestro_token');
+    const storedUser = sessionStorage.getItem('pm_auth_user');
+    if (token && storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.id && user.email) {
+          router.replace(`/${locale}/dashboard`);
+          return;
+        }
+      } catch {
+        // ignore
+      }
     }
-  }, [locale]);
+    setIsCheckingAuth(false);
+  }, [router, locale]);
 
   // Stocker le code de parrainage depuis l'URL
   useEffect(() => {
@@ -41,6 +52,14 @@ export default function LoginPage() {
       sessionStorage.setItem('pm_referral_code', ref);
     }
   }, []);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    );
+  }
 
   // Vrai Google OAuth — ouvre la popup Google
   const handleGoogleLogin = async () => {
